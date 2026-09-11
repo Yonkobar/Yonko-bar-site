@@ -6,103 +6,190 @@
 <title>Journal des réservations — Yonko Bar</title>
 <style>
   :root {
-    --ink:#ffffff; --panel:#f7f5f2; --panel-2:#efebe4; --line:#e2ded6;
-    --orange:#ff6e00; --teal:#2fa88f; --amber:#c98f1c; --red:#c4483a;
-    --text:#1a1a1a; --muted:#6b6b6b;
+    --ink:#ffffff; --panel:#f9f7f4; --panel-2:#efebe4; --line:#e6e1d8;
+    --orange:#ff6e00; --orange-soft:#fff1e6;
+    --teal:#2fa88f; --teal-soft:#e8f7f4;
+    --amber:#c98f1c; --amber-soft:#fbf3e2;
+    --red:#c4483a; --red-soft:#fbeceb;
+    --text:#1c1c1c; --muted:#78726a;
   }
   * { box-sizing: border-box; }
-  body { background:var(--ink); color:var(--text); font-family:system-ui,sans-serif; margin:0; padding:20px 16px 40px; max-width:640px; margin:0 auto; }
-  h1 { font-size:22px; margin:0 0 2px; }
-  h1 span { color:var(--orange); }
-  .sub { color:var(--muted); font-size:13px; margin:0 0 16px; }
-  .viewtoggle { display:flex; gap:6px; margin-bottom:14px; }
-  .viewtoggle button { flex:1; background:var(--panel); border:1px solid var(--line); color:var(--muted); padding:9px; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; }
-  .viewtoggle button.active { color:#fff; background:var(--orange); border-color:var(--orange); }
-  .addbtn { width:100%; background:var(--orange); color:#fff; border:none; border-radius:8px; padding:11px; font-weight:600; font-size:14px; cursor:pointer; margin-bottom:18px; }
-  .form { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:18px; display:none; gap:9px; flex-direction:column; }
+  body { background:var(--ink); color:var(--text); font-family:-apple-system,system-ui,sans-serif; margin:0; padding:0 0 40px; }
+  .wrap { max-width:640px; margin:0 auto; padding:0 16px; }
+
+  .hero {
+    background: linear-gradient(135deg, #ff6e00 0%, #ff8f3d 100%);
+    padding: 26px 16px 40px;
+    margin-bottom: -24px;
+    border-radius: 0 0 22px 22px;
+  }
+  .hero-inner { max-width:640px; margin:0 auto; display:flex; align-items:center; gap:12px; }
+  .hero-badge {
+    width:44px; height:44px; border-radius:12px; background:rgba(255,255,255,.22);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .hero h1 { font-size:20px; margin:0; color:#fff; font-weight:700; }
+  .hero .sub { color:rgba(255,255,255,.85); font-size:13px; margin:2px 0 0; }
+
+  .card-surface {
+    position: relative; z-index: 1;
+    background: var(--ink);
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(20,15,5,.08);
+    padding: 18px 16px 4px;
+  }
+
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+  .stat { border-radius:12px; padding:10px 8px; text-align:center; cursor:pointer; border:1px solid transparent; }
+  .stat .n { font-size:19px; font-weight:700; display:block; }
+  .stat .l { font-size:11px; color:var(--muted); }
+  .stat.pending { background:var(--amber-soft); }
+  .stat.pending .n { color:var(--amber); }
+  .stat.accepted { background:var(--teal-soft); }
+  .stat.accepted .n { color:var(--teal); }
+  .stat.declined { background:var(--red-soft); }
+  .stat.declined .n { color:var(--red); }
+
+  .viewtoggle { display:flex; gap:6px; margin-bottom:14px; background:var(--panel); padding:4px; border-radius:10px; }
+  .viewtoggle button { flex:1; background:transparent; border:none; color:var(--muted); padding:8px; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .viewtoggle button.active { color:#fff; background:var(--orange); }
+
+  .addbtn { width:100%; background:var(--orange); color:#fff; border:none; border-radius:10px; padding:12px; font-weight:600; font-size:14px; cursor:pointer; margin-bottom:18px; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 12px rgba(255,110,0,.25); }
+
+  .form { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:18px; display:none; gap:9px; flex-direction:column; }
   .form.open { display:flex; }
-  .form input, .form textarea { background:var(--ink); border:1px solid var(--line); color:var(--text); border-radius:6px; padding:8px 9px; font-size:14px; width:100%; font-family:inherit; }
+  .form input, .form textarea { background:var(--ink); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:9px 10px; font-size:14px; width:100%; font-family:inherit; }
   .row2 { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
   .form-actions { display:flex; gap:8px; }
-  .btn-primary { background:var(--orange); color:#fff; border:none; border-radius:6px; padding:9px 14px; font-weight:600; font-size:13px; cursor:pointer; flex:1; }
-  .btn-ghost { background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:6px; padding:9px 14px; font-weight:600; font-size:13px; cursor:pointer; }
+  .btn-primary { background:var(--orange); color:#fff; border:none; border-radius:8px; padding:10px 14px; font-weight:600; font-size:13px; cursor:pointer; flex:1; }
+  .btn-ghost { background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:10px 14px; font-weight:600; font-size:13px; cursor:pointer; }
   .err { color:var(--red); font-size:12.5px; margin:0; }
-  .cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .cal-nav button { background:var(--panel); border:1px solid var(--line); color:var(--text); border-radius:6px; width:32px; height:32px; font-size:16px; cursor:pointer; }
-  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:18px; }
-  .dow { text-align:center; font-size:11px; color:var(--muted); padding-bottom:4px; }
-  .cell { aspect-ratio:1; border-radius:7px; border:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:12px; }
+
+  .cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .cal-nav button { background:var(--panel); border:1px solid var(--line); color:var(--text); border-radius:8px; width:32px; height:32px; font-size:16px; cursor:pointer; }
+  .cal-nav h2 { text-transform:capitalize; font-size:15px; margin:0; font-weight:700; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:20px; }
+  .dow { text-align:center; font-size:11px; color:var(--muted); padding-bottom:4px; font-weight:600; }
+  .cell { aspect-ratio:1; border-radius:10px; border:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; font-size:12.5px; font-weight:500; transition:transform .1s; }
   .cell.empty { visibility:hidden; }
-  .cell.selected { border-color:var(--orange); background:rgba(255,110,0,.14); }
+  .cell.selected { border-color:var(--orange); background:var(--orange-soft); color:var(--orange); font-weight:700; }
+  .cell.today:not(.selected) { box-shadow:inset 0 0 0 1.5px var(--orange); }
   .dots { display:flex; gap:2px; }
   .dot { width:5px; height:5px; border-radius:50%; }
+
   .tabs { display:flex; gap:6px; overflow-x:auto; margin-bottom:16px; }
-  .tab { flex:none; background:var(--panel); border:1px solid var(--line); color:var(--muted); padding:7px 12px; border-radius:7px; font-size:13px; cursor:pointer; }
-  .tab.active { color:var(--text); border-color:var(--orange); background:rgba(255,110,0,.12); }
-  .list { display:grid; gap:10px; }
-  .card { background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--sc,var(--line)); border-radius:9px; padding:13px 14px; }
-  .card-top { display:flex; justify-content:space-between; gap:10px; }
-  .name { font-weight:600; font-size:15px; margin:0 0 2px; }
-  .meta { color:var(--muted); font-size:13px; margin:0; }
-  .badge { font-size:11px; font-weight:600; padding:3px 8px; border-radius:20px; color:#fff; background:var(--sc,var(--muted)); white-space:nowrap; height:fit-content; }
-  .notes { color:var(--muted); font-size:13px; margin:8px 0 0; font-style:italic; }
-  .actions { display:flex; gap:8px; margin-top:11px; flex-wrap:wrap; }
-  .action { border-radius:6px; padding:7px 11px; font-size:12.5px; font-weight:600; cursor:pointer; border:1px solid var(--line); background:var(--ink); color:var(--text); }
-  .action.accept { border-color:var(--teal); color:var(--teal); }
-  .action.decline { border-color:var(--red); color:var(--red); }
-  .action.copy, .action.stripe { border-color:var(--orange); color:var(--orange); }
-  .deposit { margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); font-size:13px; word-break:break-all; color:var(--muted); }
-  .empty { color:var(--muted); font-size:14px; text-align:center; padding:40px 10px; border:1px dashed var(--line); border-radius:10px; }
-  .toast { font-size:12px; color:var(--teal); margin-top:6px; }
-  .gate { padding:40px 20px; text-align:center; }
-  .gate input { background:var(--panel); border:1px solid var(--line); color:var(--text); border-radius:6px; padding:9px; width:100%; margin:10px 0; }
+  .tab { flex:none; background:var(--panel); border:1px solid var(--line); color:var(--muted); padding:7px 12px; border-radius:20px; font-size:13px; cursor:pointer; font-weight:500; }
+  .tab.active { color:#fff; border-color:var(--orange); background:var(--orange); }
+
+  .day-heading { text-transform:capitalize; font-size:14px; margin:0 0 12px; font-weight:700; color:var(--muted); }
+
+  .list { display:grid; gap:12px; padding-bottom:12px; }
+  .card { background:var(--ink); border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow:0 2px 8px rgba(20,15,5,.04); }
+  .card-top { display:flex; gap:10px; }
+  .avatar {
+    width:38px; height:38px; border-radius:50%; flex-shrink:0;
+    background:var(--sc,var(--orange)); color:#fff; font-weight:700; font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .card-info { flex:1; min-width:0; }
+  .card-toprow { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .name { font-weight:700; font-size:15px; margin:0; }
+  .meta { color:var(--muted); font-size:12.5px; margin:1px 0 0; }
+  .badge { font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; color:#fff; background:var(--sc,var(--muted)); white-space:nowrap; text-transform:uppercase; letter-spacing:.02em; }
+  .notes { color:var(--muted); font-size:13px; margin:10px 0 0; font-style:italic; padding-left:48px; }
+
+  .actions { display:flex; gap:6px; margin-top:12px; flex-wrap:wrap; padding-left:48px; }
+  .action { border-radius:8px; padding:7px 10px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid var(--line); background:var(--panel); color:var(--text); display:flex; align-items:center; gap:5px; }
+  .action.accept { border-color:var(--teal); color:var(--teal); background:var(--teal-soft); }
+  .action.decline { border-color:var(--red); color:var(--red); background:var(--red-soft); }
+  .action.stripe { border-color:var(--orange); color:var(--orange); background:var(--orange-soft); }
+  .action.copy { border-color:var(--line); color:var(--muted); }
+
+  .deposit { margin:10px 0 0 48px; padding-top:10px; border-top:1px dashed var(--line); font-size:12.5px; word-break:break-all; color:var(--muted); }
+
+  .empty { color:var(--muted); font-size:13.5px; text-align:center; padding:34px 10px; }
+  .empty svg { opacity:.35; margin-bottom:8px; }
+  .toast { font-size:12px; color:var(--teal); margin:6px 0 0 48px; font-weight:600; }
+
+  .gate { padding:80px 24px; text-align:center; }
+  .gate .hero-badge { margin:0 auto 16px; width:56px; height:56px; background:var(--orange-soft); }
+  .gate p { color:var(--muted); font-size:14px; }
+  .gate input { background:var(--panel); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:11px; width:100%; margin:14px 0; text-align:center; font-size:14px; }
 </style>
 </head>
 <body>
 
 <div id="gate" class="gate">
-  <p>Clé du dashboard :</p>
-  <input id="keyInput" type="password" placeholder="Colle ta clé ici">
-  <button class="btn-primary" onclick="saveKey()">Valider</button>
+  <div class="hero-badge">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ff6e00" stroke-width="2"><path d="M3 10h18M7 3v4M17 3v4M5 6h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"/></svg>
+  </div>
+  <p>Journal des réservations — Yonko Bar</p>
+  <input id="keyInput" type="password" placeholder="Colle ta clé du dashboard">
+  <button class="btn-primary" onclick="saveKey()" style="width:100%">Valider</button>
 </div>
 
 <div id="app" style="display:none">
-  <h1>Journal des <span>réservations</span></h1>
-  <p class="sub">Yonko Bar — demandes reçues depuis le site</p>
-
-  <div class="viewtoggle">
-    <button id="tab-planning" class="active" onclick="setView('planning')">Planning</button>
-    <button id="tab-list" onclick="setView('list')">Liste</button>
-  </div>
-
-  <button class="addbtn" onclick="toggleForm()">+ Nouvelle demande</button>
-
-  <div class="form" id="form">
-    <div class="row2">
-      <input id="f-name" placeholder="Nom du client">
-      <input id="f-contact" placeholder="Téléphone ou email">
-    </div>
-    <div class="row2">
-      <input id="f-date" type="date">
-      <input id="f-time" type="time">
-    </div>
-    <input id="f-guests" placeholder="Nombre de personnes">
-    <textarea id="f-notes" rows="2" placeholder="Notes"></textarea>
-    <p class="err" id="f-err"></p>
-    <div class="form-actions">
-      <button class="btn-primary" onclick="submitForm()">Ajouter la demande</button>
-      <button class="btn-ghost" onclick="toggleForm()">Annuler</button>
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 10h18M7 3v4M17 3v4M5 6h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"/></svg>
+      </div>
+      <div>
+        <h1>Journal des réservations</h1>
+        <p class="sub">Yonko Bar</p>
+      </div>
     </div>
   </div>
 
-  <div id="planningView"></div>
-  <div id="listView" style="display:none"></div>
+  <div class="wrap">
+    <div class="card-surface">
+      <div class="stats" id="stats"></div>
+
+      <div class="viewtoggle">
+        <button id="tab-planning" class="active" onclick="setView('planning')">📅 Planning</button>
+        <button id="tab-list" onclick="setView('list')">☰ Liste</button>
+      </div>
+
+      <button class="addbtn" onclick="toggleForm()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Nouvelle demande
+      </button>
+
+      <div class="form" id="form">
+        <div class="row2">
+          <input id="f-name" placeholder="Nom du client">
+          <input id="f-contact" placeholder="Téléphone ou email">
+        </div>
+        <div class="row2">
+          <input id="f-date" type="date">
+          <input id="f-time" type="time">
+        </div>
+        <input id="f-guests" placeholder="Nombre de personnes">
+        <textarea id="f-notes" rows="2" placeholder="Notes"></textarea>
+        <p class="err" id="f-err"></p>
+        <div class="form-actions">
+          <button class="btn-primary" onclick="submitForm()">Ajouter la demande</button>
+          <button class="btn-ghost" onclick="toggleForm()">Annuler</button>
+        </div>
+      </div>
+
+      <div id="planningView"></div>
+      <div id="listView" style="display:none"></div>
+    </div>
+  </div>
 </div>
 
 <script>
 const API = "/api/reservations";
-const STATUS = { pending:{label:"En attente",color:"#E8B54D"}, accepted:{label:"Acceptée",color:"#2FA88F"}, declined:{label:"Refusée",color:"#C4483A"} };
+const STATUS = { pending:{label:"En attente",color:"#c98f1c"}, accepted:{label:"Acceptée",color:"#2fa88f"}, declined:{label:"Refusée",color:"#c4483a"} };
 const WEEKDAYS = ["L","M","M","J","V","S","D"];
+const ICONS = {
+  check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>',
+  x: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  undo: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>',
+  link: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8"/></svg>',
+  copy: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+};
 let entries = [];
 let view = "planning";
 let filter = "pending";
@@ -118,6 +205,7 @@ function saveKey() {
 }
 function isoDate(d) { return d.toISOString().slice(0,10); }
 function formatDate(s) { if(!s) return ""; const d=new Date(s+"T00:00:00"); return d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"}); }
+function initials(name) { return (name||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()).join(""); }
 
 async function api(path, opts={}) {
   const res = await fetch(API+path, { ...opts, headers: { "Content-Type":"application/json", "x-dashboard-key": key(), ...(opts.headers||{}) } });
@@ -198,7 +286,7 @@ async function makeStripeLink(id, name) {
   const amount = prompt(`Montant de la caution pour ${name} (en euros) :`);
   if (!amount) return;
   try {
-    const res = await api(`/${id}/deposit-link`, { method:"POST", body: JSON.stringify({amount: Number(amount)}) });
+    await api(`/${id}/deposit-link`, { method:"POST", body: JSON.stringify({amount: Number(amount)}) });
     entries = await api("");
     render();
   } catch (e) {
@@ -219,39 +307,61 @@ function copyMessage(entry) {
 
 function cardHTML(e) {
   const sc = STATUS[e.status].color;
-  return `<div class="card" style="--sc:${sc}">
+  return `<div class="card">
     <div class="card-top">
-      <div>
-        <p class="name">${e.name}</p>
-        <p class="meta">${formatDate(e.date)}${e.time?" · "+e.time:""}${e.guests?" · "+e.guests+" pers.":""}</p>
-        ${e.contact?`<p class="meta">${e.contact}</p>`:""}
+      <div class="avatar" style="--sc:${sc}">${initials(e.name)}</div>
+      <div class="card-info">
+        <div class="card-toprow">
+          <div>
+            <p class="name">${e.name}</p>
+            <p class="meta">${formatDate(e.date)}${e.time?" · "+e.time:""}${e.guests?" · "+e.guests+" pers.":""}</p>
+            ${e.contact?`<p class="meta">${e.contact}</p>`:""}
+          </div>
+          <span class="badge" style="--sc:${sc}">${STATUS[e.status].label}</span>
+        </div>
       </div>
-      <span class="badge" style="--sc:${sc}">${STATUS[e.status].label}</span>
     </div>
     ${e.notes?`<p class="notes">${e.notes}</p>`:""}
     <div class="actions">
-      ${e.status!=="accepted"?`<button class="action accept" onclick="setStatus('${e.id}','accepted')">Accepter</button>`:""}
-      ${e.status!=="declined"?`<button class="action decline" onclick="setStatus('${e.id}','declined')">Refuser</button>`:""}
-      ${e.status!=="pending"?`<button class="action" onclick="setStatus('${e.id}','pending')">Remettre en attente</button>`:""}
-      ${e.status==="accepted"?`<button class="action stripe" onclick="makeStripeLink('${e.id}','${e.name}')">${e.depositLink?"Régénérer le lien Stripe":"Générer le lien Stripe"}</button>`:""}
-      ${e.status==="accepted"?`<button class="action copy" onclick='copyMessage(${JSON.stringify(e)})'>Copier le message</button>`:""}
+      ${e.status!=="accepted"?`<button class="action accept" onclick="setStatus('${e.id}','accepted')">${ICONS.check} Accepter</button>`:""}
+      ${e.status!=="declined"?`<button class="action decline" onclick="setStatus('${e.id}','declined')">${ICONS.x} Refuser</button>`:""}
+      ${e.status!=="pending"?`<button class="action" onclick="setStatus('${e.id}','pending')">${ICONS.undo} En attente</button>`:""}
+      ${e.status==="accepted"?`<button class="action stripe" onclick="makeStripeLink('${e.id}','${e.name}')">${ICONS.link} ${e.depositLink?"Régénérer":"Lien Stripe"}</button>`:""}
+      ${e.status==="accepted"?`<button class="action copy" onclick='copyMessage(${JSON.stringify(e)})'>${ICONS.copy} Copier</button>`:""}
     </div>
     ${e.depositLink?`<div class="deposit">${e.depositLink}</div>`:""}
   </div>`;
 }
 
+function renderStats(counts) {
+  document.getElementById("stats").innerHTML = `
+    <div class="stat pending" onclick="filter='pending';setView('list')"><span class="n">${counts.pending||0}</span><span class="l">En attente</span></div>
+    <div class="stat accepted" onclick="filter='accepted';setView('list')"><span class="n">${counts.accepted||0}</span><span class="l">Acceptées</span></div>
+    <div class="stat declined" onclick="filter='declined';setView('list')"><span class="n">${counts.declined||0}</span><span class="l">Refusées</span></div>
+  `;
+}
+
 function renderList() {
   const counts = {pending:0,accepted:0,declined:0};
   entries.forEach(e => counts[e.status] = (counts[e.status]||0)+1);
+  renderStats(counts);
   const tabs = [["pending","En attente"],["accepted","Acceptées"],["declined","Refusées"],["all","Toutes"]]
-    .map(([k,l]) => `<button class="tab ${filter===k?'active':''}" onclick="filter='${k}';render()">${l}${k!=='all'?` <b>${counts[k]||0}</b>`:""}</button>`).join("");
+    .map(([k,l]) => `<button class="tab ${filter===k?'active':''}" onclick="filter='${k}';render()">${l} ${k!=='all'?`(${counts[k]||0})`:""}</button>`).join("");
   const visible = entries.filter(e => filter==="all"||e.status===filter)
     .sort((a,b) => (a.date||"").localeCompare(b.date||"") || (a.time||"").localeCompare(b.time||""));
   document.getElementById("listView").innerHTML = `<div class="tabs">${tabs}</div>` +
-    (visible.length ? `<div class="list">${visible.map(cardHTML).join("")}</div>` : `<div class="empty">Aucune demande dans cette catégorie.</div>`);
+    (visible.length ? `<div class="list">${visible.map(cardHTML).join("")}</div>` : emptyState("Aucune demande dans cette catégorie."));
+}
+
+function emptyState(msg) {
+  return `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h18M7 3v4M17 3v4M5 6h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"/></svg><div>${msg}</div></div>`;
 }
 
 function renderPlanning() {
+  const counts = {pending:0,accepted:0,declined:0};
+  entries.forEach(e => counts[e.status] = (counts[e.status]||0)+1);
+  renderStats(counts);
+
   const y = cursor.getFullYear(), m = cursor.getMonth();
   const first = new Date(y,m,1);
   const offset = (first.getDay()+6)%7;
@@ -261,21 +371,22 @@ function renderPlanning() {
 
   let cells = "";
   for (let i=0;i<offset;i++) cells += `<div class="cell empty"></div>`;
+  const todayIso = isoDate(new Date());
   for (let d=1; d<=days; d++) {
     const iso = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const dayEn = byDate[iso]||[];
     const dots = dayEn.slice(0,4).map(e => `<span class="dot" style="background:${STATUS[e.status].color}"></span>`).join("");
-    cells += `<div class="cell ${iso===selectedDate?"selected":""}" onclick="selectedDate='${iso}';render()"><span>${d}</span><div class="dots">${dots}</div></div>`;
+    cells += `<div class="cell ${iso===selectedDate?"selected":""} ${iso===todayIso?"today":""}" onclick="selectedDate='${iso}';render()"><span>${d}</span><div class="dots">${dots}</div></div>`;
   }
 
   const label = first.toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
   const dayEntries = (byDate[selectedDate]||[]).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
 
   document.getElementById("planningView").innerHTML = `
-    <div class="cal-nav"><button onclick="cursor=new Date(${y},${m-1},1);render()">‹</button><h2 style="text-transform:capitalize;font-size:15px;margin:0">${label}</h2><button onclick="cursor=new Date(${y},${m+1},1);render()">›</button></div>
+    <div class="cal-nav"><button onclick="cursor=new Date(${y},${m-1},1);render()">‹</button><h2>${label}</h2><button onclick="cursor=new Date(${y},${m+1},1);render()">›</button></div>
     <div class="cal-grid">${WEEKDAYS.map(w=>`<div class="dow">${w}</div>`).join("")}${cells}</div>
-    <h3 style="text-transform:capitalize;font-size:14px;margin:0 0 10px">${formatDate(selectedDate)||"Jour sélectionné"}</h3>
-    ${dayEntries.length ? `<div class="list">${dayEntries.map(cardHTML).join("")}</div>` : `<div class="empty">Aucune réservation ce jour-là.</div>`}
+    <h3 class="day-heading">${formatDate(selectedDate)||"Jour sélectionné"}</h3>
+    ${dayEntries.length ? `<div class="list">${dayEntries.map(cardHTML).join("")}</div>` : emptyState("Aucune réservation ce jour-là.")}
   `;
 }
 
