@@ -67,6 +67,8 @@ export async function onRequestPost({ request, env }) {
     time: String(body.time || "").slice(0, 5),
     guests: String(body.guests || "").slice(0, 20),
     notes: String(body.notes || "").slice(0, 1000),
+    source: String(body.source || "Manuel").slice(0, 50),
+    skipAutoDeposit: !!body.manual,
     status: "pending",
     depositLink: "",
     createdAt: Date.now(),

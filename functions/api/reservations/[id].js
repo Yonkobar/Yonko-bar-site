@@ -49,7 +49,7 @@ export async function onRequestPatch({ request, env, params }) {
 
   let stripeError = null;
   let emailResult = null;
-  if (entry.status === "accepted" && !wasAccepted && !entry.depositLink) {
+  if (entry.status === "accepted" && !wasAccepted && !entry.depositLink && !entry.skipAutoDeposit) {
     const amount = computeDepositAmount(entry);
     if (amount) {
       try {

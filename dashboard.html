@@ -66,7 +66,7 @@
 
   .form { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:18px; display:none; gap:9px; flex-direction:column; }
   .form.open { display:flex; }
-  .form input, .form textarea { background:var(--ink); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:9px 10px; font-size:14px; width:100%; font-family:inherit; }
+  .form input, .form textarea, .form select { background:var(--ink); border:1px solid var(--line); color:var(--text); border-radius:8px; padding:9px 10px; font-size:14px; width:100%; font-family:inherit; }
   .row2 { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
   .form-actions { display:flex; gap:8px; }
   .btn-primary { background:var(--orange); color:#fff; border:none; border-radius:8px; padding:10px 14px; font-weight:600; font-size:13px; cursor:pointer; flex:1; }
@@ -78,18 +78,26 @@
   .cal-nav h2 { text-transform:capitalize; font-size:15px; margin:0; font-weight:700; }
   .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:20px; }
   .dow { text-align:center; font-size:11px; color:var(--muted); padding-bottom:4px; font-weight:600; }
-  .cell { aspect-ratio:1; border-radius:10px; border:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; font-size:12.5px; font-weight:500; }
+  .cell { min-height:62px; border-radius:9px; border:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; align-items:stretch; padding:4px 3px; gap:2px; cursor:pointer; font-size:11px; font-weight:600; overflow:hidden; }
+  .cell .daynum { text-align:center; }
   .cell.empty { visibility:hidden; }
-  .cell.selected { border-color:var(--orange); background:var(--orange-soft); color:var(--orange); font-weight:700; }
+  .cell.selected { border-color:var(--orange); background:var(--orange-soft); color:var(--orange); }
   .cell.today:not(.selected) { box-shadow:inset 0 0 0 1.5px var(--orange); }
-  .dots { display:flex; gap:2px; }
-  .dot { width:5px; height:5px; border-radius:50%; }
+  .chip { font-size:8.5px; font-weight:600; color:#fff; padding:1px 3px; border-radius:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.4; }
+  .chip-more { font-size:8px; color:var(--muted); text-align:center; }
 
   .tabs { display:flex; gap:6px; overflow-x:auto; margin-bottom:16px; }
   .tab { flex:none; background:var(--panel); border:1px solid var(--line); color:var(--muted); padding:7px 12px; border-radius:20px; font-size:13px; cursor:pointer; font-weight:500; }
   .tab.active { color:#fff; border-color:var(--orange); background:var(--orange); }
 
   .day-heading { text-transform:capitalize; font-size:14px; margin:0 0 12px; font-weight:700; color:var(--muted); }
+
+  .statsrow { margin-bottom:16px; }
+  .statsrow-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px; }
+  .statsrow-label b { font-weight:700; }
+  .statsrow-bar { height:10px; border-radius:6px; background:var(--panel); overflow:hidden; }
+  .statsrow-fill { height:100%; border-radius:6px; }
+  .stats-title { font-size:13px; font-weight:700; color:var(--muted); margin:20px 0 12px; text-transform:uppercase; letter-spacing:.03em; }
 
   .list { display:grid; gap:12px; padding-bottom:12px; }
   .card { background:var(--ink); border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow:0 2px 8px rgba(20,15,5,.04); }
@@ -172,6 +180,7 @@
       <div class="viewtoggle">
         <button id="tab-planning" class="active" onclick="setView('planning')">📅 Planning</button>
         <button id="tab-list" onclick="setView('list')">☰ Liste</button>
+        <button id="tab-stats" onclick="setView('stats')">📊 Stats</button>
       </div>
 
       <button class="addbtn" onclick="toggleForm()">
@@ -189,6 +198,12 @@
           <input id="f-time" type="time">
         </div>
         <input id="f-guests" placeholder="Nombre de personnes">
+        <select id="f-source">
+          <option value="Manuel">Manuel (téléphone, etc.)</option>
+          <option value="Privateaser">Privateaser</option>
+          <option value="Google">Google</option>
+          <option value="Site internet">Site internet</option>
+        </select>
         <textarea id="f-notes" rows="2" placeholder="Notes"></textarea>
         <p class="err" id="f-err"></p>
         <div class="form-actions">
@@ -199,6 +214,7 @@
 
       <div id="planningView"></div>
       <div id="listView" style="display:none"></div>
+      <div id="statsView" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -277,8 +293,10 @@ function setView(v) {
   view = v;
   document.getElementById("tab-planning").classList.toggle("active", v==="planning");
   document.getElementById("tab-list").classList.toggle("active", v==="list");
+  document.getElementById("tab-stats").classList.toggle("active", v==="stats");
   document.getElementById("planningView").style.display = v==="planning" ? "block" : "none";
   document.getElementById("listView").style.display = v==="list" ? "block" : "none";
+  document.getElementById("statsView").style.display = v==="stats" ? "block" : "none";
   render();
 }
 
@@ -299,11 +317,14 @@ async function submitForm() {
     time: document.getElementById("f-time").value,
     guests: document.getElementById("f-guests").value,
     notes: document.getElementById("f-notes").value,
+    source: document.getElementById("f-source").value,
+    manual: true
   };
   try {
     await api("", { method:"POST", body: JSON.stringify(body) });
     ["f-name","f-contact","f-time","f-guests","f-notes"].forEach(id => document.getElementById(id).value="");
     document.getElementById("f-date").value="";
+    document.getElementById("f-source").value="Manuel";
     document.getElementById("form").classList.remove("open");
     selectedDate = date;
     entries = await api("");
@@ -365,7 +386,7 @@ function cardHTML(e) {
         <div class="card-toprow">
           <div>
             <p class="name">${e.name}</p>
-            <p class="meta">${formatDate(e.date)}${e.time?" · "+e.time:""}${e.guests?" · "+e.guests+" pers.":""}</p>
+            <p class="meta">${formatDate(e.date)}${e.time?" · "+e.time:""}${e.guests?" · "+e.guests+" pers.":""}${e.source?" · "+e.source:""}</p>
             ${e.contact?`<p class="meta">${e.contact}</p>`:""}
           </div>
           <span class="badge" style="--sc:${sc}">${STATUS[e.status].label}</span>
@@ -438,8 +459,9 @@ function renderPlanning() {
   for (let d=1; d<=days; d++) {
     const iso = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const dayEn = byDate[iso]||[];
-    const dots = dayEn.slice(0,4).map(e => `<span class="dot" style="background:${STATUS[e.status].color}"></span>`).join("");
-    cells += `<div class="cell ${iso===selectedDate?"selected":""} ${iso===todayIso?"today":""}" onclick="selectedDate='${iso}';render()"><span>${d}</span><div class="dots">${dots}</div></div>`;
+    const chips = dayEn.slice(0,2).map(e => `<span class="chip" style="background:${STATUS[e.status].color}">${(e.name||"").split(" ")[0]}</span>`).join("");
+    const more = dayEn.length > 2 ? `<span class="chip-more">+${dayEn.length-2}</span>` : "";
+    cells += `<div class="cell ${iso===selectedDate?"selected":""} ${iso===todayIso?"today":""}" onclick="selectedDate='${iso}';render()"><span class="daynum">${d}</span>${chips}${more}</div>`;
   }
 
   const label = first.toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
@@ -453,7 +475,39 @@ function renderPlanning() {
   `;
 }
 
-function render() { if (view==="planning") renderPlanning(); else renderList(); }
+const SOURCE_COLORS = { "Site internet":"#ff6e00", "Privateaser":"#2fa88f", "Google":"#4285f4", "Manuel":"#78726a" };
+
+function statsRow(label, count, max, color) {
+  const pct = max ? Math.round((count/max)*100) : 0;
+  return `<div class="statsrow">
+    <div class="statsrow-label"><span>${label}</span><b>${count}</b></div>
+    <div class="statsrow-bar"><div class="statsrow-fill" style="width:${pct}%;background:${color}"></div></div>
+  </div>`;
+}
+
+function renderStatsView() {
+  if (!loaded) { document.getElementById("statsView").innerHTML = skeleton(); return; }
+  const bySource = {};
+  entries.forEach(e => { const s = e.source || "Manuel"; bySource[s] = (bySource[s]||0)+1; });
+  const sourceEntries = Object.entries(bySource).sort((a,b)=>b[1]-a[1]);
+  const maxSource = Math.max(1, ...sourceEntries.map(([,c])=>c));
+
+  const total = entries.length;
+  const accepted = entries.filter(e=>e.status==="accepted").length;
+  const withDeposit = entries.filter(e=>e.depositLink).length;
+  const validated = entries.filter(e=>e.depositStatus==="autorisee").length;
+
+  document.getElementById("statsView").innerHTML = `
+    <div class="stats-title">Provenance des réservations (${total} au total)</div>
+    ${sourceEntries.length ? sourceEntries.map(([s,c]) => statsRow(s, c, maxSource, SOURCE_COLORS[s]||"#78726a")).join("") : emptyState("Pas encore de données.")}
+    <div class="stats-title">Cautions</div>
+    ${statsRow("Réservations acceptées", accepted, total||1, "#2fa88f")}
+    ${statsRow("Liens de caution générés", withDeposit, total||1, "#ff6e00")}
+    ${statsRow("Cautions validées par le client", validated, total||1, "#c98f1c")}
+  `;
+}
+
+function render() { if (view==="planning") renderPlanning(); else if (view==="stats") renderStatsView(); else renderList(); }
 
 init();
 </script>

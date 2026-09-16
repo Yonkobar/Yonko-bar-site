@@ -718,6 +718,7 @@ function submitForm(){
     gv('ms')?('Message: '+gv('ms')):'',
     'Via yonkobar.com'
   ].filter(function(l){return l!=='';}).join('%0A');
+  var urlSource = new URLSearchParams(window.location.search).get('source');
   fetch('/api/reservations', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -729,7 +730,8 @@ function submitForm(){
       date: gv('dt'),
       time: gv('hrr') || '19:00',
       guests: gv('nb'),
-      notes: [gv('oc'), gv('ms')].filter(Boolean).join(' \u2014 ')
+      notes: [gv('oc'), gv('ms')].filter(Boolean).join(' \u2014 '),
+      source: urlSource === 'google' ? 'Google' : 'Site internet'
     })
   }).catch(function(e){ console.error('Dashboard sync failed', e); });
 
