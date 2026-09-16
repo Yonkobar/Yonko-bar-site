@@ -1,4 +1,5 @@
-// POST /api/reservations/:id/deposit-link  { amount: 50 }  -> crée un lien de paiement Stripe (protégé)
+// POST /api/reservations/:id/deposit-link  { amount: 50 }  -> crée un lien de paiement Stripe et envoie l'email (protégé)
+import { createStripeLink, sendDepositEmail } from "../../../_shared.js";
 
 function cors() {
   return {
@@ -46,40 +47,23 @@ export async function onRequestPost({ request, env, params }) {
   }
 
   const origin = new URL(request.url).origin;
-  const params2 = new URLSearchParams();
-  params2.set("mode", "payment");
-  params2.set("line_items[0][quantity]", "1");
-  params2.set("line_items[0][price_data][currency]", "eur");
-  params2.set("line_items[0][price_data][unit_amount]", String(Math.round(amountEuros * 100)));
-  params2.set(
-    "line_items[0][price_data][product_data][name]",
-    `Caution réservation Yonko Bar — ${entry.name}`
-  );
-  params2.set("success_url", `${origin}/?caution=ok`);
-  params2.set("cancel_url", `${origin}/?caution=annule`);
-  params2.set("payment_intent_data[capture_method]", "manual");
-
-  const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: params2.toString(),
-  });
-
-  const stripeData = await stripeRes.json();
-  if (!stripeRes.ok) {
-    return new Response(JSON.stringify({ error: "stripe_error", detail: stripeData }), {
+  let url;
+  try {
+    url = await createStripeLink(entry, amountEuros, origin, env);
+  } catch (e) {
+    return new Response(JSON.stringify({ error: "stripe_error", detail: e.message }), {
       status: 502,
       headers: { "Content-Type": "application/json", ...cors() },
     });
   }
 
-  entry.depositLink = stripeData.url;
+  entry.depositLink = url;
+  entry.depositAmount = amountEuros;
+  const emailResult = await sendDepositEmail(entry, env);
+  entry.emailSent = !!emailResult.sent;
   await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(entry));
 
-  return new Response(JSON.stringify({ ok: true, url: stripeData.url, entry }), {
+  return new Response(JSON.stringify({ ok: true, url, entry, emailResult }), {
     headers: { "Content-Type": "application/json", ...cors() },
   });
 }
