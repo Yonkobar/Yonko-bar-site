@@ -498,11 +498,11 @@ footer p{font-size:.73rem;color:rgba(244,232,212,.24);margin-bottom:.3rem}
   <div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.2rem" class="reveal">
     <div style="display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.03);border:1px solid rgba(224,112,16,.18);border-radius:6px;padding:.65rem 1.1rem">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.3 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.3 1 7.2 2.7l5.7-5.7C33.8 7.1 29.1 5 24 5 13 5 4 14 4 25s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="m6.3 15.5 6.6 4.8C14.6 16.3 19 13 24 13c2.8 0 5.3 1 7.2 2.7l5.7-5.7C33.8 7.1 29.1 5 24 5c-7.2 0-13.4 3.9-16.7 9.5z"/><path fill="#4CAF50" d="M24 45c5 0 9.7-1.9 13.2-5l-6.1-5.2C29.2 36.5 26.7 37 24 37c-5.2 0-9.6-3.3-11.2-7.8l-6.5 5C9.5 41 16.2 45 24 45z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l.1-.1 6.1 5.2C37.1 38.1 44 32 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
-      <div><div style="font-family:'Cinzel',serif;font-size:.62rem;color:rgba(244,232,212,.5);letter-spacing:.1em">GOOGLE</div><div style="display:flex;gap:2px;margin:.15rem 0"><span style="color:#FFC107;font-size:.85rem">★★★★☆</span></div><div style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--orange)">4.8 · 232 avis</div></div>
+      <div><div style="font-family:'Cinzel',serif;font-size:.62rem;color:rgba(244,232,212,.5);letter-spacing:.1em">GOOGLE</div><div style="display:flex;gap:2px;margin:.15rem 0"><span style="color:#FFC107;font-size:.85rem" id="g-stars">★★★★☆</span></div><div style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--orange)" id="g-count">4.8 · 232 avis</div></div>
     </div>
     <div style="display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.03);border:1px solid rgba(224,112,16,.18);border-radius:6px;padding:.65rem 1.1rem">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#FF5757"/><text x="50" y="66" text-anchor="middle" font-size="52" font-family="Arial" fill="white" font-weight="bold">P</text></svg>
-      <div><div style="font-family:'Cinzel',serif;font-size:.62rem;color:rgba(244,232,212,.5);letter-spacing:.1em">GOOGLE</div><div style="display:flex;gap:2px;margin:.15rem 0"><span style="color:#FFC107;font-size:.85rem">★★★★☆</span></div><div style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--orange)">4.8 · 232 avis</div></div>
+      <div><div style="font-family:'Cinzel',serif;font-size:.62rem;color:rgba(244,232,212,.5);letter-spacing:.1em">PRIVATEASER</div><div style="display:flex;gap:2px;margin:.15rem 0"><span style="color:#FFC107;font-size:.85rem">★★★★★</span></div><div style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--orange)">207 avis</div></div>
     </div>
   </div>
   </div>
@@ -751,6 +751,14 @@ function submitForm(){
 }
 var dtEl=document.getElementById('dt');
 if(dtEl)dtEl.min=new Date().toISOString().split('T')[0];
+
+fetch('/api/google-rating').then(function(r){return r.json();}).then(function(d){
+  if(d.rating && d.count){
+    var full = Math.round(d.rating);
+    document.getElementById('g-stars').textContent = '★★★★★☆☆☆☆☆'.slice(5-full,10-full);
+    document.getElementById('g-count').textContent = d.rating.toFixed(1) + ' · ' + d.count + ' avis';
+  }
+}).catch(function(e){ console.error('Google rating fetch failed', e); });
 
 document.querySelectorAll('a[href^="#"]').forEach(function(a){
   a.addEventListener('click',function(e){
