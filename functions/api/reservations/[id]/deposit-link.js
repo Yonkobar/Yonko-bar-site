@@ -57,6 +57,7 @@ export async function onRequestPost({ request, env, params }) {
   );
   params2.set("success_url", `${origin}/?caution=ok`);
   params2.set("cancel_url", `${origin}/?caution=annule`);
+  params2.set("payment_intent_data[capture_method]", "manual");
 
   const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",

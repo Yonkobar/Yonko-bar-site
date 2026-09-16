@@ -724,10 +724,12 @@ function submitForm(){
     body: JSON.stringify({
       name: (gv('pr') + ' ' + gv('nm')).trim(),
       contact: gv('em') || gv('tl'),
+      email: gv('em'),
+      type: gv('es'),
       date: gv('dt'),
       time: gv('hrr') || '19:00',
       guests: gv('nb'),
-      notes: [gv('es'), gv('oc'), gv('ms')].filter(Boolean).join(' \u2014 ')
+      notes: [gv('oc'), gv('ms')].filter(Boolean).join(' \u2014 ')
     })
   }).catch(function(e){ console.error('Dashboard sync failed', e); });
 

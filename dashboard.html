@@ -274,7 +274,8 @@ async function submitForm() {
 
 async function setStatus(id, status) {
   try {
-    await api("/"+id, { method:"PATCH", body: JSON.stringify({status}) });
+    const res = await api("/"+id, { method:"PATCH", body: JSON.stringify({status}) });
+    if (res.stripeError) alert("Le statut est mis à jour, mais la génération automatique du lien Stripe a échoué : " + res.stripeError);
     entries = await api("");
     render();
   } catch (e) {

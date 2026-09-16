@@ -61,6 +61,8 @@ export async function onRequestPost({ request, env }) {
     id,
     name: String(body.name).slice(0, 200),
     contact: String(body.contact || "").slice(0, 200),
+    email: String(body.email || "").slice(0, 200),
+    type: String(body.type || "").slice(0, 200),
     date: String(body.date).slice(0, 10),
     time: String(body.time || "").slice(0, 5),
     guests: String(body.guests || "").slice(0, 20),
