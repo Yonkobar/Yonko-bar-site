@@ -19,6 +19,7 @@ export async function createStripeLink(entry, amountEuros, origin, env) {
   params.set("success_url", `${origin}/?caution=ok`);
   params.set("cancel_url", `${origin}/?caution=annule`);
   params.set("payment_intent_data[capture_method]", "manual");
+  params.set("metadata[reservation_id]", entry.id);
 
   const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",

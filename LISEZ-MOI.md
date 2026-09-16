@@ -49,3 +49,13 @@ Appelle cette fonction au moment où le formulaire est soumis, à la place (ou e
 
 ## Limite à connaître
 La protection par `DASHBOARD_KEY` est simple (un mot de passe partagé), pas un vrai système de comptes. Suffisant pour ton usage interne, mais ne partage cette clé qu'avec ton équipe.
+
+## Optionnel — suivi automatique du paiement de la caution
+Un fichier `functions/api/stripe-webhook.js` est inclus : il permet au dashboard de savoir automatiquement quand un client a validé sa caution (affichage "Caution validée" sur la carte). Pour l'activer :
+1. Dans Stripe → Developers → Webhooks → **Add endpoint**
+2. URL : `https://tonsite.com/api/stripe-webhook`
+3. Événement à écouter : `checkout.session.completed`
+4. Copie le "Signing secret" (commence par `whsec_...`)
+5. Dans Cloudflare → Variables and Secrets → Add → type Secret → nom `STRIPE_WEBHOOK_SECRET`, colle la valeur
+
+Sans cette étape, tout le reste fonctionne normalement — c'est juste l'indicateur "Caution validée" qui restera sur "En attente du client".
