@@ -4,7 +4,7 @@ import { computeDepositAmount, createStripeLink, sendDepositEmail } from "../../
 function cors() {
   return {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "PATCH,OPTIONS",
+    "Access-Control-Allow-Methods": "PATCH,DELETE,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, x-dashboard-key",
   };
 }
@@ -13,7 +13,23 @@ export async function onRequestOptions() {
   return new Response(null, { headers: cors() });
 }
 
-export async function onRequestPatch({ request, env, params }) {
+export async function onRequestDelete({ request, env, params }) {
+  const key = request.headers.get("x-dashboard-key");
+  if (!key || key !== env.DASHBOARD_KEY) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...cors() },
+    });
+  }
+  const id = params.id;
+  await env.RESERVATIONS.delete(`res:${id}`);
+  const raw = await env.RESERVATIONS.get("res:index");
+  const ids = raw ? JSON.parse(raw) : [];
+  await env.RESERVATIONS.put("res:index", JSON.stringify(ids.filter((x) => x !== id)));
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: { "Content-Type": "application/json", ...cors() },
+  });
+}
   const key = request.headers.get("x-dashboard-key");
   if (!key || key !== env.DASHBOARD_KEY) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
