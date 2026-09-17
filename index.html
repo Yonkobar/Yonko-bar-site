@@ -286,7 +286,7 @@ footer p{font-size:.73rem;color:rgba(244,232,212,.24);margin-bottom:.3rem}
       <a href="#cave" class="btn btn-orange">Privatiser la cave</a>
     </div>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-num" data-target="232">0</div><div class="stat-label">Avis 5 etoiles</div></div>
+      <div class="stat"><div class="stat-num" id="hero-avis-num" data-target="232">0</div><div class="stat-label">Avis 5 etoiles</div></div>
       <div class="stat-sep"></div>
       <div class="stat"><div class="stat-num" data-target="80">0</div><div class="stat-label">Personnes max</div></div>
       <div class="stat-sep"></div>
@@ -757,6 +757,11 @@ fetch('/api/google-rating').then(function(r){return r.json();}).then(function(d)
     var full = Math.round(d.rating);
     document.getElementById('g-stars').textContent = '★★★★★☆☆☆☆☆'.slice(5-full,10-full);
     document.getElementById('g-count').textContent = d.rating.toFixed(1) + ' · ' + d.count + ' avis';
+    var heroEl = document.getElementById('hero-avis-num');
+    if(heroEl){
+      heroEl.setAttribute('data-target', d.count);
+      setTimeout(function(){ heroEl.textContent = d.count; }, 2000);
+    }
   }
 }).catch(function(e){ console.error('Google rating fetch failed', e); });
 
