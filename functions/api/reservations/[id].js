@@ -30,6 +30,8 @@ export async function onRequestDelete({ request, env, params }) {
     headers: { "Content-Type": "application/json", ...cors() },
   });
 }
+
+export async function onRequestPatch({ request, env, params }) {
   const key = request.headers.get("x-dashboard-key");
   if (!key || key !== env.DASHBOARD_KEY) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
