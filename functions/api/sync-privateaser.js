@@ -24,8 +24,11 @@ function parseEvents(ics) {
       const m = raw.match(new RegExp(`${key}(?:;[^:]*)?:(.*)`));
       return m ? m[1].trim() : "";
     };
+    const url = get("URL");
+    const codeMatch = url.match(/bookings%2F([A-Z0-9]+)%3F/i);
     return {
       uid: get("UID"),
+      code: codeMatch ? codeMatch[1] : get("UID"),
       summary: unescapeIcs(get("SUMMARY")),
       description: unescapeIcs(get("DESCRIPTION")),
       dtstart: get("DTSTART"),
@@ -73,15 +76,33 @@ export async function onRequestPost({ request, env }) {
   const ics = await icsRes.text();
   const events = parseEvents(ics);
 
-  const indexRaw = await env.RESERVATIONS.get("res:index");
-  const ids = indexRaw ? JSON.parse(indexRaw) : [];
+  let indexRaw = await env.RESERVATIONS.get("res:index");
+  let ids = indexRaw ? [...new Set(JSON.parse(indexRaw))] : [];
+
+  let body = {};
+  try { body = await request.json(); } catch (e) {}
+
+  let removed = 0;
+  if (body.reset) {
+    const survivors = [];
+    for (const id of ids) {
+      const raw = await env.RESERVATIONS.get(`res:${id}`);
+      if (raw && JSON.parse(raw).source === "Privateaser") {
+        await env.RESERVATIONS.delete(`res:${id}`);
+        removed++;
+      } else {
+        survivors.push(id);
+      }
+    }
+    ids = survivors;
+  }
 
   let created = 0;
   let skipped = 0;
 
   for (const ev of events) {
-    if (!ev.uid) continue;
-    const id = `priv-${ev.uid}`;
+    if (!ev.code) continue;
+    const id = `priv-${ev.code}`;
     const existing = await env.RESERVATIONS.get(`res:${id}`);
     if (existing) { skipped++; continue; }
 
@@ -120,7 +141,7 @@ export async function onRequestPost({ request, env }) {
 
   await env.RESERVATIONS.put("res:index", JSON.stringify([...new Set(ids)]));
 
-  return new Response(JSON.stringify({ ok: true, created, skipped, total: events.length }), {
+  return new Response(JSON.stringify({ ok: true, created, skipped, removed, total: events.length }), {
     headers: { "Content-Type": "application/json", ...cors() },
   });
 }

@@ -207,6 +207,10 @@
         Importer depuis Privateaser
       </button>
 
+      <button class="btn-ghost" style="width:100%; margin-bottom:20px; color:var(--danger); border-color:var(--danger)" onclick="if(confirm('Supprimer tous les imports Privateaser existants et les réimporter proprement (sans doublons) ?')) syncPrivateaser(false, true)">
+        Réparer les doublons Privateaser
+      </button>
+
       <div class="form" id="form">
         <div class="row2">
           <input id="f-name" placeholder="Nom du client">
@@ -382,14 +386,15 @@ async function makeStripeLink(id, name) {
   }
 }
 
-async function syncPrivateaser(silent) {
+async function syncPrivateaser(silent, reset) {
   try {
-    const res = await fetch("/api/sync-privateaser", { method: "POST", headers: { "x-dashboard-key": key() } }).then(r => r.json());
+    const res = await fetch("/api/sync-privateaser", { method: "POST", headers: { "x-dashboard-key": key(), "Content-Type": "application/json" }, body: JSON.stringify({ reset: !!reset }) }).then(r => r.json());
     if (res.error) throw new Error(res.error);
-    if (!silent || res.created > 0) {
-      toast(`${res.created} nouvelle(s) réservation(s) importée(s), ${res.skipped} déjà à jour.`, "success");
+    if (!silent || res.created > 0 || res.removed > 0) {
+      const removedTxt = res.removed ? `${res.removed} doublon(s) supprimé(s), ` : "";
+      toast(`${removedTxt}${res.created} nouvelle(s) réservation(s) importée(s), ${res.skipped} déjà à jour.`, "success");
     }
-    if (res.created > 0) {
+    if (res.created > 0 || res.removed > 0) {
       entries = await api("");
       render();
     }
