@@ -4,7 +4,7 @@
   "description": "Gestion privée des réservations et devis Yonko Bar",
   "id": "/dashboard.html",
   "start_url": "/dashboard.html",
-  "scope": "/",
+  "scope": "/dashboard.html",
   "display": "standalone",
   "background_color": "#14171c",
   "theme_color": "#14171c",
