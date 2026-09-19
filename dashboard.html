@@ -307,6 +307,7 @@ async function init() {
   }
   loaded = true;
   render();
+  syncPrivateaser(true);
 }
 
 function setView(v) {
@@ -381,15 +382,19 @@ async function makeStripeLink(id, name) {
   }
 }
 
-async function syncPrivateaser() {
+async function syncPrivateaser(silent) {
   try {
     const res = await fetch("/api/sync-privateaser", { method: "POST", headers: { "x-dashboard-key": key() } }).then(r => r.json());
     if (res.error) throw new Error(res.error);
-    toast(`${res.created} nouvelle(s) réservation(s) importée(s), ${res.skipped} déjà à jour.`, "success");
-    entries = await api("");
-    render();
+    if (!silent || res.created > 0) {
+      toast(`${res.created} nouvelle(s) réservation(s) importée(s), ${res.skipped} déjà à jour.`, "success");
+    }
+    if (res.created > 0) {
+      entries = await api("");
+      render();
+    }
   } catch (e) {
-    toast(e.message, "error");
+    if (!silent) toast(e.message, "error");
   }
 }
 
