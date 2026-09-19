@@ -202,6 +202,11 @@
         Nouvelle demande
       </button>
 
+      <button class="btn-ghost" style="width:100%; margin-bottom:20px; display:flex; align-items:center; justify-content:center; gap:8px" onclick="syncPrivateaser()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+        Importer depuis Privateaser
+      </button>
+
       <div class="form" id="form">
         <div class="row2">
           <input id="f-name" placeholder="Nom du client">
@@ -369,6 +374,18 @@ async function makeStripeLink(id, name) {
   try {
     const res = await api(`/${id}/deposit-link`, { method:"POST", body: JSON.stringify({amount: Number(amount)}) });
     toast("Lien généré" + (res.emailResult && res.emailResult.sent ? " et envoyé par email." : "."), "success");
+    entries = await api("");
+    render();
+  } catch (e) {
+    toast(e.message, "error");
+  }
+}
+
+async function syncPrivateaser() {
+  try {
+    const res = await fetch("/api/sync-privateaser", { method: "POST", headers: { "x-dashboard-key": key() } }).then(r => r.json());
+    if (res.error) throw new Error(res.error);
+    toast(`${res.created} nouvelle(s) réservation(s) importée(s), ${res.skipped} déjà à jour.`, "success");
     entries = await api("");
     render();
   } catch (e) {
