@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Journal des réservations — Yonko Bar</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#14171c">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -786,6 +790,9 @@ function renderStatsView() {
 function render() { if (view==="planning") renderPlanning(); else if (view==="stats") renderStatsView(); else renderList(); }
 
 init();
+</script>
+<script>
+if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(console.warn)); }
 </script>
 </body>
 </html>
