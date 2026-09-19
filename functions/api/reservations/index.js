@@ -27,8 +27,12 @@ export async function onRequestGet({ request, env }) {
     });
   }
   const ids = await getIndex(env.RESERVATIONS);
+  const uniqueIds = [...new Set(ids)];
+  if (uniqueIds.length !== ids.length) {
+    await env.RESERVATIONS.put("res:index", JSON.stringify(uniqueIds));
+  }
   const entries = [];
-  for (const id of ids) {
+  for (const id of uniqueIds) {
     const raw = await env.RESERVATIONS.get(`res:${id}`);
     if (raw) entries.push(JSON.parse(raw));
   }
@@ -77,7 +81,7 @@ export async function onRequestPost({ request, env }) {
   await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(entry));
   const ids = await getIndex(env.RESERVATIONS);
   ids.push(id);
-  await env.RESERVATIONS.put("res:index", JSON.stringify(ids));
+  await env.RESERVATIONS.put("res:index", JSON.stringify([...new Set(ids)]));
 
   return new Response(JSON.stringify({ ok: true, id }), {
     status: 201,

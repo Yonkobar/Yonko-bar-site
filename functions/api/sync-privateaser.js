@@ -118,7 +118,7 @@ export async function onRequestPost({ request, env }) {
     created++;
   }
 
-  await env.RESERVATIONS.put("res:index", JSON.stringify(ids));
+  await env.RESERVATIONS.put("res:index", JSON.stringify([...new Set(ids)]));
 
   return new Response(JSON.stringify({ ok: true, created, skipped, total: events.length }), {
     headers: { "Content-Type": "application/json", ...cors() },
