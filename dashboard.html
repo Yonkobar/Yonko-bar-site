@@ -244,7 +244,122 @@
 
 <div class="toasts" id="toasts"></div>
 
+<div id="quotePanel" style="display:none; position:fixed; inset:0; background:rgba(20,23,28,.6); z-index:100; overflow-y:auto;">
+  <div style="background:var(--paper); max-width:520px; margin:20px auto; border-radius:6px; padding:20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h2 style="font-family:'Fraunces',serif; font-size:17px; margin:0;" id="quoteTitle">Devis</h2>
+      <button onclick="closeQuote()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div id="quoteBody" style="max-height:55vh; overflow-y:auto; margin-bottom:14px;"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--rule); padding-top:12px; margin-bottom:14px;">
+      <span style="font-family:'Fraunces',serif; font-weight:600;">Total</span>
+      <span style="font-family:'Fraunces',serif; font-weight:700; font-size:19px;" id="quoteTotal">0,00 €</span>
+    </div>
+    <p class="err" id="quote-err"></p>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="sendQuote()" id="quoteSendBtn">Générer et envoyer par email</button>
+      <button class="btn-ghost" onclick="closeQuote()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script>
+const MENU = [
+  { cat: "Bières pression 25cl", items: [
+    { n: "Yonko Blonde 5.2% (25cl)", p: 3.50 },
+    { n: "Yonko Blanche 4.5% (25cl)", p: 4 },
+    { n: "Brooklyn Defender IPA 5.5% (25cl)", p: 4.50 },
+    { n: "Delirium 8.5% (25cl)", p: 5 },
+  ]},
+  { cat: "Bières pression 50cl", items: [
+    { n: "Yonko Blonde 5.2% (50cl)", p: 6.50 },
+    { n: "Yonko Blanche 4.5% (50cl)", p: 8 },
+    { n: "Brooklyn Defender IPA 5.5% (50cl)", p: 8.50 },
+    { n: "Delirium 8.5% (50cl)", p: 9 },
+  ]},
+  { cat: "Bières bouteilles", items: [
+    { n: "Corona 4.6%", p: 7 },
+    { n: "Desperados 5.9%", p: 7 },
+  ]},
+  { cat: "Vins et Bulles", items: [
+    { n: "Blanc Chardonnay (12cl)", p: 5 },
+    { n: "Blanc Chardonnay (bouteille)", p: 24 },
+    { n: "Rouge Pinot Noir (verre)", p: 6 },
+    { n: "Rouge Pinot Noir (bouteille)", p: 29 },
+    { n: "Rosé (verre)", p: 6 },
+    { n: "Rosé (bouteille)", p: 29 },
+    { n: "Prosecco (verre)", p: 6 },
+    { n: "Prosecco (bouteille)", p: 35 },
+    { n: "Champagne (bouteille)", p: 60 },
+  ]},
+  { cat: "Softs", items: [
+    { n: "Soft", p: 4.50 },
+    { n: "Red Bull", p: 5 },
+    { n: "Ginger Beer", p: 5 },
+  ]},
+  { cat: "Spiritueux", items: [
+    { n: "Alcool + Soft", p: 9 },
+    { n: "Alcool + Red Bull", p: 10 },
+    { n: "Alcool Supérieur + Soft", p: 10 },
+    { n: "Alcool Supérieur + Red Bull", p: 11 },
+    { n: "Ti Punch", p: 8 },
+    { n: "Alcool Premium", p: 12 },
+    { n: "Liqueur", p: 7 },
+    { n: "Pastis (3cl)", p: 4 },
+    { n: "Shot", p: 4 },
+    { n: "Shot Supérieur", p: 5 },
+    { n: "Shot Premium", p: 6 },
+    { n: "Rail de shot", p: 35 },
+    { n: "Rail de shot supérieur", p: 45 },
+  ]},
+  { cat: "Food", items: [
+    { n: "Planche de fromage", p: 10 },
+    { n: "Planche de charcuterie", p: 10 },
+    { n: "Planche mixte", p: 19 },
+    { n: "Croque-monsieur", p: 6 },
+    { n: "Frites", p: 5 },
+    { n: "Pain à l'ail", p: 8 },
+  ]},
+  { cat: "Cocktails signature", items: [
+    { n: "All Blue", p: 11 },
+    { n: "Santoryu", p: 11 },
+    { n: "Demon Slayer", p: 11 },
+    { n: "Dodompa", p: 15 },
+    { n: "Ashura", p: 11 },
+    { n: "Gear 5", p: 11 },
+    { n: "Gin Freeccs", p: 11 },
+    { n: "Shingeki no Kyo-Gin", p: 11 },
+    { n: "One Punch Man", p: 11 },
+    { n: "Rocklee Martini", p: 13 },
+    { n: "Mugetsu", p: 11 },
+    { n: "Sukuna Finger", p: 11 },
+  ]},
+  { cat: "Cocktails classiques", items: [
+    { n: "Blue Lagoon", p: 10 },
+    { n: "Caipirinha", p: 10 },
+    { n: "Cosmopolitan", p: 10 },
+    { n: "Daiquiri", p: 10 },
+    { n: "Margarita", p: 10 },
+    { n: "Mai Tai", p: 12 },
+    { n: "Mule", p: 10 },
+    { n: "Mojito", p: 10 },
+    { n: "Sex on the Beach", p: 10 },
+    { n: "Tequila Sunrise", p: 10 },
+    { n: "Long Island Ice Tea", p: 12 },
+  ]},
+  { cat: "Mocktails (sans alcool)", items: [
+    { n: "Shirley Temple", p: 7 },
+    { n: "Virgin Mojito", p: 7 },
+    { n: "Coco Mango", p: 7 },
+    { n: "Exotic Cosmo", p: 7 },
+    { n: "Planteur (sans alcool)", p: 7 },
+  ]},
+];
+let quoteEntry = null;
+let quoteQty = {};
+
 const API = "/api/reservations";
 const STATUS = { pending:{label:"En attente",color:"#c98f1c"}, accepted:{label:"Acceptée",color:"#2fa88f"}, declined:{label:"Refusée",color:"#c4483a"} };
 const WEEKDAYS = ["L","M","M","J","V","S","D"];
@@ -415,6 +530,103 @@ async function deleteEntry(id, name) {
   }
 }
 
+function openQuote(entry) {
+  quoteEntry = entry;
+  quoteQty = {};
+  document.getElementById("quoteTitle").textContent = `Devis — ${entry.name}`;
+  document.getElementById("quote-err").textContent = "";
+  renderQuoteBody();
+  document.getElementById("quotePanel").style.display = "block";
+}
+
+function closeQuote() {
+  document.getElementById("quotePanel").style.display = "none";
+  quoteEntry = null;
+}
+
+function changeQty(name, delta) {
+  const next = (quoteQty[name] || 0) + delta;
+  quoteQty[name] = Math.max(0, next);
+  renderQuoteBody();
+}
+
+function renderQuoteBody() {
+  let total = 0;
+  const html = MENU.map(group => `
+    <div style="margin-bottom:14px;">
+      <div style="font-family:'Fraunces',serif; font-weight:600; font-size:13px; margin-bottom:6px; color:var(--muted)">${group.cat}</div>
+      ${group.items.map(item => {
+        const qty = quoteQty[item.n] || 0;
+        total += qty * item.p;
+        return `<div style="display:flex; align-items:center; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--rule); gap:8px;">
+          <div style="flex:1; font-size:13px;">${item.n} <span style="color:var(--muted)">— ${item.p.toFixed(2)}€</span></div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button onclick="changeQty('${item.n.replace(/'/g,"\\'")}',-1)" style="width:24px;height:24px;border-radius:3px;border:1px solid var(--rule);background:none;cursor:pointer">−</button>
+            <span style="min-width:14px;text-align:center;font-weight:600">${qty}</span>
+            <button onclick="changeQty('${item.n.replace(/'/g,"\\'")}',1)" style="width:24px;height:24px;border-radius:3px;border:1px solid var(--rule);background:none;cursor:pointer">+</button>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+  `).join("");
+  document.getElementById("quoteBody").innerHTML = html;
+  document.getElementById("quoteTotal").textContent = total.toFixed(2).replace(".", ",") + " €";
+}
+
+async function sendQuote() {
+  const lines = [];
+  let total = 0;
+  MENU.forEach(group => group.items.forEach(item => {
+    const qty = quoteQty[item.n] || 0;
+    if (qty > 0) { lines.push({ name: item.n, price: item.p, qty }); total += qty * item.p; }
+  }));
+  if (lines.length === 0) { document.getElementById("quote-err").textContent = "Ajoute au moins un article."; return; }
+  if (!quoteEntry.email) { document.getElementById("quote-err").textContent = "Ce client n'a pas d'email enregistré — impossible d'envoyer le devis."; return; }
+
+  const btn = document.getElementById("quoteSendBtn");
+  btn.disabled = true; btn.textContent = "Génération...";
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFont("helvetica", "bold"); doc.setFontSize(18);
+    doc.setTextColor(255, 110, 0); doc.text("YONKO BAR", 20, 22);
+    doc.setTextColor(30, 30, 30); doc.setFontSize(12); doc.setFont("helvetica", "normal");
+    doc.text(`Devis pour ${quoteEntry.name}`, 20, 34);
+    doc.setFontSize(10); doc.setTextColor(120, 120, 120);
+    doc.text(`Réservation du ${quoteEntry.date}${quoteEntry.time ? " à " + quoteEntry.time : ""}`, 20, 41);
+    let y = 55;
+    doc.setDrawColor(220, 220, 220); doc.line(20, y, 190, y); y += 8;
+    doc.setTextColor(30, 30, 30); doc.setFontSize(11);
+    lines.forEach(l => {
+      doc.text(`${l.qty} × ${l.name}`, 20, y);
+      doc.text(`${(l.qty * l.price).toFixed(2)} €`, 170, y, { align: "right" });
+      y += 8;
+      if (y > 270) { doc.addPage(); y = 20; }
+    });
+    y += 4; doc.line(20, y, 190, y); y += 10;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(13);
+    doc.text("Total", 20, y);
+    doc.text(`${total.toFixed(2)} €`, 170, y, { align: "right" });
+
+    const pdfBase64 = doc.output("datauristring").split(",")[1];
+
+    const res = await fetch(`/api/reservations/${quoteEntry.id}/send-quote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-dashboard-key": key() },
+      body: JSON.stringify({ pdfBase64, total, lines }),
+    }).then(r => r.json());
+
+    if (res.error) throw new Error(res.error);
+    toast("Devis envoyé par email.", "success");
+    closeQuote();
+  } catch (e) {
+    document.getElementById("quote-err").textContent = e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = "Générer et envoyer par email";
+  }
+}
+
 function copyMessage(entry) {
   const lines = [
     `Bonjour ${entry.name},`, "",
@@ -455,6 +667,7 @@ function cardHTML(e) {
       ${e.status!=="pending"?`<button class="action" onclick="setStatus('${e.id}','pending')">${ICONS.undo} En attente</button>`:""}
       ${e.status==="accepted"?`<button class="action stripe" onclick="makeStripeLink('${e.id}','${e.name}')">${ICONS.link} ${e.depositLink?"Régénérer":"Lien Stripe"}</button>`:""}
       ${e.status==="accepted"?`<button class="action copy" onclick='copyMessage(${JSON.stringify(e)})'>${ICONS.copy} Copier</button>`:""}
+      <button class="action" onclick='openQuote(${JSON.stringify(e)})'>${ICONS.card} Devis</button>
       <button class="action delete" onclick="deleteEntry('${e.id}','${e.name}')">${ICONS.trash} Supprimer</button>
     </div>
     ${e.depositLink?`<div class="deposit">${e.depositAmount?e.depositAmount+"€ — ":""}${e.depositLink}</div>`:""}
