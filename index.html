@@ -572,7 +572,9 @@ footer p{font-size:.73rem;color:rgba(244,232,212,.24);margin-bottom:.3rem}
           <div class="fg"><label>Nombre de personnes</label>
             <input type="number" id="nb" placeholder="Ex : 12" min="2" max="100" style="width:100%"></div>
           <div class="fg"><label>Type de reservation</label>
-            <select id="es"><option value="">Selectionner...</option><option>Tables a la Taverne</option><option>Privatisation de la Cave (500-700 euros min.)</option><option>Bar entier / Lundi / Dimanche (sur devis)</option></select></div>
+            <select id="es" onchange="showMinConso()"><option value="">Selectionner...</option><option>Tables a la Taverne</option><option>Privatisation de la Cave (500-700 euros min.)</option><option>Bar entier / Lundi / Dimanche (sur devis)</option></select>
+            <div id="minConso" style="display:none;margin-top:.5rem;padding:.6rem .8rem;background:rgba(224,112,16,.08);border:1px solid rgba(224,112,16,.25);border-radius:6px;font-size:.8rem;color:var(--orange-lt)"></div>
+          </div>
           <div class="fg"><label>Occasion</label>
             <select id="oc"><option value="">Selectionner...</option><option>Anniversaire</option><option>EVJF / EVG</option><option>Afterwork / Pot de depart</option><option>Soiree entre amis</option><option>Evenement entreprise</option><option>Autre</option></select></div>
           <div class="fg"><label>Message (optionnel)</label><textarea id="ms" placeholder="Theme, karaoke, deco, demandes particulieres..."></textarea></div>
@@ -696,6 +698,21 @@ function toggleFaq(btn){
   });
   if(!isOpen){btn.classList.add('open');ans.classList.add('open');}
 }
+function showMinConso(){
+  var v = document.getElementById('es').value;
+  var box = document.getElementById('minConso');
+  var msg = '';
+  if(v.indexOf('Privatisation')===0 || v.indexOf('Privatisation')>-1){
+    msg = 'Minimum de consommation : 500 à 700€ selon la date.';
+  } else if(v.indexOf('Bar entier')===0 || v.indexOf('Bar entier')>-1){
+    msg = 'Privatisation sur devis — nous vous recontactons pour établir les conditions.';
+  } else if(v.indexOf('Taverne')>-1){
+    msg = 'Minimum de consommation : 15€/personne le vendredi et le samedi, pour les groupes de plus de 6 personnes.';
+  }
+  if(msg){ box.textContent = msg; box.style.display = 'block'; }
+  else { box.style.display = 'none'; }
+}
+
 function submitForm(){
   var fields=['pr','em','dt','nb','es'];
   var ok=true;

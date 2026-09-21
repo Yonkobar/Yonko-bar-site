@@ -4,10 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Journal des réservations — Yonko Bar</title>
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#14171c">
-<meta name="mobile-web-app-capable" content="yes">
-<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -699,16 +695,32 @@ function skeleton() {
   return `<div class="skeleton"><div class="skel-card"></div><div class="skel-card"></div><div class="skel-card"></div></div>`;
 }
 
+let timeScope = "upcoming";
+function isPastEntry(e) { return e.date && e.date < isoDate(new Date()); }
+
 function renderList() {
   const counts = {pending:0,accepted:0,declined:0};
   entries.forEach(e => counts[e.status] = (counts[e.status]||0)+1);
   renderStats(counts);
   if (!loaded) { document.getElementById("listView").innerHTML = skeleton(); return; }
+
+  const scoped = entries.filter(e => timeScope === "all" ? true : timeScope === "past" ? isPastEntry(e) : !isPastEntry(e));
+  const scopeCounts = {upcoming:0, past:0};
+  entries.forEach(e => { scopeCounts[isPastEntry(e) ? "past" : "upcoming"]++; });
+  const scopeTabs = [["upcoming","À venir"],["past","Passées"],["all","Toutes"]]
+    .map(([k,l]) => `<button class="tab ${timeScope===k?'active':''}" onclick="timeScope='${k}';render()">${l}${k!=='all'?` (${scopeCounts[k]||0})`:""}</button>`).join("");
+
+  const statusCounts = {pending:0,accepted:0,declined:0};
+  scoped.forEach(e => statusCounts[e.status] = (statusCounts[e.status]||0)+1);
   const tabs = [["pending","En attente"],["accepted","Acceptées"],["declined","Refusées"],["all","Toutes"]]
-    .map(([k,l]) => `<button class="tab ${filter===k?'active':''}" onclick="filter='${k}';render()">${l} ${k!=='all'?`(${counts[k]||0})`:""}</button>`).join("");
-  const visible = entries.filter(e => (filter==="all"||e.status===filter) && matchesSearch(e))
-    .sort((a,b) => (a.date||"").localeCompare(b.date||"") || (a.time||"").localeCompare(b.time||""));
-  document.getElementById("listView").innerHTML = `<div class="tabs">${tabs}</div>` +
+    .map(([k,l]) => `<button class="tab ${filter===k?'active':''}" onclick="filter='${k}';render()">${l} ${k!=='all'?`(${statusCounts[k]||0})`:""}</button>`).join("");
+
+  const visible = scoped.filter(e => (filter==="all"||e.status===filter) && matchesSearch(e))
+    .sort((a,b) => timeScope==="past"
+      ? ((b.date||"").localeCompare(a.date||"") || (b.time||"").localeCompare(a.time||""))
+      : ((a.date||"").localeCompare(b.date||"") || (a.time||"").localeCompare(b.time||"")));
+
+  document.getElementById("listView").innerHTML = `<div class="tabs">${scopeTabs}</div><div class="tabs">${tabs}</div>` +
     (visible.length ? `<div class="list">${visible.map(cardHTML).join("")}</div>` : emptyState("Aucune demande dans cette catégorie."));
 }
 
@@ -790,9 +802,6 @@ function renderStatsView() {
 function render() { if (view==="planning") renderPlanning(); else if (view==="stats") renderStatsView(); else renderList(); }
 
 init();
-</script>
-<script>
-if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(console.warn)); }
 </script>
 </body>
 </html>

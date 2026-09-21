@@ -46,8 +46,18 @@ function row(label, value) {
   return `<tr><td style="padding:6px 0;color:#78726a;font-size:13px;width:120px">${label}</td><td style="padding:6px 0;color:#1a1a1a;font-size:14px;font-weight:600">${value}</td></tr>`;
 }
 
+function minConsoText(entry) {
+  const type = (entry.type || "").toLowerCase();
+  const guests = parseInt(entry.guests, 10) || 0;
+  if (type.includes("privatisation")) return "Minimum de consommation : 500 à 700€ selon la date.";
+  if (type.includes("bar entier")) return "Privatisation sur devis — nous vous recontactons pour établir les conditions.";
+  if (type.includes("taverne")) return "Minimum de consommation : 15€/personne le vendredi et le samedi, pour les groupes de plus de 6 personnes.";
+  return "";
+}
+
 export function buildEmailHtml(entry) {
   const datePart = formatDateFr(entry.date);
+  const minConso = minConsoText(entry);
   return `
   <div style="background:#f4f1ec;padding:32px 16px;font-family:-apple-system,Helvetica,Arial,sans-serif">
     <table role="presentation" width="100%" style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e6e1d8">
@@ -65,7 +75,9 @@ export function buildEmailHtml(entry) {
             ${row("Date", datePart)}
             ${row("Heure", entry.time || "à confirmer")}
             ${row("Personnes", entry.guests || "?")}
+            ${entry.type ? row("Espace", entry.type) : ""}
           </table>
+          ${minConso ? `<p style="font-size:13px;color:#1a1a1a;background:#fff1e6;border:1px solid #ffd9b8;border-radius:8px;padding:10px 14px;margin:0 0 18px">${minConso}</p>` : ""}
           ${entry.depositLink ? `
             <p style="font-size:13.5px;color:#78726a;line-height:1.5;margin:0 0 16px">Pour finaliser, merci de valider votre caution ci-dessous. Le montant est simplement <b>autorisé</b> sur votre carte — il ne sera prélevé qu'en cas d'absence non annoncée.</p>
             <table role="presentation" width="100%"><tr><td align="center">
