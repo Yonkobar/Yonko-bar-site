@@ -1,5 +1,6 @@
 // GET  /api/reservations  -> liste des réservations (protégé par x-dashboard-key)
 // POST /api/reservations  -> créer une réservation (appelé par le formulaire du site, public)
+import {notifyNewReservation} from '../../_push.js';
 
 function cors() {
   return {
@@ -42,7 +43,7 @@ export async function onRequestGet({ request, env }) {
   });
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   let body;
   try {
     body = await request.json();
@@ -82,6 +83,9 @@ export async function onRequestPost({ request, env }) {
   const ids = await getIndex(env.RESERVATIONS);
   ids.push(id);
   await env.RESERVATIONS.put("res:index", JSON.stringify([...new Set(ids)]));
+
+  const notification = notifyNewReservation(env, request, entry);
+  if (waitUntil) waitUntil(notification); else await notification;
 
   return new Response(JSON.stringify({ ok: true, id }), {
     status: 201,

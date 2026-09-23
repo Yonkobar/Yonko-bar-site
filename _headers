@@ -1,2 +1,14 @@
 /*
   Content-Security-Policy: frame-src 'self' https://www.google.com https://maps.googleapis.com https://maps.gstatic.com;
+
+/sw.js
+  Cache-Control: no-cache
+  Service-Worker-Allowed: /
+/manifest.webmanifest
+  Cache-Control: no-cache
+/dashboard
+  Cache-Control: no-store
+/dashboard.html
+  Cache-Control: no-store
+/pwa.js
+  Cache-Control: no-cache
