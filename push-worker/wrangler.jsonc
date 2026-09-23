@@ -8,6 +8,6 @@
   "triggers": {"crons": ["*/5 * * * *"]},
   "durable_objects": {"bindings": [{"name": "PUSH_STATE", "class_name": "PushState"}]},
   "migrations": [{"tag": "v1", "new_sqlite_classes": ["PushState"]}],
-  "kv_namespaces": [{"binding": "RESERVATIONS", "id": "REPLACE_WITH_PREVIEW_KV_NAMESPACE_ID"}],
+  "kv_namespaces": [{"binding": "RESERVATIONS", "id": "17429715a37040349b0f1981a7642803"}],
   "observability": {"enabled": true}
 }
