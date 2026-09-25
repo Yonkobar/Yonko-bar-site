@@ -1,10 +1,7 @@
 // POST /api/sync-privateaser
 // Synchronise le flux iCal Privateaser avec les réservations du dashboard.
-// - Ne supprime rien par défaut
-// - Met à jour les réservations Privateaser déjà présentes
-// - Gère plusieurs formats DTSTART iCal
-// - Lit STATUS quand Privateaser le fournit
-// - Retourne un diagnostic sur les événements ignorés
+// Cette version ajoute un diagnostic ciblé pour les dates 26/09, 22/10 et 30/10/2026.
+// Aucun reset ni suppression n'est effectué sauf si body.reset === true.
 
 function cors() {
   return {
@@ -81,11 +78,7 @@ function mapPrivateaserStatus(ev) {
   if (status === "TENTATIVE") return "pending";
   if (status === "CONFIRMED") return "accepted";
 
-  if (
-    text.includes("annule") ||
-    text.includes("refuse") ||
-    text.includes("declined")
-  ) {
+  if (text.includes("annule") || text.includes("refuse") || text.includes("declined")) {
     return "declined";
   }
 
@@ -98,11 +91,7 @@ function mapPrivateaserStatus(ev) {
     return "pending";
   }
 
-  if (
-    text.includes("confirme") ||
-    text.includes("valide") ||
-    text.includes("accepted")
-  ) {
+  if (text.includes("confirme") || text.includes("valide") || text.includes("accepted")) {
     return "accepted";
   }
 
@@ -128,54 +117,42 @@ function partsInParis(date) {
   };
 }
 
-function parseIcalDateTime(value, params) {
+function parseIcalDateTime(value) {
   const v = String(value || "").trim();
-  const p = String(params || "");
 
   let m = v.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
   if (m) {
-    const d = new Date(Date.UTC(
-      +m[1], +m[2] - 1, +m[3],
-      +m[4], +m[5], +m[6]
-    ));
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]));
     return partsInParis(d);
   }
 
   m = v.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})Z$/);
   if (m) {
-    const d = new Date(Date.UTC(
-      +m[1], +m[2] - 1, +m[3],
-      +m[4], +m[5], 0
-    ));
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], 0));
     return partsInParis(d);
   }
 
   m = v.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})$/);
   if (m) {
-    return {
-      date: `${m[1]}-${m[2]}-${m[3]}`,
-      time: `${m[4]}:${m[5]}`,
-      tzid: /TZID=Europe\/Paris/i.test(p) ? "Europe/Paris" : "",
-    };
+    return { date: `${m[1]}-${m[2]}-${m[3]}`, time: `${m[4]}:${m[5]}` };
   }
 
   m = v.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})$/);
   if (m) {
-    return {
-      date: `${m[1]}-${m[2]}-${m[3]}`,
-      time: `${m[4]}:${m[5]}`,
-    };
+    return { date: `${m[1]}-${m[2]}-${m[3]}`, time: `${m[4]}:${m[5]}` };
   }
 
   m = v.match(/^(\d{4})(\d{2})(\d{2})$/);
   if (m) {
-    return {
-      date: `${m[1]}-${m[2]}-${m[3]}`,
-      time: "",
-    };
+    return { date: `${m[1]}-${m[2]}-${m[3]}`, time: "" };
   }
 
   return { date: "", time: "" };
+}
+
+function shortText(s, max = 160) {
+  const clean = String(s || "").replace(/\s+/g, " ").trim();
+  return clean.length > max ? clean.slice(0, max) + "…" : clean;
 }
 
 export async function onRequestPost({ request, env }) {
@@ -189,13 +166,10 @@ export async function onRequestPost({ request, env }) {
   }
 
   if (!env.PRIVATEASER_ICS_URL) {
-    return new Response(
-      JSON.stringify({ error: "PRIVATEASER_ICS_URL not configured" }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...cors() },
-      }
-    );
+    return new Response(JSON.stringify({ error: "PRIVATEASER_ICS_URL not configured" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json", ...cors() },
+    });
   }
 
   const icsRes = await fetch(env.PRIVATEASER_ICS_URL, {
@@ -211,6 +185,29 @@ export async function onRequestPost({ request, env }) {
 
   const ics = await icsRes.text();
   const events = parseEvents(ics);
+
+  const targetDates = new Set(["2026-09-26", "2026-10-22", "2026-10-30"]);
+  const diagnosticByDate = {
+    "2026-09-26": [],
+    "2026-10-22": [],
+    "2026-10-30": [],
+  };
+
+  for (const ev of events) {
+    const parsed = parseIcalDateTime(ev.dtstart);
+    if (parsed.date && targetDates.has(parsed.date)) {
+      diagnosticByDate[parsed.date].push({
+        uid: ev.uid || "",
+        code: ev.code || "",
+        summary: ev.summary || "",
+        status: ev.status || "(aucun STATUS)",
+        dtstart: ev.dtstart || "",
+        dtstartParams: ev.dtstartParams || "",
+        parsedTime: parsed.time || "",
+        description: shortText(ev.description),
+      });
+    }
+  }
 
   let indexRaw = await env.RESERVATIONS.get("res:index");
   let ids = indexRaw ? [...new Set(JSON.parse(indexRaw))] : [];
@@ -246,11 +243,7 @@ export async function onRequestPost({ request, env }) {
 
   for (const ev of events) {
     if (!ev.code) {
-      ignored.push({
-        reason: "missing_code",
-        summary: ev.summary || "",
-        dtstart: ev.dtstart || "",
-      });
+      ignored.push({ reason: "missing_code", summary: ev.summary || "", dtstart: ev.dtstart || "" });
       continue;
     }
 
@@ -273,7 +266,7 @@ export async function onRequestPost({ request, env }) {
       existing?.contact ||
       "";
 
-    const { date, time } = parseIcalDateTime(ev.dtstart, ev.dtstartParams);
+    const { date, time } = parseIcalDateTime(ev.dtstart);
 
     if (!date) {
       ignored.push({
@@ -333,21 +326,27 @@ export async function onRequestPost({ request, env }) {
     }
   }
 
-  await env.RESERVATIONS.put(
-    "res:index",
-    JSON.stringify([...new Set(ids)])
-  );
+  await env.RESERVATIONS.put("res:index", JSON.stringify([...new Set(ids)]));
+
+  const diagPieces = Object.entries(diagnosticByDate).map(([date, list]) => {
+    if (!list.length) return `${date}: ABSENTE DU FLUX`;
+    return `${date}: ${list.length} événement(s) -> ${list.map(e => `${e.summary || e.code} [${e.status}] ${e.dtstart}`).join(" | ")}`;
+  });
+
+  const diagnostic = diagPieces.join(" || ");
 
   return new Response(
     JSON.stringify({
       ok: true,
       created,
       updated,
-      skipped,
       removed,
       total: events.length,
       ignoredCount: ignored.length,
       ignored: ignored.slice(0, 25),
+      diagnosticByDate,
+      diagnostic,
+      skipped: `${skipped} déjà à jour. DIAG: ${diagnostic}`,
     }),
     {
       headers: { "Content-Type": "application/json", ...cors() },
