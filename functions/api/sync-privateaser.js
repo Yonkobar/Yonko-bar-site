@@ -1,6 +1,7 @@
 // POST /api/sync-privateaser
 // Synchronise le flux iCal Privateaser avec les réservations du dashboard.
-// Cette version ajoute un diagnostic ciblé pour les dates 26/09, 22/10 et 30/10/2026.
+// Répare automatiquement res:index pour les réservations Privateaser déjà présentes.
+// Lit les statuts iCal quand ils sont fournis.
 // Aucun reset ni suppression n'est effectué sauf si body.reset === true.
 
 function cors() {
@@ -248,6 +249,12 @@ export async function onRequestPost({ request, env }) {
     }
 
     const id = `priv-${ev.code}`;
+
+    // Réparation automatique de l'index :
+    // une réservation peut exister dans KV mais manquer de res:index.
+    // Dans ce cas le synchroniseur la voit, mais le dashboard ne l'affiche pas.
+    if (!ids.includes(id)) ids.push(id);
+
     const existingRaw = await env.RESERVATIONS.get(`res:${id}`);
     const existing = existingRaw ? JSON.parse(existingRaw) : null;
 
@@ -346,7 +353,7 @@ export async function onRequestPost({ request, env }) {
       ignored: ignored.slice(0, 25),
       diagnosticByDate,
       diagnostic,
-      skipped: `${skipped} déjà à jour. DIAG: ${diagnostic}`,
+      skipped: `${skipped} déjà à jour. INDEX-REPAIR-V2. DIAG: ${diagnostic}`,
     }),
     {
       headers: { "Content-Type": "application/json", ...cors() },
