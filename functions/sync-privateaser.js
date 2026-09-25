@@ -353,7 +353,7 @@ export async function onRequestPost({ request, env }) {
       ignored: ignored.slice(0, 25),
       diagnosticByDate,
       diagnostic,
-      skipped: `${skipped} déjà à jour. DIAG: ${diagnostic}`,
+      skipped: `${skipped} déjà à jour. INDEX-REPAIR-V2. DIAG: ${diagnostic}`,
     }),
     {
       headers: { "Content-Type": "application/json", ...cors() },
