@@ -13,31 +13,49 @@
   const disable = document.getElementById('pushDisable');
   const supported = isSecureContext && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   let registration, config, installPrompt;
+
   async function api(path, method = 'GET', body) {
     const key = localStorage.getItem('dashboardKey');
     if (!key) throw new Error('Connectez-vous au tableau de bord pour gérer les notifications.');
-    const r = await fetch(`/api/push/${path}`, {method, cache: 'no-store', headers: {'Content-Type': 'application/json', 'x-dashboard-key': key}, ...(body ? {body: JSON.stringify(body)} : {})});
+    const r = await fetch(`/api/push/${path}`, {
+      method,
+      cache: 'no-store',
+      headers: {'Content-Type': 'application/json', 'x-dashboard-key': key},
+      ...(body ? {body: JSON.stringify(body)} : {})
+    });
     let result;
-    try { result = await r.json(); } catch { throw new Error('Le service de notifications n’est pas encore disponible.'); }
+    try { result = await r.json(); }
+    catch { throw new Error('Le service de notifications n’est pas encore disponible.'); }
     if (!r.ok) throw new Error(result.error || 'Service de notifications indisponible.');
     return result;
   }
+
   function showActive(active) {
-    enable.hidden = active; test.hidden = !active; disable.hidden = !active;
+    enable.hidden = active;
+    test.hidden = !active;
+    disable.hidden = !active;
   }
+
   async function register() {
     if (!('serviceWorker' in navigator)) return;
     await navigator.serviceWorker.register('/sw.js', {scope: '/', updateViaCache: 'none'});
     registration = await navigator.serviceWorker.ready;
   }
+
   const registered = register();
-  registered.catch(() => { status.textContent = 'L’application mobile n’a pas pu être initialisée. Rechargez la page.'; });
+  registered.catch(() => {
+    status.textContent = 'L’application mobile n’a pas pu être initialisée. Rechargez la page.';
+  });
+
   async function refresh() {
-    if (!supported) { enable.disabled = true; status.textContent = 'Ouvrez cette page avec Chrome sur Android pour activer les notifications.'; return; }
+    if (!supported) {
+      enable.disabled = true;
+      status.textContent = 'Ouvrez cette page avec Chrome sur Android pour activer les notifications.';
+      return;
+    }
     try {
       await registered;
       const sub = await registration.pushManager.getSubscription();
-      // Keep unsubscribe available even when the server is unavailable.
       showActive(!!sub);
       config = await api('config');
       if (sub) {
@@ -45,54 +63,125 @@
         status.textContent = 'Notifications activées sur cet appareil, même lorsque l’application est fermée.';
       } else if (Notification.permission === 'denied') {
         status.textContent = 'Notifications bloquées : autorisez-les dans les paramètres du site de votre navigateur.';
-      } else { status.textContent = 'Recevez les nouvelles demandes et le récap de 14 h, même application fermée.'; }
-    } catch (e) { status.textContent = e.message; }
+      } else {
+        status.textContent = 'Recevez les nouvelles demandes et le récap de 14 h, même application fermée.';
+      }
+    } catch (e) {
+      status.textContent = e.message;
+    }
   }
+
   async function busy(action) {
     for (const b of [enable, test, disable]) b.disabled = true;
-    try { await action(); } catch (e) { status.textContent = e.message; }
+    try { await action(); }
+    catch (e) { status.textContent = e.message; }
     finally { for (const b of [enable, test, disable]) b.disabled = false; }
   }
+
+  function decodeBase64UrlToUint8Array(value) {
+    const base64 = String(value || '').trim().replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    let decoded;
+    try {
+      decoded = atob(padded);
+    } catch {
+      throw new Error('Clé de notifications invalide côté serveur. Rechargez la page puis réessayez.');
+    }
+    return Uint8Array.from(decoded, c => c.charCodeAt(0));
+  }
+
   enable.addEventListener('click', () => {
-    // Permission request is issued directly from the click, never on page load.
     if (!supported) return;
-    if (!config) { status.textContent = 'Le serveur doit être configuré avant l’activation. Rechargez la page après sa configuration.'; return; }
+    if (!config?.publicKey) {
+      status.textContent = 'Le serveur doit être configuré avant l’activation. Rechargez la page après sa configuration.';
+      return;
+    }
+
     const permission = Notification.requestPermission();
+
     busy(async () => {
-      if (await permission !== 'granted') throw new Error('Notifications non autorisées. Vous pouvez changer ce choix dans les paramètres du site.');
+      if (await permission !== 'granted') {
+        throw new Error('Notifications non autorisées. Vous pouvez changer ce choix dans les paramètres du site.');
+      }
+
       await registered;
-      const applicationServerKey = Uint8Array.from(atob(config.publicKey.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-      const sub = await registration.pushManager.getSubscription() || await registration.pushManager.subscribe({userVisibleOnly: true, applicationServerKey});
+      const applicationServerKey = decodeBase64UrlToUint8Array(config.publicKey);
+      const existing = await registration.pushManager.getSubscription();
+      const sub = existing || await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey
+      });
+
       showActive(true);
       await api('subscription', 'POST', sub.toJSON());
       status.textContent = 'Notifications activées. Utilisez « Tester » pour vérifier la réception.';
     });
   });
+
   test.addEventListener('click', () => busy(async () => {
     const sub = await registration.pushManager.getSubscription();
     if (!sub) throw new Error('Activez les notifications avant de lancer le test.');
     const result = await api('test', 'POST', {endpoint: sub.endpoint});
-    status.textContent = result.queued ? 'Test en attente : le serveur réessaiera automatiquement.' : 'Test envoyé par le serveur. Vérifiez les notifications de votre téléphone.';
+    status.textContent = result.queued
+      ? 'Test en attente : le serveur réessaiera automatiquement.'
+      : 'Test envoyé par le serveur. Vérifiez les notifications de votre téléphone.';
   }));
+
   async function unsubscribe() {
     await registered;
     const sub = await registration?.pushManager.getSubscription();
     if (sub) {
       let failed = false;
-      try { await api('subscription', 'DELETE', sub.toJSON()); } catch { failed = true; }
+      try { await api('subscription', 'DELETE', sub.toJSON()); }
+      catch { failed = true; }
+
       const removed = await sub.unsubscribe();
-      if (!removed && await registration.pushManager.getSubscription()) throw new Error('Désactivation impossible. Bloquez les notifications dans les paramètres du site.');
-      if (failed) console.warn('Subscription removed locally; server cleanup will follow when push service returns 410.');
+      if (!removed && await registration.pushManager.getSubscription()) {
+        throw new Error('Désactivation impossible. Bloquez les notifications dans les paramètres du site.');
+      }
+      if (failed) {
+        console.warn('Subscription removed locally; server cleanup will follow when push service returns 410.');
+      }
     }
-    showActive(false); status.textContent = 'Notifications désactivées sur cet appareil.';
+    showActive(false);
+    status.textContent = 'Notifications désactivées sur cet appareil.';
   }
+
   window.yonkoPush = {unsubscribe};
   disable.addEventListener('click', () => busy(unsubscribe));
+
   window.addEventListener('yonko-authenticated', refresh);
-  window.addEventListener('storage', e => { if (e.key === 'dashboardKey' && !e.newValue) unsubscribe().catch(() => {}); });
-  navigator.serviceWorker?.addEventListener('message', e => { if (e.data?.type === 'yonko-reservations-changed' && localStorage.getItem('dashboardKey') && typeof init === 'function') init(); });
-  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; document.getElementById('pwaInstall').hidden = false; });
-  document.getElementById('pwaInstall').addEventListener('click', async () => { if (installPrompt) { await installPrompt.prompt(); installPrompt = null; document.getElementById('pwaInstall').hidden = true; } });
-  window.addEventListener('appinstalled', () => { document.getElementById('pwaInstall').hidden = true; });
+  window.addEventListener('storage', e => {
+    if (e.key === 'dashboardKey' && !e.newValue) unsubscribe().catch(() => {});
+  });
+
+  navigator.serviceWorker?.addEventListener('message', e => {
+    if (
+      e.data?.type === 'yonko-reservations-changed' &&
+      localStorage.getItem('dashboardKey') &&
+      typeof init === 'function'
+    ) {
+      init();
+    }
+  });
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    installPrompt = e;
+    document.getElementById('pwaInstall').hidden = false;
+  });
+
+  document.getElementById('pwaInstall').addEventListener('click', async () => {
+    if (installPrompt) {
+      await installPrompt.prompt();
+      installPrompt = null;
+      document.getElementById('pwaInstall').hidden = true;
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('pwaInstall').hidden = true;
+  });
+
   refresh();
 })();
