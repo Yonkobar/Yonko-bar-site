@@ -12,7 +12,7 @@ self.addEventListener('activate', event => event.waitUntil((async () => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin === self.location.origin && event.request.mode === 'navigate' && ['/dashboard', '/dashboard.html'].includes(url.pathname)) {
-    event.respondWith(fetch(event.request).catch(() => caches.match('/offline.html')));
+    event.respondWith(fetch(event.request, {cache:'no-store'}).catch(() => caches.match('/offline.html')));
   }
 });
 self.addEventListener('push', event => event.waitUntil((async () => {
