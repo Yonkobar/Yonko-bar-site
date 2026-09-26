@@ -1,5 +1,5 @@
 (() => {
-  const VERSION='2026.09.26.1';
+  const VERSION='2026.09.26.2';
   let installPrompt, registration, busy=false, enabled=false, refreshing=false, lastRefresh=Date.now(), lastVersionCheck=0;
   const buttons=[...document.querySelectorAll('.install-app')], note=document.getElementById('connectionNote');
   const dialog=document.createElement('dialog');dialog.id='mobileSettings';
@@ -49,7 +49,7 @@
     if(!supportsPush()){state('Notifications indisponibles ici. Essayez Chrome sur Android, ou l’application installée sur iPhone.');controls();return;}
     if(iOS()&&!standalone()){state('Sur iPhone, installez d’abord l’application sur l’écran d’accueil.');controls();return;}
     if(Notification.permission==='denied'){state('Notifications bloquées. Autorisez-les dans les réglages du navigateur ou du téléphone.');controls();return;}
-    try{const r=await worker(),sub=await r.pushManager.getSubscription();enabled=!!sub&&(await pushAPI('status',{endpoint:sub.endpoint})).enabled;state(enabled?'Notifications activées sur ce téléphone.':'Notifications désactivées sur ce téléphone.');}
+    try{await pushAPI('enroll');const r=await worker(),sub=await r.pushManager.getSubscription();enabled=!!sub&&(await pushAPI('status',{endpoint:sub.endpoint})).enabled;state(enabled?'Notifications activées sur ce téléphone.':'Service prêt. Notifications désactivées sur ce téléphone.');}
     catch(e){state(e.message);}controls();
   }
   window.openMobileSettings=async()=>{if(!key())return;if(!dialog.open)dialog.showModal();await inspectPush();};
@@ -57,7 +57,8 @@
   function applicationServerKey(value){return Uint8Array.from(atob(value.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));}
   byId('enablePush').onclick=async()=>{
     if(busy)return;
-    const permission=Notification.permission==='default'?Notification.requestPermission():Promise.resolve(Notification.permission);
+    let permissionTimer;
+    const permission=Notification.permission==='default'?Promise.race([Notification.requestPermission(),new Promise((_,reject)=>{permissionTimer=setTimeout(()=>reject(new Error('Confirmez l’autorisation dans votre navigateur. Si aucune demande n’apparaît, ouvrez l’application dans Chrome sur Android.')),45000);})]):Promise.resolve(Notification.permission);
     busy=true;controls();state('Activation en cours…');
     try{
       if(await permission!=='granted')throw new Error('Permission non accordée. Vous pourrez réessayer depuis les réglages du navigateur.');
@@ -69,7 +70,7 @@
       try{await pushAPI('subscribe',{endpoint:sub.endpoint,subscription:sub.toJSON(),ticket:enrollment.ticket});}
       catch(e){await sub.unsubscribe().catch(()=>{});throw e;}
       enabled=true;state('Notifications activées. Envoyez un test pour vérifier la réception sur votre téléphone.');
-    }catch(e){state(e.message);}finally{busy=false;controls();}
+    }catch(e){state(e.message);}finally{clearTimeout(permissionTimer);busy=false;controls();}
   };
   async function disablePush(){
     const r=await worker(),sub=await r.pushManager.getSubscription();

@@ -1,4 +1,4 @@
-# Application Yonko Bar — version 2026.09.26.1
+# Application Yonko Bar — version 2026.09.26.2
 
 Cette version reprend la production GitHub `main` au commit
 `103f6b52d8441ee5612e8b2e5ee478ae7761db26` (vérifié le 26 septembre 2026)
