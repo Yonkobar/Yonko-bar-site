@@ -1,5 +1,5 @@
 (() => {
-  const VERSION='2026.09.26.2';
+  const VERSION='2026.09.26.3';
   let installPrompt, registration, busy=false, enabled=false, refreshing=false, lastRefresh=Date.now(), lastVersionCheck=0;
   const buttons=[...document.querySelectorAll('.install-app')], note=document.getElementById('connectionNote');
   const dialog=document.createElement('dialog');dialog.id='mobileSettings';
@@ -27,7 +27,7 @@
       if(!response.ok)throw new Error(response.status===401?'Votre accès a expiré. Reconnectez-vous.':data.error||'Notification indisponible.');
       return data;
     }
-    if(action==='enroll')return request('config');
+    if(action==='enroll'){const config=await request('config');dialog.dataset.pushPublicKey=String(config.publicKey||'');applicationServerKey(config.publicKey);return config;}
     if(action==='status'){
       await request('config');
       const sub=await (await worker()).pushManager.getSubscription();
@@ -54,7 +54,18 @@
   }
   window.openMobileSettings=async()=>{if(!key())return;if(!dialog.open)dialog.showModal();await inspectPush();};
   byId('closeMobileSettings').onclick=()=>dialog.close();
-  function applicationServerKey(value){return Uint8Array.from(atob(value.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));}
+  function applicationServerKey(value){
+    let text=typeof value==='string'?value.trim():'';
+    // Accept surrounding quotes/whitespace introduced when copying the public key.
+    if((text.startsWith('"')&&text.endsWith('"'))||(text.startsWith("'")&&text.endsWith("'")))text=text.slice(1,-1).trim();
+    text=text.replace(/\s/g,'').replace(/-/g,'+').replace(/_/g,'/').replace(/=+$/,'');
+    try{
+      if(!/^[A-Za-z0-9+/]{87}$/.test(text))throw new Error();
+      const bytes=Uint8Array.from(atob(text+'='),c=>c.charCodeAt(0));
+      if(bytes.length!==65||bytes[0]!==4)throw new Error();
+      return bytes;
+    }catch{throw new Error('La clé de notifications du serveur est mal configurée. Votre installation est correcte ; une correction du serveur est nécessaire.');}
+  }
   byId('enablePush').onclick=async()=>{
     if(busy)return;
     let permissionTimer;
