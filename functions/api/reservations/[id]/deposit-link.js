@@ -1,5 +1,6 @@
-// POST /api/reservations/:id/deposit-link  { amount: 50 }  -> crée un lien de paiement Stripe et envoie l'email (protégé)
-import { createStripeLink, sendDepositEmail } from "../../../_shared.js";
+// POST /api/reservations/:id/deposit-link
+// Crée un lien Stripe Checkout en mode SETUP pour enregistrer une carte de garantie.
+import { createStripeGuaranteeLink, sendGuaranteeEmail } from "../../../_stripe-guarantee.js";
 
 function cors() {
   return {
@@ -16,54 +17,40 @@ export async function onRequestOptions() {
 export async function onRequestPost({ request, env, params }) {
   const key = request.headers.get("x-dashboard-key");
   if (!key || key !== env.DASHBOARD_KEY) {
-    return new Response(JSON.stringify({ error: "unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json", ...cors() },
-    });
+    return Response.json({ error: "unauthorized" }, { status: 401, headers: cors() });
   }
 
   const id = params.id;
   const raw = await env.RESERVATIONS.get(`res:${id}`);
-  if (!raw) {
-    return new Response(JSON.stringify({ error: "not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json", ...cors() },
-    });
-  }
+  if (!raw) return Response.json({ error: "not found" }, { status: 404, headers: cors() });
+
   const entry = JSON.parse(raw);
 
-  let body;
-  try {
-    body = await request.json();
-  } catch (e) {
-    body = {};
-  }
+  let body = {};
+  try { body = await request.json(); } catch {}
+
   const amountEuros = Number(body.amount);
   if (!amountEuros || amountEuros <= 0) {
-    return new Response(JSON.stringify({ error: "amount (in euros) is required" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json", ...cors() },
-    });
+    return Response.json(
+      { error: "amount (in euros) is required" },
+      { status: 400, headers: cors() }
+    );
   }
 
-  const origin = new URL(request.url).origin;
-  let url;
   try {
-    url = await createStripeLink(entry, amountEuros, origin, env);
+    const origin = new URL(request.url).origin;
+    const url = await createStripeGuaranteeLink(entry, amountEuros, origin, env);
+
+    const emailResult = await sendGuaranteeEmail(entry, env);
+    entry.emailSent = !!emailResult.sent;
+
+    await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(entry));
+
+    return Response.json({ ok: true, url, entry, emailResult }, { headers: cors() });
   } catch (e) {
-    return new Response(JSON.stringify({ error: "stripe_error", detail: e.message }), {
-      status: 502,
-      headers: { "Content-Type": "application/json", ...cors() },
-    });
+    return Response.json(
+      { error: "stripe_error", detail: e.message },
+      { status: 502, headers: cors() }
+    );
   }
-
-  entry.depositLink = url;
-  entry.depositAmount = amountEuros;
-  const emailResult = await sendDepositEmail(entry, env);
-  entry.emailSent = !!emailResult.sent;
-  await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(entry));
-
-  return new Response(JSON.stringify({ ok: true, url, entry, emailResult }), {
-    headers: { "Content-Type": "application/json", ...cors() },
-  });
 }
