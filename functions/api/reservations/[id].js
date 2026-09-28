@@ -60,20 +60,21 @@ export async function onRequestPatch({ request, env, params }) {
   let stripeError = null;
   let emailResult = null;
 
-  if (entry.status === "accepted" && !wasAccepted && !entry.depositLink && !entry.skipAutoDeposit) {
+  if (entry.status === "accepted" && !wasAccepted) {
     const amount = computeDepositAmount(entry);
 
-    if (amount) {
+    if (amount && !entry.skipAutoDeposit && !entry.depositLink) {
       try {
         const origin = new URL(request.url).origin;
         await createStripeGuaranteeLink(entry, amount, origin, env);
         emailResult = await sendGuaranteeEmail(entry, env);
         entry.emailSent = !!emailResult.sent;
+        entry.confirmationEmailSentAt = emailResult.sent ? Date.now() : null;
       } catch (e) {
         stripeError = e.message;
+        entry.emailSent = false;
       }
     } else {
-      // Réservation sans caution : confirmation par email quand même.
       try {
         emailResult = await sendDepositEmail(entry, env);
         entry.emailSent = !!emailResult.sent;
