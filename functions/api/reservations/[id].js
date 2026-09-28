@@ -1,5 +1,5 @@
 // PATCH /api/reservations/:id  -> mettre à jour le statut ou le lien de caution (protégé)
-import { computeDepositAmount } from "../../_shared.js";
+import { computeDepositAmount, sendDepositEmail } from "../../_shared.js";
 import { createStripeGuaranteeLink, sendGuaranteeEmail } from "../../_stripe-guarantee.js";
 
 function cors() {
@@ -71,6 +71,16 @@ export async function onRequestPatch({ request, env, params }) {
         entry.emailSent = !!emailResult.sent;
       } catch (e) {
         stripeError = e.message;
+      }
+    } else {
+      // Réservation sans caution : confirmation par email quand même.
+      try {
+        emailResult = await sendDepositEmail(entry, env);
+        entry.emailSent = !!emailResult.sent;
+        entry.confirmationEmailSentAt = emailResult.sent ? Date.now() : null;
+      } catch (e) {
+        emailResult = { sent: false, reason: String(e?.message || e) };
+        entry.emailSent = false;
       }
     }
   }
