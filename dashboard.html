@@ -20,7 +20,9 @@
 .cell.empty{padding:0;border:0}.day-heading{text-transform:none}.stat .l{min-height:15px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
+
 </style>
+
 
 </head>
 <body>
@@ -43,13 +45,16 @@
     <div class="form" id="form"><h2>Une nouvelle réservation</h2><p class="form-intro">Renseignez la demande, puis retrouvez-la dans votre planning. Nom et date obligatoires.</p><div class="form-grid">
       <label class="field">Nom du client *<input id="f-name" placeholder="Ex. Camille Martin" autocomplete="name" required></label>
       <label class="field">Téléphone ou contact<input id="f-contact" placeholder="Téléphone ou autre contact" autocomplete="tel"></label>
-      <label class="field">Email pour les devis<input id="f-email" type="email" placeholder="client@exemple.fr" autocomplete="email"></label>
+      <label class="field">Email client (devis / caution)<input id="f-email" type="email" placeholder="client@exemple.fr" autocomplete="email"></label>
       <label class="field">Provenance<select id="f-source"><option value="Manuel">Manuel (téléphone, etc.)</option><option value="Privateaser">Privateaser</option><option value="Google">Google</option><option value="Site internet">Site internet</option></select></label>
       <label class="field">Date *<input id="f-date" type="date" required></label><label class="field">Heure<input id="f-time" type="time"></label>
       <label class="field">Nombre de personnes<input id="f-guests" type="number" min="1" step="1" placeholder="Ex. 12"></label>
-      <label class="field full">Notes<textarea id="f-notes" rows="3" placeholder="Occasion, espace souhaité, demandes particulières…"></textarea></label>
+      <label class="field">Espace<input id="f-type" list="spaceSuggestions" placeholder="Ex. Taverne, mezzanine, bar entier…"><datalist id="spaceSuggestions"><option value="Taverne"><option value="Privatisation"><option value="Bar entier"></datalist></label>
+      <label class="field">Caution<select id="f-deposit" onchange="toggleManualDeposit()"><option value="no">Aucune caution</option><option value="yes">Demander une caution</option></select></label>
+      <label class="field" id="depositAmountField" hidden>Montant de la caution (€)<input id="f-deposit-amount" type="number" min="1" step="1" inputmode="decimal" placeholder="Ex. 50"></label>
+      <label class="field full">Notes<textarea id="f-notes" rows="3" placeholder="Occasion, demandes particulières…"></textarea></label>
     </div><p class="err" id="f-err" role="alert"></p><div class="form-actions"><button class="btn-primary" id="submitButton" onclick="submitForm()">Ajouter la demande</button><button class="btn-ghost" onclick="toggleForm()">Annuler</button></div></div>
-    <div class="search-row" id="searchRow"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><label class="sr-only" for="searchInput">Rechercher une réservation</label><input id="searchInput" type="search" placeholder="Rechercher un nom, un contact, une source…" oninput="searchTerm=this.value;render()"></div><span class="search-hint">Retrouvez facilement vos clients et leurs demandes.</span></div>
+    <div class="search-row" id="searchRow"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><label class="sr-only" for="searchInput">Rechercher une réservation</label><input id="searchInput" type="search" placeholder="Rechercher un nom, contact, source ou espace…" oninput="searchTerm=this.value;render()"></div><span class="search-hint">Retrouvez facilement vos clients et leurs demandes.</span></div>
     <div id="planningView"></div><div id="listView" style="display:none"></div><div id="statsView" style="display:none"></div>
     <footer class="footer-note"><span>YONKO BAR · RÉSERVATIONS</span><span id="updateTime">Chargement des données…</span></footer>
   </div></main>
@@ -59,6 +64,7 @@
  <div class="quote-dialog"><div class="panel-title"><div><div class="eyebrow">Une soirée sur mesure</div><h2 id="quoteTitle">Devis</h2></div><button class="btn-ghost" onclick="closeQuote()" aria-label="Fermer le devis">×</button></div><div id="quoteBody" style="max-height:55vh;overflow-y:auto;margin-bottom:14px"></div><div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--rule);padding-top:16px"><strong>Total</strong><strong id="quoteTotal">0,00 €</strong></div><p class="err" id="quote-err" role="alert"></p><div class="form-actions"><button class="btn-primary" onclick="sendQuote()" id="quoteSendBtn">Générer et envoyer par email</button><button class="btn-ghost" onclick="closeQuote()">Annuler</button></div></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 
 <script>
 const MENU = [
@@ -155,6 +161,7 @@ const MENU = [
 let quoteEntry = null;
 let quoteQty = {};
 
+
 const API = "/api/reservations";
 const STATUS = { pending:{label:"En attente",color:"#99701e"}, accepted:{label:"Acceptée",color:"#24785d"}, declined:{label:"Refusée",color:"#ad4237"} };
 const WEEKDAYS = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
@@ -176,6 +183,7 @@ let searchTerm = "";
 let cursor = new Date();
 let selectedDate = isoDate(new Date());
 
+
 function key() { return localStorage.getItem("dashboardKey") || ""; }
 function saveKey() {
   const v = document.getElementById("keyInput").value.trim();
@@ -187,6 +195,7 @@ function isoDate(d) { return [d.getFullYear(),String(d.getMonth()+1).padStart(2,
 function formatDate(s) { if(!s) return ""; const d=new Date(s+"T00:00:00"); return d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"}); }
 function initials(name) { return (name||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()).join(""); }
 
+
 function toast(msg, kind) {
   const el = document.createElement("div");
   el.className = "toast" + (kind ? " "+kind : "");
@@ -194,6 +203,7 @@ function toast(msg, kind) {
   document.getElementById("toasts").appendChild(el);
   setTimeout(() => el.remove(), 3500);
 }
+
 
 async function api(path, opts={}) {
   const {endpoint = API+path, ...requestOpts} = opts;
@@ -207,6 +217,7 @@ async function api(path, opts={}) {
   if (!res.ok) throw new Error(data.error ? JSON.stringify(data) : `Erreur ${res.status}`);
   return data;
 }
+
 
 async function init() {
   if (!key()) { document.getElementById('gate').style.display='grid'; document.getElementById('app').style.display='none'; return; }
@@ -227,6 +238,7 @@ async function init() {
   }
 }
 
+
 function setView(v) {
   view=v;
   for(const name of ['planning','list','stats']){
@@ -240,6 +252,17 @@ function setView(v) {
   render();
 }
 
+
+function toggleManualDeposit() {
+  const enabled = document.getElementById('f-deposit').value === 'yes';
+  const field = document.getElementById('depositAmountField');
+  const amount = document.getElementById('f-deposit-amount');
+  field.hidden = !enabled;
+  amount.required = enabled;
+  if (!enabled) amount.value = '';
+}
+
+
 function toggleForm() {
   const f=document.getElementById('form');f.classList.toggle('open');
   document.getElementById('addButton').setAttribute('aria-expanded',String(f.classList.contains('open')));
@@ -247,41 +270,93 @@ function toggleForm() {
   if(f.classList.contains('open')){document.getElementById('f-name').focus();}else document.getElementById('addButton').focus();
 }
 
+
 async function submitForm() {
   if (document.getElementById("submitButton").disabled) return;
   const name = document.getElementById("f-name").value.trim();
   const date = document.getElementById("f-date").value;
   if (!name) { document.getElementById("f-err").textContent = "Le nom du client est obligatoire."; return; }
   if (!date) { document.getElementById("f-err").textContent = "La date est obligatoire."; return; }
+
+
   const email = document.getElementById("f-email");
   const guests = document.getElementById("f-guests");
-  if (!email.checkValidity() || !guests.checkValidity()) { document.getElementById("f-err").textContent = "Vérifiez l’email et le nombre de personnes."; return; }
+  const wantsDeposit = document.getElementById("f-deposit").value === "yes";
+  const depositAmount = Number(document.getElementById("f-deposit-amount").value);
+
+
+  if (!email.checkValidity() || !guests.checkValidity()) {
+    document.getElementById("f-err").textContent = "Vérifiez l’email et le nombre de personnes.";
+    return;
+  }
+  if (wantsDeposit && !email.value.trim()) {
+    document.getElementById("f-err").textContent = "Un email client est nécessaire pour envoyer la demande de caution.";
+    return;
+  }
+  if (wantsDeposit && (!Number.isFinite(depositAmount) || depositAmount <= 0)) {
+    document.getElementById("f-err").textContent = "Indiquez un montant de caution supérieur à 0 €.";
+    return;
+  }
+
+
   const body = {
     name, date, email: email.value.trim(),
     contact: document.getElementById("f-contact").value,
     time: document.getElementById("f-time").value,
-    guests: document.getElementById("f-guests").value,
+    guests: guests.value,
+    type: document.getElementById("f-type").value.trim(),
     notes: document.getElementById("f-notes").value,
     source: document.getElementById("f-source").value,
     manual: true
   };
+
+
   try {
     document.getElementById("submitButton").disabled = true;
-    await api("", { method:"POST", body: JSON.stringify(body) });
-    ["f-name","f-contact","f-email","f-time","f-guests","f-notes"].forEach(id => document.getElementById(id).value="");
+    const created = await api("", { method:"POST", body: JSON.stringify(body) });
+
+
+    let depositResult = null;
+    let depositError = null;
+    if (wantsDeposit) {
+      try {
+        depositResult = await api(`/${created.id}/deposit-link`, {
+          method:"POST",
+          body: JSON.stringify({amount: depositAmount})
+        });
+      } catch (e) {
+        depositError = e;
+      }
+    }
+
+
+    ["f-name","f-contact","f-email","f-time","f-guests","f-type","f-notes","f-deposit-amount"].forEach(id => document.getElementById(id).value="");
     document.getElementById("f-date").value="";
     document.getElementById("f-source").value="Manuel";
+    document.getElementById("f-deposit").value="no";
+    toggleManualDeposit();
     document.getElementById("form").classList.remove("open");
     document.getElementById("addButton").setAttribute("aria-expanded","false");
+
+
     selectedDate = date;
     entries = await api("");
-    toast("Demande ajoutée.", "success");
     render();
+
+
+    if (depositError) {
+      toast("Réservation ajoutée, mais la caution n’a pas pu être créée : " + depositError.message, "error");
+    } else if (depositResult) {
+      toast("Réservation ajoutée. Lien de caution généré" + (depositResult.emailResult && depositResult.emailResult.sent ? " et envoyé par email." : "."), "success");
+    } else {
+      toast("Demande ajoutée.", "success");
+    }
   } catch (e) {
     document.getElementById("f-err").textContent = e.message;
-  } finally { document.getElementById("submitButton").disabled = false; }
+  } finally {
+    document.getElementById("submitButton").disabled = false;
+  }
 }
-
 async function setStatus(id, status) {
   try {
     const res = await api("/"+id, { method:"PATCH", body: JSON.stringify({status}) });
@@ -295,6 +370,7 @@ async function setStatus(id, status) {
   }
 }
 
+
 async function makeStripeLink(id, name) {
   const amount = prompt(`Montant de la caution pour ${name} (en euros) :`);
   if (!amount) return;
@@ -307,6 +383,7 @@ async function makeStripeLink(id, name) {
     toast(e.message, "error");
   }
 }
+
 
 async function syncPrivateaser(silent, reset) {
   try {
@@ -325,6 +402,7 @@ async function syncPrivateaser(silent, reset) {
   }
 }
 
+
 async function deleteEntry(id, name) {
   if (!confirm(`Supprimer définitivement la réservation de ${name} ? Cette action est irréversible.`)) return;
   try {
@@ -336,6 +414,7 @@ async function deleteEntry(id, name) {
     toast(e.message, "error");
   }
 }
+
 
 function openQuote(entry) {
   quoteEntry = entry;
@@ -350,6 +429,7 @@ function openQuote(entry) {
   document.querySelector("#quotePanel button").focus();
 }
 
+
 function closeQuote() {
   document.getElementById("quotePanel").style.display = "none";
   quoteEntry = null;
@@ -358,11 +438,13 @@ function closeQuote() {
   if (quoteReturnFocus?.isConnected) quoteReturnFocus.focus();
 }
 
+
 function changeQty(name, delta) {
   const next = (quoteQty[name] || 0) + delta;
   quoteQty[name] = Math.max(0, next);
   renderQuoteBody();
 }
+
 
 function renderQuoteBody() {
   let total = 0;
@@ -387,6 +469,7 @@ function renderQuoteBody() {
   document.getElementById("quoteTotal").textContent = total.toFixed(2).replace(".", ",") + " €";
 }
 
+
 async function sendQuote() {
   const lines = [];
   let total = 0;
@@ -397,8 +480,10 @@ async function sendQuote() {
   if (lines.length === 0) { document.getElementById("quote-err").textContent = "Ajoute au moins un article."; return; }
   if (!quoteEntry.email) { document.getElementById("quote-err").textContent = "Ce client n'a pas d'email enregistré — impossible d'envoyer le devis."; return; }
 
+
   const btn = document.getElementById("quoteSendBtn");
   btn.disabled = true; btn.textContent = "Génération...";
+
 
   try {
     const { jsPDF } = window.jspdf;
@@ -423,9 +508,12 @@ async function sendQuote() {
     doc.text("Total", 20, y);
     doc.text(`${total.toFixed(2)} €`, 170, y, { align: "right" });
 
+
     const pdfBase64 = doc.output("datauristring").split(",")[1];
 
+
     const res = await api(`/${quoteEntry.id}/send-quote`, {method:"POST",body:JSON.stringify({pdfBase64,total,lines})});
+
 
     if (res.error) throw new Error(res.error);
     quotesSentThisSession++;
@@ -439,6 +527,7 @@ async function sendQuote() {
   }
 }
 
+
 async function copyMessage(entry) {
   const lines = [
     `Bonjour ${entry.name},`, "",
@@ -449,6 +538,7 @@ async function copyMessage(entry) {
   try { await navigator.clipboard.writeText(lines.join("\n")); toast("Message copié dans le presse-papiers.", "success"); } catch { toast("Copie impossible : autorisez le presse-papiers dans votre navigateur.", "error"); }
 }
 
+
 function cardHTML(e) {
   const status=STATUS[e.status]||{label:'À vérifier',color:'#706e67'}, sc=status.color;
   const data=escapeHTML(e.id), flags=[];
@@ -457,11 +547,12 @@ function cardHTML(e) {
     flags.push(`<span class="flag ${e.depositStatus==='autorisee'?'ok':'warn'}">${ICONS.card} ${e.depositStatus==='autorisee'?'Caution validée':'Caution en attente'}</span>`);
   }
   const action=(name,label,icon,cls='')=>`<button class="action ${cls}" data-entry="${data}" data-action="${name}">${icon} ${label}</button>`;
-  return `<article class="card"><div class="card-top"><div class="avatar" style="--sc:${sc}">${escapeHTML(initials(e.name))}</div><div class="card-info"><div class="card-toprow"><div><h3 class="name">${escapeHTML(e.name)}</h3><p class="meta">${escapeHTML(formatDate(e.date))}${e.time?' · '+escapeHTML(e.time):''}${e.guests?' · '+escapeHTML(e.guests)+' pers.':''}</p>${e.source?`<p class="meta">${escapeHTML(e.source)}</p>`:''}${e.contact?`<p class="meta">${escapeHTML(e.contact)}</p>`:''}${e.email&&e.email!==e.contact?`<p class="meta">${escapeHTML(e.email)}</p>`:''}</div><span class="badge" style="--sc:${sc}">${status.label}</span></div></div></div>
+  return `<article class="card"><div class="card-top"><div class="avatar" style="--sc:${sc}">${escapeHTML(initials(e.name))}</div><div class="card-info"><div class="card-toprow"><div><h3 class="name">${escapeHTML(e.name)}</h3><p class="meta">${escapeHTML(formatDate(e.date))}${e.time?' · '+escapeHTML(e.time):''}${e.guests?' · '+escapeHTML(e.guests)+' pers.':''}</p>${e.type?`<p class="meta">Espace · ${escapeHTML(e.type)}</p>`:''}${e.source?`<p class="meta">${escapeHTML(e.source)}</p>`:''}${e.contact?`<p class="meta">${escapeHTML(e.contact)}</p>`:''}${e.email&&e.email!==e.contact?`<p class="meta">${escapeHTML(e.email)}</p>`:''}</div><span class="badge" style="--sc:${sc}">${status.label}</span></div></div></div>
   ${e.notes?`<p class="notes">${escapeHTML(e.notes)}</p>`:''}${flags.length?`<div class="flags">${flags.join('')}</div>`:''}
   <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
   ${e.depositLink?`<div class="deposit">${e.depositAmount?escapeHTML(e.depositAmount)+' € · ':''}${escapeHTML(e.depositLink)}</div>`:''}</article>`;
 }
+
 
 function renderStats() {
   const today=isoDate(new Date()),counts={pending:0,accepted:0,declined:0};entries.forEach(e=>counts[e.status]=(counts[e.status]||0)+1);
@@ -469,21 +560,26 @@ function renderStats() {
   document.getElementById('stats').innerHTML=stat('En attente',counts.pending,'Toutes les demandes','◷','pending',"timeScope='all';filter='pending';clearSearch();setView('list')")+stat('Acceptées',counts.accepted,'Toutes les dates','✓','accepted',"timeScope='all';filter='accepted';clearSearch();setView('list')")+stat('Refusées',counts.declined,'Toutes les dates','×','declined',"timeScope='all';filter='declined';clearSearch();setView('list')")+stat('Aujourd’hui',entries.filter(e=>e.date===today).length,'Tous les statuts','↗','today-stat','goToday()')+stat('Cautions validées',entries.filter(e=>e.depositStatus==='autorisee').length,'Toutes les dates','◇','',"setView('stats')")+stat('Devis envoyés',quotesSentThisSession,'Depuis cette connexion','↗');
 }
 
+
 function matchesSearch(e) {
   const term=searchTerm.trim().toLocaleLowerCase('fr');
-  return !term||[e.name,e.contact,e.email,e.source].some(value=>String(value||'').toLocaleLowerCase('fr').includes(term));
+  return !term||[e.name,e.contact,e.email,e.source,e.type].some(value=>String(value||'').toLocaleLowerCase('fr').includes(term));
 }
+
 
 function emptyState(msg) {
   return `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h18M7 3v4M17 3v4M5 6h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"/></svg><div>${msg}</div></div>`;
 }
 
+
 function skeleton() {
   return `<div class="skeleton"><div class="skel-card"></div><div class="skel-card"></div><div class="skel-card"></div></div>`;
 }
 
+
 let timeScope = "upcoming";
 function isPastEntry(e) { return e.date && e.date < isoDate(new Date()); }
+
 
 function renderList() {
   if(!loaded){document.getElementById('listView').innerHTML=skeleton();return;}
@@ -494,6 +590,7 @@ function renderList() {
   const visible=scoped.filter(e=>(filter==='all'||e.status===filter)&&matchesSearch(e)).sort((a,b)=>timeScope==='past'?((b.date||'').localeCompare(a.date||'')||(b.time||'').localeCompare(a.time||'')):((a.date||'').localeCompare(b.date||'')||(a.time||'').localeCompare(b.time||'')));
   document.getElementById('listView').innerHTML=`<section class="panel"><div class="panel-title"><div><h2>Vos réservations</h2><p>Chaque demande, du premier contact à la confirmation.</p></div><span class="count-pill">${entries.length} au total</span></div><div class="filter-block"><p class="filter-label">Période</p><div class="tabs">${scopeTabs}</div><p class="filter-label">Statut</p><div class="tabs">${statusTabs}</div></div><p class="results-summary" role="status">${visible.length} réservation${visible.length>1?'s':''} affichée${visible.length>1?'s':''}</p>${visible.length?`<div class="reservation-grid">${visible.map(cardHTML).join('')}</div>`:emptyState('Aucune demande pour ces filtres.')}</section>`;
 }
+
 
 function renderPlanning() {
   if(!loaded){document.getElementById('planningView').innerHTML=skeleton();return;}
@@ -512,7 +609,9 @@ function renderPlanning() {
   document.getElementById('planningView').innerHTML=`<div class="planning-layout"><section class="panel calendar-panel"><div class="panel-title"><div><h2>Le planning du bar</h2><p>Sélectionnez un jour pour voir ses réservations.</p></div><span class="count-pill">Vue mensuelle</span></div><div class="cal-nav"><h3>${first.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</h3><div class="cal-controls"><button class="today-button" onclick="goToday()">Aujourd’hui</button><button aria-label="Mois précédent" onclick="cursor=new Date(${y},${m-1},1);render()">‹</button><button aria-label="Mois suivant" onclick="cursor=new Date(${y},${m+1},1);render()">›</button></div></div><div class="cal-grid">${WEEKDAYS.map(w=>`<div class="dow">${w}</div>`).join('')}${cells}</div><div class="legend"><span><i style="--dot:#99701e"></i>En attente</span><span><i style="--dot:#24785d"></i>Acceptée</span><span><i style="--dot:#ad4237"></i>Refusée</span></div></section><section class="panel day-list"><div class="panel-title"><div><div class="eyebrow">${term?'Tous les jours':'Votre service'}</div><h2 class="day-heading">${escapeHTML(heading)}</h2><p>${results.length} réservation(s) · ${guests} personne(s) hors refus</p></div></div>${results.length?`<div class="list">${results.map(cardHTML).join('')}</div>`:emptyState(term?'Aucune réservation trouvée.':'Aucune réservation ce jour-là.')}</section></div>`;
 }
 
+
 const SOURCE_COLORS = { "Site internet":"#ff6e00", "Privateaser":"#2fa88f", "Google":"#4285f4", "Manuel":"#78726a" };
+
 
 function statsRow(label, count, max, color) {
   const pct = max ? Math.round((count/max)*100) : 0;
@@ -522,6 +621,7 @@ function statsRow(label, count, max, color) {
   </div>`;
 }
 
+
 function renderStatsView() {
   if(!loaded){document.getElementById('statsView').innerHTML=skeleton();return;}
   if(loadFailed){document.getElementById('statsView').innerHTML='';return;}
@@ -530,7 +630,9 @@ function renderStatsView() {
   document.getElementById('statsView').innerHTML=`<div class="stats-layout"><section class="panel"><div class="panel-title"><div><h2>D’où viennent vos clients ?</h2><p>Provenance des réservations · toutes les dates</p></div><span class="count-pill">${total} au total</span></div>${sourceEntries.length?sourceEntries.map(([s,n])=>statsRow(escapeHTML(s),n,max,SOURCE_COLORS[s]||'#78726a')).join(''):emptyState('Pas encore de données.')}</section><section class="panel"><div class="panel-title"><div><h2>Le suivi des cautions</h2><p>Une vue sur les confirmations de vos clients.</p></div></div>${statsRow('Réservations acceptées',entries.filter(e=>e.status==='accepted').length,total||1,'#24785d')}${statsRow('Liens de caution générés',entries.filter(e=>e.depositLink).length,total||1,'#db701f')}${statsRow('Cautions validées par le client',entries.filter(e=>e.depositStatus==='autorisee').length,total||1,'#99701e')}<p class="stats-note">Les barres de caution sont rapportées aux ${total} réservations. Le compteur de devis couvre cette connexion : l’API actuelle ne conserve pas l’historique des envois.</p></section></div>`;
 }
 
+
 function render() { renderStats(); if (view==="planning") renderPlanning(); else if (view==="stats") renderStatsView(); else renderList(); }
+
 
 // Additional UI helpers
 let quotesSentThisSession=0,quoteReturnFocus=null,loadFailed=false;
@@ -551,6 +653,7 @@ document.getElementById('quotePanel').addEventListener('keydown',event=>{
   const focusable=[...document.querySelectorAll('#quotePanel button:not(:disabled)')],first=focusable[0],last=focusable.at(-1);
   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
 });
+
 
 init();
 </script>
