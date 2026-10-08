@@ -213,6 +213,12 @@ function toast(msg, kind) {
 }
 
 
+function shouldAutoSyncPrivateaser() {
+  const last = Number(localStorage.getItem("privateaserLastAutoSync") || 0);
+  return !last || Date.now() - last >= 30 * 60 * 1000;
+}
+
+
 async function api(path, opts={}) {
   const {endpoint = API+path, ...requestOpts} = opts;
   const res = await fetch(endpoint, { ...requestOpts, headers: { "Content-Type":"application/json", "x-dashboard-key": key(), ...(opts.headers||{}) } });
@@ -237,7 +243,10 @@ async function init() {
     dispatchEvent(new Event('yonko-auth'));
     document.getElementById('updateTime').textContent='Actualisé à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     render();
-    syncPrivateaser(true);
+    if (shouldAutoSyncPrivateaser()) {
+      localStorage.setItem("privateaserLastAutoSync", String(Date.now()));
+      syncPrivateaser(true);
+    }
   } catch(e) {
     entries=[]; loaded=true; loadFailed=true; render();
     const box=document.getElementById('loadError'); box.hidden=false;

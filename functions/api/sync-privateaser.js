@@ -211,7 +211,8 @@ export async function onRequestPost({ request, env }) {
   }
 
   let indexRaw = await env.RESERVATIONS.get("res:index");
-  let ids = indexRaw ? [...new Set(JSON.parse(indexRaw))] : [];
+  const originalIds = indexRaw ? [...new Set(JSON.parse(indexRaw))] : [];
+  let ids = [...originalIds];
 
   let body = {};
   try {
@@ -333,7 +334,11 @@ export async function onRequestPost({ request, env }) {
     }
   }
 
-  await env.RESERVATIONS.put("res:index", JSON.stringify([...new Set(ids)]));
+  const nextIds = [...new Set(ids)];
+  const indexChanged = JSON.stringify(nextIds) !== JSON.stringify(originalIds);
+  if (indexChanged) {
+    await env.RESERVATIONS.put("res:index", JSON.stringify(nextIds));
+  }
 
   const diagPieces = Object.entries(diagnosticByDate).map(([date, list]) => {
     if (!list.length) return `${date}: ABSENTE DU FLUX`;

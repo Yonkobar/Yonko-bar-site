@@ -136,30 +136,40 @@ export class PushState {
   }
 
   async tick(state, time) {
-    const keys = await reservationKeys(this.env.RESERVATIONS);
-    const isFirst = !state.initialized;
+    const now = Number(time);
+    const reconcileDue = !state.lastReconcileAt || now - state.lastReconcileAt >= 60 * 60 * 1000;
+    let keys = null;
 
-    if (isFirst) {
-      for (const k of keys) state.seen[k] = true;
-      state.initialized = true;
-    } else {
-      const unseen = keys.filter(k => !state.seen[k]);
-      for (const {key, entry} of await readReservations(this.env.RESERVATIONS, unseen)) {
-        if (Number(entry.createdAt) >= state.startedAt) {
-          const id = `new-${await digest(key)}`;
-          this.enqueue(state, id, {
-            title: 'Yonko Bar · Nouvelle réservation',
-            body: 'Une nouvelle demande est disponible dans votre tableau de bord.',
-            tag: id,
-            url: '/dashboard'
-          });
+    // Immediate reservation events handle normal push delivery.
+    // KV reconciliation remains as a safety net, but only once per hour.
+    if (!state.initialized || reconcileDue) {
+      keys = await reservationKeys(this.env.RESERVATIONS);
+      const isFirst = !state.initialized;
+
+      if (isFirst) {
+        for (const k of keys) state.seen[k] = true;
+        state.initialized = true;
+      } else {
+        const unseen = keys.filter(k => !state.seen[k]);
+        for (const {key, entry} of await readReservations(this.env.RESERVATIONS, unseen)) {
+          if (Number(entry.createdAt) >= state.startedAt) {
+            const id = `new-${await digest(key)}`;
+            this.enqueue(state, id, {
+              title: 'Yonko Bar · Nouvelle réservation',
+              body: 'Une nouvelle demande est disponible dans votre tableau de bord.',
+              tag: id,
+              url: '/dashboard'
+            });
+          }
+          state.seen[key] = true;
         }
-        state.seen[key] = true;
       }
+      state.lastReconcileAt = now;
     }
 
     const {date, hour} = parisClock(time);
     if (hour === 14 && state.lastDaily !== date) {
+      if (!keys) keys = await reservationKeys(this.env.RESERVATIONS);
       const records = await readReservations(this.env.RESERVATIONS, keys);
       this.enqueue(state, `daily-${date}`, summary(records.map(r => r.entry), date));
       state.lastDaily = date;
