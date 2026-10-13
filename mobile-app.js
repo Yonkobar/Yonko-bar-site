@@ -1,5 +1,5 @@
 (() => {
-  const VERSION='2026.10.06.1';
+  const VERSION='2026.10.13.1';
   let installPrompt, registration, busy=false, enabled=false, refreshing=false, lastRefresh=Date.now(), lastVersionCheck=0;
   const buttons=[...document.querySelectorAll('.install-app')], note=document.getElementById('connectionNote');
   const dialog=document.createElement('dialog');dialog.id='mobileSettings';
@@ -102,7 +102,7 @@
   addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;buttons.forEach(b=>b.hidden=false);});
   buttons.forEach(b=>b.onclick=install);byId('installFromSettings').onclick=install;
   addEventListener('appinstalled',()=>{installPrompt=null;buttons.forEach(b=>b.hidden=true);controls();});
-  function unsaved(){return byId('form').classList.contains('open')||byId('quotePanel').style.display!=='none'||dialog.open;}
+  function unsaved(){return byId('form').classList.contains('open')||byId('editDialog')?.open||byId('quotePanel').style.display!=='none'||dialog.open;}
   async function refreshReservations(){
     if(refreshing||!loaded||!key()||document.hidden||!navigator.onLine||unsaved()||Date.now()-lastRefresh<30000)return;
     refreshing=true;const startedKey=key();

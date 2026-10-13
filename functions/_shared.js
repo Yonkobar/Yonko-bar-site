@@ -55,7 +55,9 @@ function minConsoText(entry) {
   return "";
 }
 
-export function buildEmailHtml(entry) {
+export function buildEmailHtml(entry, opts = {}) {
+  const title = opts.title || "Réservation confirmée";
+  const intro = opts.intro || "Votre réservation au Yonko Bar est confirmée. Voici le récapitulatif :";
   const datePart = formatDateFr(entry.date);
   const minConso = minConsoText(entry);
   return `
@@ -69,8 +71,8 @@ export function buildEmailHtml(entry) {
       </tr>
       <tr>
         <td style="padding:28px 26px">
-          <h1 style="font-size:17px;color:#1a1a1a;margin:0 0 14px">Réservation confirmée</h1>
-          <p style="font-size:14px;color:#1a1a1a;line-height:1.5;margin:0 0 18px">Bonjour ${entry.name || ""},<br>Votre réservation au Yonko Bar est confirmée. Voici le récapitulatif :</p>
+          <h1 style="font-size:17px;color:#1a1a1a;margin:0 0 14px">${title}</h1>
+          <p style="font-size:14px;color:#1a1a1a;line-height:1.5;margin:0 0 18px">Bonjour ${entry.name || ""},<br>${intro}</p>
           <table role="presentation" width="100%" style="border-top:1px solid #e6e1d8;border-bottom:1px solid #e6e1d8;padding:6px 0;margin-bottom:20px">
             ${row("Date", datePart)}
             ${row("Heure", entry.time || "à confirmer")}
@@ -95,7 +97,7 @@ export function buildEmailHtml(entry) {
   `;
 }
 
-export async function sendDepositEmail(entry, env) {
+export async function sendDepositEmail(entry, env, opts = {}) {
   if (!entry.email) return { sent: false, reason: "no_email" };
   if (!env.RESEND_API_KEY) return { sent: false, reason: "resend_not_configured" };
 
@@ -108,8 +110,8 @@ export async function sendDepositEmail(entry, env) {
     body: JSON.stringify({
       from: env.EMAIL_FROM || "Yonko Bar <reservations@yonkobar.com>",
       to: [entry.email],
-      subject: "Votre réservation au Yonko Bar",
-      html: buildEmailHtml(entry),
+      subject: opts.subject || "Votre réservation au Yonko Bar",
+      html: buildEmailHtml(entry, opts),
     }),
   });
 

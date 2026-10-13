@@ -317,6 +317,11 @@ export async function onRequestPost({ request, env }) {
         emailSent: existing.emailSent,
       };
 
+      // Champs modifiés à la main depuis le dashboard : la synchro ne les écrase pas.
+      for (const field of existing.lockedFields || []) {
+        if (["date", "time", "guests", "type"].includes(field)) merged[field] = existing[field];
+      }
+
       Object.keys(merged).forEach((k) => {
         if (merged[k] === undefined) delete merged[k];
       });

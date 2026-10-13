@@ -21,7 +21,7 @@
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 
-#mobileSettings{border:1px solid var(--rule);border-radius:16px;background:var(--paper);color:var(--text);width:min(520px,calc(100% - 24px));max-height:90dvh;overflow:auto;padding:24px}#mobileSettings::backdrop{background:#171b2099;backdrop-filter:blur(3px)}#mobileSettings .mobile-explanation{font-size:12px;line-height:1.65;color:var(--muted)}#mobileSettings .mobile-actions{display:flex;flex-direction:column;gap:10px;margin:18px 0}#mobileSettings button[hidden]{display:none}#mobileSettings hr{border:0;border-top:1px solid var(--rule);margin:20px 0}#mobileSettings h2{font-size:22px}#appUpdate[hidden]{display:none}
+#mobileSettings{border:1px solid var(--rule);border-radius:16px;background:var(--paper);color:var(--text);width:min(520px,calc(100% - 24px));max-height:90dvh;overflow:auto;padding:24px}#mobileSettings::backdrop{background:#171b2099;backdrop-filter:blur(3px)}#editDialog{border:1px solid var(--rule);border-radius:16px;background:var(--paper);color:var(--text);width:min(560px,calc(100% - 24px));max-height:90dvh;overflow:auto;padding:24px}#editDialog::backdrop{background:#171b2099;backdrop-filter:blur(3px)}#editDialog .edit-note{font-size:12px;color:var(--muted);line-height:1.55;margin:8px 0 0}#editDialog .edit-check{flex-direction:row;align-items:center;gap:8px;font-weight:500;font-size:12px}#editDialog .edit-check input{width:auto;min-height:0}@media(max-width:650px){#editDialog .form-grid{grid-template-columns:1fr}}#mobileSettings .mobile-explanation{font-size:12px;line-height:1.65;color:var(--muted)}#mobileSettings .mobile-actions{display:flex;flex-direction:column;gap:10px;margin:18px 0}#mobileSettings button[hidden]{display:none}#mobileSettings hr{border:0;border-top:1px solid var(--rule);margin:20px 0}#mobileSettings h2{font-size:22px}#appUpdate[hidden]{display:none}
 </style>
 
 
@@ -67,6 +67,15 @@
     <footer class="footer-note"><span>YONKO BAR · RÉSERVATIONS</span><span id="updateTime">Chargement des données…</span></footer>
   </div></main>
 </div>
+<dialog id="editDialog" aria-labelledby="editTitle"><div class="panel-title"><div><div class="eyebrow">Modifier la réservation</div><h2 id="editTitle">Réservation</h2></div><button class="btn-ghost" onclick="closeEdit()" aria-label="Fermer">×</button></div><div class="form-grid">
+  <label class="field">Date *<input id="e-date" type="date" required></label><label class="field">Heure<input id="e-time" type="time"></label>
+  <label class="field">Nombre de personnes<input id="e-guests" type="number" min="1" step="1" oninput="editSuggest()"></label>
+  <label class="field">Espace<input id="e-type" list="spaceSuggestions" oninput="editSuggest()" placeholder="Ex. Taverne, Privatisation…"></label>
+  <label class="field">Caution<select id="e-deposit" onchange="editDepositToggle()"><option value="no">Aucune caution</option><option value="yes">Demander une caution</option></select></label>
+  <label class="field" id="e-amount-field" hidden>Montant de la caution (€)<input id="e-deposit-amount" type="number" min="1" step="1" inputmode="decimal"></label>
+  <p class="edit-note full" id="e-deposit-note" style="grid-column:1/-1"></p>
+  <label class="field full edit-check"><input id="e-notify" type="checkbox" checked> Prévenir le client par email</label>
+</div><p class="err" id="e-err" role="alert"></p><div class="form-actions"><button class="btn-primary" id="e-save" onclick="saveEdit()">Enregistrer</button><button class="btn-ghost" onclick="closeEdit()">Annuler</button></div></dialog>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 <div id="quotePanel" style="display:none;position:fixed;inset:0;background:rgba(20,23,28,.65);z-index:100;overflow-y:auto" role="dialog" aria-modal="true" aria-labelledby="quoteTitle">
  <div class="quote-dialog"><div class="panel-title"><div><div class="eyebrow">Une soirée sur mesure</div><h2 id="quoteTitle">Devis</h2></div><button class="btn-ghost" onclick="closeQuote()" aria-label="Fermer le devis">×</button></div><div id="quoteBody" style="max-height:55vh;overflow-y:auto;margin-bottom:14px"></div><div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--rule);padding-top:16px"><strong>Total</strong><strong id="quoteTotal">0,00 €</strong></div><p class="err" id="quote-err" role="alert"></p><div class="form-actions"><button class="btn-primary" onclick="sendQuote()" id="quoteSendBtn">Générer et envoyer par email</button><button class="btn-ghost" onclick="closeQuote()">Annuler</button></div></div>
@@ -174,6 +183,7 @@ const API = "/api/reservations";
 const STATUS = { pending:{label:"En attente",color:"#99701e"}, accepted:{label:"Acceptée",color:"#24785d"}, declined:{label:"Refusée",color:"#ad4237"} };
 const WEEKDAYS = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 const ICONS = {
+  edit: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
   check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>',
   x: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6 6 18M6 6l12 12"/></svg>',
   undo: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>',
@@ -567,7 +577,7 @@ function cardHTML(e) {
   const action=(name,label,icon,cls='')=>`<button class="action ${cls}" data-entry="${data}" data-action="${name}">${icon} ${label}</button>`;
   return `<article class="card"><div class="card-top"><div class="avatar" style="--sc:${sc}">${escapeHTML(initials(e.name))}</div><div class="card-info"><div class="card-toprow"><div><h3 class="name">${escapeHTML(e.name)}</h3><p class="meta">${escapeHTML(formatDate(e.date))}${e.time?' · '+escapeHTML(e.time):''}${e.guests?' · '+escapeHTML(e.guests)+' pers.':''}</p>${e.type?`<p class="meta">Espace · ${escapeHTML(e.type)}</p>`:''}${e.source?`<p class="meta">${escapeHTML(e.source)}</p>`:''}${e.contact?`<p class="meta">${escapeHTML(e.contact)}</p>`:''}${e.email&&e.email!==e.contact?`<p class="meta">${escapeHTML(e.email)}</p>`:''}</div><span class="badge" style="--sc:${sc}">${status.label}</span></div></div></div>
   ${e.notes?`<p class="notes">${escapeHTML(e.notes)}</p>`:''}${flags.length?`<div class="flags">${flags.join('')}</div>`:''}
-  <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
+  <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${action('edit','Modifier',ICONS.edit)}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
   ${e.depositLink?`<div class="deposit">${e.depositAmount?escapeHTML(e.depositAmount)+' € · ':''}${escapeHTML(e.depositLink)}</div>`:''}</article>`;
 }
 
@@ -663,7 +673,7 @@ document.addEventListener('click',async event=>{
   const btn=event.target.closest('[data-action][data-entry]');if(!btn)return;
   const entry=entries.find(e=>String(e.id)===btn.dataset.entry);if(!entry)return;
   btn.disabled=true;
-  try{switch(btn.dataset.action){case 'accepted':case 'declined':case 'pending':await setStatus(entry.id,btn.dataset.action);break;case 'stripe':await makeStripeLink(entry.id,entry.name);break;case 'delete':await deleteEntry(entry.id,entry.name);break;case 'copy':await copyMessage(entry);break;case 'quote':openQuote(entry);break;}}finally{btn.disabled=false;}
+  try{switch(btn.dataset.action){case 'accepted':case 'declined':case 'pending':await setStatus(entry.id,btn.dataset.action);break;case 'stripe':await makeStripeLink(entry.id,entry.name);break;case 'delete':await deleteEntry(entry.id,entry.name);break;case 'copy':await copyMessage(entry);break;case 'quote':openQuote(entry);break;case 'edit':openEdit(entry);break;}}finally{btn.disabled=false;}
 });
 document.getElementById('quotePanel').addEventListener('keydown',event=>{
   if(event.key==='Escape'){closeQuote();return;}
@@ -672,9 +682,65 @@ document.getElementById('quotePanel').addEventListener('keydown',event=>{
   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
 });
 
+// ---- Modification d'une réservation (dashboard web + application installée) ----
+let editEntry=null;
+function suggestedDeposit(type,guests){const t=String(type||'').toLowerCase(),g=parseInt(guests,10)||0;if(t.includes('privatisation'))return 250;if(t.includes('taverne')&&g>6)return g*3;return null;}
+function hasDeposit(e){return !!(e&&e.depositLink);}
+function editDepositToggle(){const on=document.getElementById('e-deposit').value==='yes';document.getElementById('e-amount-field').hidden=!on;document.getElementById('e-deposit-amount').required=on;editSuggest();}
+function editSuggest(){
+  if(!editEntry)return;
+  const on=document.getElementById('e-deposit').value==='yes',amount=Number(document.getElementById('e-deposit-amount').value)||0;
+  const sug=suggestedDeposit(document.getElementById('e-type').value,document.getElementById('e-guests').value);
+  const current=hasDeposit(editEntry)?Number(editEntry.depositAmount)||0:0,wanted=on?amount:0;
+  const parts=[];
+  if(sug)parts.push(`Montant suggéré selon la règle de l’espace : ${sug} €${on&&amount!==sug?` <button type="button" class="btn-ghost" style="min-height:30px;padding:4px 10px" onclick="document.getElementById('e-deposit').value='yes';document.getElementById('e-deposit-amount').value=${sug};editDepositToggle()">Appliquer</button>`:''}.`);
+  if(editEntry.depositStatus==='debitee')parts.push('Caution déjà débitée : son montant ne peut plus être modifié.');
+  else if(wanted!==current){
+    if(current&&wanted)parts.push(`La caution actuelle (${current} €) sera annulée et un nouveau lien de ${wanted} € sera envoyé au client.`);
+    else if(current)parts.push(`La caution actuelle (${current} €) sera annulée.`);
+    else parts.push(`Un lien de caution de ${wanted} € sera généré et envoyé au client.`);
+  } else if(current)parts.push(`Caution inchangée (${current} €${editEntry.depositGuaranteeStatus==='enregistree'?', carte enregistrée':''}).`);
+  else if(editEntry.status==='pending'&&!editEntry.skipAutoDeposit)parts.push('Sans caution pour l’instant : la règle automatique s’appliquera à l’acceptation.');
+  document.getElementById('e-deposit-note').innerHTML=parts.join('<br>');
+}
+function openEdit(entry){
+  editEntry=entry;
+  document.getElementById('editTitle').textContent=entry.name||'Réservation';
+  document.getElementById('e-date').value=entry.date||'';document.getElementById('e-time').value=entry.time||'';
+  document.getElementById('e-guests').value=entry.guests||'';document.getElementById('e-type').value=entry.type||'';
+  document.getElementById('e-deposit').value=hasDeposit(entry)?'yes':'no';document.getElementById('e-deposit-amount').value=hasDeposit(entry)?(entry.depositAmount||''):'';
+  document.getElementById('e-deposit').disabled=entry.depositStatus==='debitee';document.getElementById('e-deposit-amount').disabled=entry.depositStatus==='debitee';
+  const notify=document.getElementById('e-notify');notify.checked=!!entry.email;notify.disabled=!entry.email;
+  notify.parentElement.lastChild.textContent=entry.email?' Prévenir le client par email ('+entry.email+')':' Pas d’email client : aucune notification ne sera envoyée';
+  document.getElementById('e-err').textContent='';editDepositToggle();
+  const d=document.getElementById('editDialog');if(!d.open)d.showModal();
+}
+function closeEdit(){editEntry=null;const d=document.getElementById('editDialog');if(d.open)d.close();}
+async function saveEdit(){
+  const btn=document.getElementById('e-save');if(btn.disabled||!editEntry)return;
+  const err=document.getElementById('e-err'),date=document.getElementById('e-date').value,guests=document.getElementById('e-guests');
+  const on=document.getElementById('e-deposit').value==='yes',amount=Number(document.getElementById('e-deposit-amount').value);
+  if(!date){err.textContent='La date est obligatoire.';return;}
+  if(!guests.checkValidity()){err.textContent='Vérifiez le nombre de personnes.';return;}
+  if(on&&(!Number.isFinite(amount)||amount<=0)){err.textContent='Indiquez un montant de caution supérieur à 0 €.';return;}
+  const edit={date,time:document.getElementById('e-time').value,guests:guests.value,type:document.getElementById('e-type').value.trim(),notifyClient:document.getElementById('e-notify').checked};
+  if(editEntry.depositStatus!=='debitee')edit.depositAmount=on?amount:0;
+  const current=hasDeposit(editEntry)?Number(editEntry.depositAmount)||0:0;
+  if(current&&edit.depositAmount!==undefined&&edit.depositAmount!==current&&!confirm(edit.depositAmount?`Annuler la caution de ${current} € et envoyer un nouveau lien de ${edit.depositAmount} € ?`:`Annuler la caution de ${current} € ?`))return;
+  btn.disabled=true;err.textContent='';
+  try{
+    const res=await api('/'+editEntry.id,{method:'PATCH',body:JSON.stringify({edit})});
+    closeEdit();selectedDate=res.entry.date||selectedDate;entries=await api('');render();
+    if(res.stripeError)toast('Modifications enregistrées, mais le nouveau lien Stripe n’a pas pu être créé (ancienne caution conservée) : '+res.stripeError,'error');
+    else if(res.emailError)toast('Modifications enregistrées, mais l’email au client n’est pas parti : '+res.emailError,'error');
+    else if(!res.changed.length&&!res.depositChanged)toast('Aucune modification.');
+    else toast('Réservation modifiée'+(res.newLink?' · nouveau lien de caution généré':'')+(res.emailResult&&res.emailResult.sent?' · client prévenu par email.':'.'),'success');
+  }catch(e){err.textContent=e.message;}finally{btn.disabled=false;}
+}
+document.getElementById('editDialog').addEventListener('close',()=>{editEntry=null;});
 
 init();
 </script>
 <script src="/mobile-app.js" defer></script>
 </body>
-</html>
+</html>

@@ -1,6 +1,152 @@
 // PATCH /api/reservations/:id
 import { computeDepositAmount, sendDepositEmail } from "../../_shared.js";
-import { createStripeGuaranteeLink, sendGuaranteeEmail } from "../../_stripe-guarantee.js";
+import { createStripeGuaranteeLink, sendGuaranteeEmail, expireCheckoutSession } from "../../_stripe-guarantee.js";
+
+const EDIT_LABELS = { date: "Date", time: "Heure", guests: "Personnes", type: "Espace" };
+const DEPOSIT_FIELDS = [
+  "depositLink", "depositAmount", "depositStatus", "depositGuaranteeStatus",
+  "stripeCheckoutSessionId", "stripeSetupIntentId", "stripePaymentMethodId",
+  "depositGuaranteedAt", "depositLinkCreatedAt", "depositLinkExpiresAt",
+];
+
+function editError(message, status = 400) {
+  return Response.json({ error: message }, { status, headers: cors() });
+}
+
+// body.edit = { date?, time?, guests?, type?, depositAmount?, notifyClient? }
+// depositAmount : nombre > 0 = caution souhaitée, 0 = aucune caution, absent = inchangé.
+async function handleEdit(entry, edit, request, env) {
+  const next = {};
+  if ("date" in edit) {
+    const v = String(edit.date || "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return editError("Date invalide.");
+    next.date = v;
+  }
+  if ("time" in edit) {
+    const v = String(edit.time || "").trim().slice(0, 5);
+    if (v && !/^([01]\d|2[0-3]):[0-5]\d$/.test(v)) return editError("Heure invalide.");
+    next.time = v;
+  }
+  if ("guests" in edit) {
+    const v = String(edit.guests ?? "").trim();
+    if (v && !/^[1-9]\d{0,3}$/.test(v)) return editError("Nombre de personnes invalide.");
+    next.guests = v;
+  }
+  if ("type" in edit) {
+    next.type = String(edit.type || "").trim().slice(0, 200);
+  }
+
+  const changed = Object.keys(next).filter((k) => String(entry[k] ?? "") !== next[k]);
+  const before = Object.fromEntries(changed.map((k) => [k, entry[k] ?? ""]));
+
+  const hadDeposit = !!entry.depositLink;
+  const currentAmount = hadDeposit ? Number(entry.depositAmount) || 0 : 0;
+  let wantedAmount = currentAmount;
+  if (edit.depositAmount !== undefined && edit.depositAmount !== null && edit.depositAmount !== "") {
+    wantedAmount = Number(edit.depositAmount);
+    if (!Number.isFinite(wantedAmount) || wantedAmount < 0) return editError("Montant de caution invalide.");
+    wantedAmount = Math.round(wantedAmount * 100) / 100;
+  } else if (edit.depositAmount === "") {
+    wantedAmount = 0;
+  }
+  const depositChanged = wantedAmount !== currentAmount;
+
+  if (depositChanged && entry.depositStatus === "debitee") {
+    return editError("La caution de cette réservation a déjà été débitée : son montant ne peut plus être modifié.", 409);
+  }
+  if (!changed.length && !depositChanged) {
+    return Response.json({ ok: true, entry, changed: [], depositChanged: false }, { headers: cors() });
+  }
+
+  Object.assign(entry, next);
+  if (changed.length) {
+    // Empêche la synchronisation Privateaser d'écraser une modification manuelle.
+    entry.lockedFields = [...new Set([...(entry.lockedFields || []), ...changed])];
+    entry.modifiedAt = Date.now();
+    entry.modifications = [...(entry.modifications || []).slice(-9), { at: entry.modifiedAt, before, after: Object.fromEntries(changed.map((k) => [k, next[k]])) }];
+  }
+
+  let stripeError = null;
+  let newLink = false;
+  let oldSessionResult = null;
+
+  if (depositChanged) {
+    // 1. Nouveau lien d'abord : si Stripe échoue, l'ancienne caution reste en place.
+    let fresh = null;
+    if (wantedAmount > 0) {
+      try {
+        fresh = { ...entry };
+        for (const f of DEPOSIT_FIELDS) delete fresh[f]; // jamais l'ancienne carte sur le nouveau lien
+        await createStripeGuaranteeLink(fresh, wantedAmount, new URL(request.url).origin, env);
+      } catch (e) {
+        stripeError = String(e?.message || e).slice(0, 500);
+        fresh = null;
+      }
+    }
+
+    if (wantedAmount === 0 || fresh) {
+      // 2. Annule l'ancienne caution : session expirée si encore ouverte,
+      //    carte précédente détachée de la réservation (plus débitable via charge-deposit).
+      if (hadDeposit) {
+        if (entry.depositGuaranteeStatus !== "enregistree" && entry.stripeCheckoutSessionId) {
+          oldSessionResult = await expireCheckoutSession(entry.stripeCheckoutSessionId, env);
+        }
+        entry.previousDeposits = [...(entry.previousDeposits || []).slice(-4), {
+          amount: entry.depositAmount ?? null,
+          status: entry.depositGuaranteeStatus || entry.depositStatus || "",
+          sessionId: entry.stripeCheckoutSessionId || "",
+          paymentMethodId: entry.stripePaymentMethodId || "",
+          replacedAt: Date.now(),
+        }];
+      }
+      for (const f of DEPOSIT_FIELDS) delete entry[f];
+      entry.depositLink = "";
+      if (fresh) {
+        for (const f of DEPOSIT_FIELDS) if (fresh[f] !== undefined) entry[f] = fresh[f];
+        entry.stripeCustomerId = fresh.stripeCustomerId;
+        newLink = true;
+      } else {
+        // Caution retirée volontairement : pas de caution automatique à l'acceptation.
+        entry.skipAutoDeposit = true;
+      }
+    }
+  }
+
+  // Email au client : réservation acceptée, ou nouveau lien de caution à transmettre.
+  let emailResult = null;
+  let emailError = null;
+  const notify = edit.notifyClient !== false;
+  const shouldEmail = notify && entry.email && entry.status !== "declined" && (entry.status === "accepted" || newLink) && (changed.length || newLink);
+  if (shouldEmail) {
+    const opts = {
+      title: "Réservation modifiée",
+      intro: "Votre réservation au Yonko Bar a été modifiée. Voici le récapitulatif à jour :",
+      subject: "Modification de votre réservation au Yonko Bar",
+    };
+    try {
+      const pendingCard = entry.depositLink && entry.depositGuaranteeStatus !== "enregistree";
+      emailResult = pendingCard
+        ? await sendGuaranteeEmail(entry, env, opts)
+        : await sendDepositEmail({ ...entry, depositLink: "" }, env, opts);
+      if (emailResult?.sent) {
+        entry.modificationEmailSentAt = Date.now();
+        if (newLink) entry.emailSent = true;
+      } else {
+        emailError = String(emailResult?.reason || "email_not_sent").slice(0, 500);
+      }
+    } catch (e) {
+      emailError = String(e?.message || e).slice(0, 500);
+      emailResult = { sent: false, reason: emailError };
+    }
+  }
+
+  await env.RESERVATIONS.put(`res:${entry.id}`, JSON.stringify(entry));
+
+  return Response.json(
+    { ok: true, entry, changed, depositChanged, newLink, stripeError, oldSessionResult, emailResult, emailError },
+    { headers: cors() }
+  );
+}
 
 function cors() {
   return {
@@ -48,6 +194,12 @@ export async function onRequestPatch({ request, env, params }) {
   try {
     body = await request.json();
   } catch {}
+
+  // Modification d'une réservation existante (dashboard / application).
+  // Traitée à part : ne passe jamais par la logique d'acceptation ci-dessous.
+  if (body.edit && typeof body.edit === "object") {
+    return handleEdit(entry, body.edit, request, env);
+  }
 
   const wasAccepted = entry.status === "accepted";
 

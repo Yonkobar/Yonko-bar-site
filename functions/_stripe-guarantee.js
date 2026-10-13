@@ -75,6 +75,18 @@ export async function createStripeGuaranteeLink(entry, amountEuros, origin, env)
   return session.url;
 }
 
+// Expire une Checkout Session encore ouverte (lien de garantie remplacé).
+// Stripe refuse si la session est déjà complétée ou expirée : c'est sans conséquence.
+export async function expireCheckoutSession(sessionId, env) {
+  if (!sessionId) return { expired: false, reason: "no_session" };
+  try {
+    await stripeRequest(`checkout/sessions/${encodeURIComponent(sessionId)}/expire`, env, new URLSearchParams());
+    return { expired: true };
+  } catch (e) {
+    return { expired: false, reason: String(e?.message || e).slice(0, 300) };
+  }
+}
+
 export async function retrieveSetupIntent(setupIntentId, env) {
   return stripeRequest(`setup_intents/${encodeURIComponent(setupIntentId)}`, env, null, "GET");
 }
@@ -98,11 +110,11 @@ export async function chargeStripeGuarantee(entry, amountEuros, env) {
   return stripeRequest("payment_intents", env, params);
 }
 
-export async function sendGuaranteeEmail(entry, env) {
+export async function sendGuaranteeEmail(entry, env, opts = {}) {
   if (!entry.email) return { sent: false, reason: "no_email" };
   if (!env.RESEND_API_KEY) return { sent: false, reason: "resend_not_configured" };
 
-  let html = buildEmailHtml(entry);
+  let html = buildEmailHtml(entry, opts);
 
   html = html.replace(
     /Pour finaliser, merci de valider votre caution ci-dessous\.[\s\S]*?absence non annoncée\.<\/p>/,
@@ -125,7 +137,7 @@ export async function sendGuaranteeEmail(entry, env) {
     body: JSON.stringify({
       from: env.EMAIL_FROM || "Yonko Bar <reservations@yonkobar.com>",
       to: [entry.email],
-      subject: "Votre réservation au Yonko Bar — garantie",
+      subject: opts.subject || "Votre réservation au Yonko Bar — garantie",
       html,
     }),
   });
