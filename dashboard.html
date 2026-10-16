@@ -417,11 +417,11 @@ async function syncPrivateaser(silent, reset) {
   try {
     const res = await api("", { endpoint:"/api/sync-privateaser", method:"POST", body:JSON.stringify({reset:!!reset}) });
     if (res.error) throw new Error(res.error);
-    if (!silent || res.created > 0 || res.removed > 0) {
-      const removedTxt = res.removed ? `${res.removed} doublon(s) supprimé(s), ` : "";
+    if (!silent || res.created > 0 || res.removed > 0 || res.cancelled > 0) {
+      const removedTxt = (res.removed ? `${res.removed} doublon(s) supprimé(s), ` : "") + (res.cancelled ? `${res.cancelled} annulation(s) Privateaser, ` : "");
       toast(`${removedTxt}${res.created} nouvelle(s) réservation(s) importée(s), ${res.skipped} déjà à jour.`, "success");
     }
-    if (res.created > 0 || res.removed > 0) {
+    if (res.created > 0 || res.removed > 0 || res.updated > 0 || res.cancelled > 0) {
       entries = await api("");
       render();
     }
@@ -568,7 +568,7 @@ async function copyMessage(entry) {
 
 
 function cardHTML(e) {
-  const status=STATUS[e.status]||{label:'À vérifier',color:'#706e67'}, sc=status.color;
+  const status=e.status==='declined'&&e.cancelledOnPrivateaser?{label:'Annulée · Privateaser',color:'#ad4237'}:(STATUS[e.status]||{label:'À vérifier',color:'#706e67'}), sc=status.color;
   const data=escapeHTML(e.id), flags=[];
   if(e.status==='accepted'&&e.depositLink){
     flags.push(`<span class="flag ${e.emailSent?'ok':'warn'}">${ICONS.mail} ${e.emailSent?'Email envoyé':'Email non envoyé'}</span>`);

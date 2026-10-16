@@ -241,7 +241,10 @@ export async function onRequestPost({ request, env }) {
   let created = 0;
   let updated = 0;
   let skipped = 0;
+  let cancelled = 0;
   const ignored = [];
+  const seenInFeed = new Set();
+  let maxFeedDate = "";
 
   for (const ev of events) {
     if (!ev.code) {
@@ -250,6 +253,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     const id = `priv-${ev.code}`;
+    seenInFeed.add(id);
 
     // Réparation automatique de l'index :
     // une réservation peut exister dans KV mais manquer de res:index.
@@ -287,6 +291,7 @@ export async function onRequestPost({ request, env }) {
       continue;
     }
 
+    if (date > maxFeedDate) maxFeedDate = date;
     const incomingStatus = mapPrivateaserStatus(ev);
 
     const entry = {
@@ -322,6 +327,10 @@ export async function onRequestPost({ request, env }) {
         if (["date", "time", "guests", "type"].includes(field)) merged[field] = existing[field];
       }
 
+      // Annulation Privateaser : indiquée explicitement ou levée si la réservation revient.
+      if (incomingStatus === "declined") merged.cancelledOnPrivateaser = true;
+      else { delete merged.cancelledOnPrivateaser; delete merged.cancelledAt; }
+
       Object.keys(merged).forEach((k) => {
         if (merged[k] === undefined) delete merged[k];
       });
@@ -336,6 +345,29 @@ export async function onRequestPost({ request, env }) {
       await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(entry));
       ids.push(id);
       created++;
+    }
+  }
+
+  // Réservation Privateaser à venir qui a disparu du flux iCal = annulée sur Privateaser
+  // (Privateaser retire les réservations annulées du flux au lieu de les marquer CANCELLED).
+  // Garde-fous : flux non vide, dates à venir uniquement, et seulement dans la période
+  // couverte par le flux (jamais le jour même). Si la réservation réapparaît, la synchro suivante la rétablit.
+  const cancelledList = [];
+  if (events.length > 0 && maxFeedDate) {
+    const today = partsInParis(new Date()).date;
+    for (const id of [...new Set(ids)]) {
+      if (!String(id).startsWith("priv-") || seenInFeed.has(id)) continue;
+      const raw = await env.RESERVATIONS.get(`res:${id}`);
+      if (!raw) continue;
+      const entry = JSON.parse(raw);
+      if (entry.source !== "Privateaser" || entry.status === "declined") continue;
+      if (!entry.date || entry.date <= today || entry.date > maxFeedDate) continue;
+      entry.status = "declined";
+      entry.cancelledOnPrivateaser = true;
+      entry.cancelledAt = Date.now();
+      await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(entry));
+      cancelled++;
+      cancelledList.push({ id, name: entry.name || "", date: entry.date });
     }
   }
 
@@ -358,6 +390,8 @@ export async function onRequestPost({ request, env }) {
       created,
       updated,
       removed,
+      cancelled,
+      cancelledList,
       total: events.length,
       ignoredCount: ignored.length,
       ignored: ignored.slice(0, 25),
