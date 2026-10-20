@@ -74,6 +74,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     notes: String(body.notes || "").slice(0, 1000),
     source: String(body.source || "Manuel").slice(0, 50),
     skipAutoDeposit: !!body.manual,
+    // Note interne (nourriture à préparer…) : uniquement depuis le dashboard.
+    ...(body.manual && body.kitchenNote ? { kitchenNote: String(body.kitchenNote).slice(0, 2000) } : {}),
     status: "pending",
     depositLink: "",
     createdAt: Date.now(),

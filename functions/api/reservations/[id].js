@@ -35,6 +35,10 @@ async function handleEdit(entry, edit, request, env) {
   if ("type" in edit) {
     next.type = String(edit.type || "").trim().slice(0, 200);
   }
+  if ("kitchenNote" in edit) {
+    // Note interne (nourriture à préparer, etc.) : jamais envoyée au client.
+    next.kitchenNote = String(edit.kitchenNote || "").replace(/\r\n/g, "\n").trim().slice(0, 2000);
+  }
   if ("email" in edit) {
     const v = String(edit.email || "").trim().slice(0, 200);
     if (v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return editError("Email invalide.");
@@ -58,6 +62,9 @@ async function handleEdit(entry, edit, request, env) {
 
   if (depositChanged && entry.depositStatus === "debitee") {
     return editError("La caution de cette réservation a déjà été débitée : son montant ne peut plus être modifié.", 409);
+  }
+  if (depositChanged && entry.depositStatus === "deposee") {
+    return editError("Caution déposée au bar : annulez d'abord la validation manuelle pour modifier la caution.", 409);
   }
   if (!changed.length && !depositChanged) {
     return Response.json({ ok: true, entry, changed: [], depositChanged: false }, { headers: cors() });
@@ -121,7 +128,7 @@ async function handleEdit(entry, edit, request, env) {
   let emailResult = null;
   let emailError = null;
   const notify = edit.notifyClient !== false;
-  const shouldEmail = notify && entry.email && entry.status !== "declined" && (entry.status === "accepted" || newLink) && (changed.some((k) => k !== "email") || newLink);
+  const shouldEmail = notify && entry.email && entry.status !== "declined" && (entry.status === "accepted" || newLink) && (changed.some((k) => !["email", "kitchenNote"].includes(k)) || newLink);
   if (shouldEmail) {
     const opts = {
       title: "Réservation modifiée",
@@ -129,7 +136,7 @@ async function handleEdit(entry, edit, request, env) {
       subject: "Modification de votre réservation au Yonko Bar",
     };
     try {
-      const pendingCard = entry.depositLink && entry.depositGuaranteeStatus !== "enregistree";
+      const pendingCard = entry.depositLink && !["enregistree", "deposee_manuellement"].includes(entry.depositGuaranteeStatus);
       emailResult = pendingCard
         ? await sendGuaranteeEmail(entry, env, opts)
         : await sendDepositEmail({ ...entry, depositLink: "" }, env, opts);

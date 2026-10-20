@@ -154,3 +154,50 @@ test('Email de confirmation refusé sans email ou si annulée', async () => {
   assert.equal((await confirm({...base, email: ''})).r.status, 400);
   assert.equal((await confirm({...base, status: 'declined'})).r.status, 409);
 });
+
+import {onRequestPost as manualDeposit} from '../functions/api/reservations/[id]/manual-deposit.js';
+import {onRequestPost as createReservation} from '../functions/api/reservations/index.js';
+
+async function manual(entry, body) {
+  const t = setup(entry);
+  let saved = entry;
+  const env = {DASHBOARD_KEY: 'k', STRIPE_SECRET_KEY: 'sk_test_x', RESERVATIONS: {get: async () => JSON.stringify(saved), put: async (k, v) => { saved = JSON.parse(v); }}};
+  const r = await manualDeposit({request: new Request('https://yonkobar.com/x', {method: 'POST', headers: {'x-dashboard-key': 'k'}, body: JSON.stringify(body)}), env, params: {id: entry.id}});
+  return {r, saved: () => saved, calls: t.calls, again: b => manualDeposit({request: new Request('https://yonkobar.com/x', {method: 'POST', headers: {'x-dashboard-key': 'k'}, body: JSON.stringify(b)}), env, params: {id: entry.id}})};
+}
+
+test('Caution déposée au bar : validée, lien Stripe fermé, plus en attente, annulation possible', async () => {
+  const entry = {...base, date: '2026-10-22', depositLink: 'https://checkout.stripe.com/g', depositAmount: 24, depositStatus: 'lien_envoye', depositGuaranteeStatus: 'lien_envoye', stripeCheckoutSessionId: 'cs_g'};
+  const m = await manual(entry, {amount: 30});
+  assert.equal(m.r.status, 200);
+  assert.equal(m.saved().depositStatus, 'deposee'); assert.equal(m.saved().depositAmount, 30);
+  assert.equal(m.calls.filter(c => c.url.includes('/expire')).length, 1);
+  assert.equal((await m.again({amount: 30})).status, 409, 'pas de double validation');
+  const undo = await m.again({undo: true});
+  assert.equal(undo.status, 200);
+  assert.equal(m.saved().depositStatus, 'lien_envoye'); assert.equal(m.saved().depositAmount, 24);
+});
+
+test('Caution déposée : la modification du montant est bloquée, l’email de confirmation n’a pas de lien', async () => {
+  const t = setup({...base, depositLink: 'https://checkout.stripe.com/g', depositAmount: 24, depositStatus: 'deposee', depositGuaranteeStatus: 'deposee_manuellement'});
+  assert.equal((await t.patch({edit: {depositAmount: 50}})).status, 409);
+  const res = await (await t.patch({edit: {time: '22:00'}})).json();
+  assert.doesNotMatch(JSON.parse(t.calls.find(c => c.url.includes('resend')).body).html, /checkout\.stripe/);
+  assert.equal(res.changed[0], 'time');
+});
+
+test('Note interne cuisine : enregistrée, sans email au client', async () => {
+  const t = setup({...base});
+  const res = await (await t.patch({edit: {kitchenNote: '2 planches mixtes\n30 tapas'}})).json();
+  assert.deepEqual(res.changed, ['kitchenNote']);
+  assert.equal(t.stored().kitchenNote, '2 planches mixtes\n30 tapas');
+  assert.equal(t.calls.length, 0);
+});
+
+test('Note interne : acceptée à la création depuis le dashboard, ignorée depuis le site public', async () => {
+  const data = new Map();
+  const env = {DASHBOARD_KEY: 'k', RESERVATIONS: {get: async k => data.get(k), put: async (k, v) => data.set(k, v)}};
+  const mk = async body => { const r = await createReservation({request: new Request('https://yonkobar.com/api/reservations', {method: 'POST', body: JSON.stringify(body)}), env}); return JSON.parse(data.get('res:' + (await r.json()).id)); };
+  assert.equal((await mk({name: 'A', date: '2026-10-22', manual: true, kitchenNote: 'gâteau'})).kitchenNote, 'gâteau');
+  assert.equal((await mk({name: 'B', date: '2026-10-22', kitchenNote: 'hack'})).kitchenNote, undefined);
+});

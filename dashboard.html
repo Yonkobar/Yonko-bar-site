@@ -21,7 +21,7 @@
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 
-#mobileSettings{border:1px solid var(--rule);border-radius:16px;background:var(--paper);color:var(--text);width:min(520px,calc(100% - 24px));max-height:90dvh;overflow:auto;padding:24px}#mobileSettings::backdrop{background:#171b2099;backdrop-filter:blur(3px)}#editDialog{border:1px solid var(--rule);border-radius:16px;background:var(--paper);color:var(--text);width:min(560px,calc(100% - 24px));max-height:90dvh;overflow:auto;padding:24px}#editDialog::backdrop{background:#171b2099;backdrop-filter:blur(3px)}#editDialog .edit-note{font-size:12px;color:var(--muted);line-height:1.55;margin:8px 0 0}#editDialog .edit-check{flex-direction:row;align-items:center;gap:8px;font-weight:500;font-size:12px}#editDialog .edit-check input{width:auto;min-height:0}@media(max-width:650px){#editDialog .form-grid{grid-template-columns:1fr}}#mobileSettings .mobile-explanation{font-size:12px;line-height:1.65;color:var(--muted)}#mobileSettings .mobile-actions{display:flex;flex-direction:column;gap:10px;margin:18px 0}#mobileSettings button[hidden]{display:none}#mobileSettings hr{border:0;border-top:1px solid var(--rule);margin:20px 0}#mobileSettings h2{font-size:22px}#appUpdate[hidden]{display:none}
+#mobileSettings{border:1px solid var(--rule);border-radius:16px;background:var(--paper);color:var(--text);width:min(520px,calc(100% - 24px));max-height:90dvh;overflow:auto;padding:24px}#mobileSettings::backdrop{background:#171b2099;backdrop-filter:blur(3px)}#editDialog{border:1px solid var(--rule);border-radius:16px;background:var(--paper);color:var(--text);width:min(560px,calc(100% - 24px));max-height:90dvh;overflow:auto;padding:24px}#editDialog::backdrop{background:#171b2099;backdrop-filter:blur(3px)}.kitchen{margin:12px 0 0;background:#fff4e5;border:1px dashed #e8a85c;border-radius:8px;padding:9px 12px;font-size:12px;color:#5b3a10;white-space:pre-wrap;overflow-wrap:anywhere}.kitchen b{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;color:#9b5a0b}#editDialog .edit-note{font-size:12px;color:var(--muted);line-height:1.55;margin:8px 0 0}#editDialog .edit-check{flex-direction:row;align-items:center;gap:8px;font-weight:500;font-size:12px}#editDialog .edit-check input{width:auto;min-height:0}@media(max-width:650px){#editDialog .form-grid{grid-template-columns:1fr}}#mobileSettings .mobile-explanation{font-size:12px;line-height:1.65;color:var(--muted)}#mobileSettings .mobile-actions{display:flex;flex-direction:column;gap:10px;margin:18px 0}#mobileSettings button[hidden]{display:none}#mobileSettings hr{border:0;border-top:1px solid var(--rule);margin:20px 0}#mobileSettings h2{font-size:22px}#appUpdate[hidden]{display:none}
 </style>
 
 
@@ -62,6 +62,7 @@
       <label class="field" id="depositAmountField" hidden>Montant de la caution (€)<input id="f-deposit-amount" type="number" min="1" step="1" inputmode="decimal" placeholder="Ex. 50"></label>
       <label class="field full" style="flex-direction:row;align-items:center;gap:8px;font-weight:500;font-size:12px"><input id="f-confirm" type="checkbox" style="width:auto;min-height:0"> Réservation confirmée : envoyer l’email de confirmation au client</label>
       <label class="field full">Notes<textarea id="f-notes" rows="3" placeholder="Occasion, demandes particulières…"></textarea></label>
+      <label class="field full">À préparer · note interne (jamais envoyée au client)<textarea id="f-kitchen" rows="2" placeholder="Ex. 2 planches mixtes, 30 tapas, gâteau d’anniversaire…"></textarea></label>
     </div><p class="err" id="f-err" role="alert"></p><div class="form-actions"><button class="btn-primary" id="submitButton" onclick="submitForm()">Ajouter la demande</button><button class="btn-ghost" onclick="toggleForm()">Annuler</button></div></div>
     <div class="search-row" id="searchRow"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><label class="sr-only" for="searchInput">Rechercher une réservation</label><input id="searchInput" type="search" placeholder="Rechercher un nom, contact, source ou espace…" oninput="searchTerm=this.value;render()"></div><span class="search-hint">Retrouvez facilement vos clients et leurs demandes.</span></div>
     <div id="planningView"></div><div id="listView" style="display:none"></div><div id="statsView" style="display:none"></div>
@@ -76,6 +77,8 @@
   <label class="field">Caution<select id="e-deposit" onchange="editDepositToggle()"><option value="no">Aucune caution</option><option value="yes">Demander une caution</option></select></label>
   <label class="field" id="e-amount-field" hidden>Montant de la caution (€)<input id="e-deposit-amount" type="number" min="1" step="1" inputmode="decimal"></label>
   <p class="edit-note full" id="e-deposit-note" style="grid-column:1/-1"></p>
+  <div class="full" style="grid-column:1/-1" id="e-manual-box"></div>
+  <label class="field full">À préparer · note interne (jamais envoyée au client)<textarea id="e-kitchen" rows="3" placeholder="Ex. 2 planches mixtes, 30 tapas, gâteau d’anniversaire…"></textarea></label>
   <label class="field full edit-check"><input id="e-notify" type="checkbox" checked> Prévenir le client par email</label>
 </div><p class="err" id="e-err" role="alert"></p><div class="form-actions"><button class="btn-primary" id="e-save" onclick="saveEdit()">Enregistrer</button><button class="btn-ghost" onclick="closeEdit()">Annuler</button></div></dialog>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
@@ -184,7 +187,7 @@ let quoteQty = {};
 const API = "/api/reservations";
 const STATUS = { pending:{label:"En attente",color:"#99701e"}, accepted:{label:"Acceptée",color:"#24785d"}, declined:{label:"Refusée",color:"#ad4237"} };
 const DEPOSIT_PENDING_COLOR = "#7a4fc4";
-function depositPending(e){return !!(e&&e.depositLink)&&e.status!=='declined'&&!['autorisee','debitee'].includes(e.depositStatus);}
+function depositPending(e){return !!(e&&e.depositLink)&&e.status!=='declined'&&!['autorisee','debitee','deposee'].includes(e.depositStatus);}
 function chipColor(e){return depositPending(e)?DEPOSIT_PENDING_COLOR:((STATUS[e.status]||{}).color||'#706e67');}
 const WEEKDAYS = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 const ICONS = {
@@ -344,6 +347,7 @@ async function submitForm() {
     guests: guests.value,
     type: document.getElementById("f-type").value.trim(),
     notes: document.getElementById("f-notes").value,
+    kitchenNote: document.getElementById("f-kitchen").value.trim(),
     source: document.getElementById("f-source").value,
     manual: true
   };
@@ -374,7 +378,7 @@ async function submitForm() {
       catch (e) { confirmResult = { emailError: e.message }; }
     }
 
-    ["f-name","f-contact","f-email","f-time","f-guests","f-type","f-notes","f-deposit-amount"].forEach(id => document.getElementById(id).value="");
+    ["f-name","f-contact","f-email","f-time","f-guests","f-type","f-notes","f-kitchen","f-deposit-amount"].forEach(id => document.getElementById(id).value="");
     document.getElementById("f-date").value="";
     document.getElementById("f-source").value="Manuel";
     document.getElementById("f-deposit").value="no";
@@ -595,13 +599,15 @@ function cardHTML(e) {
   if(e.status==='accepted'&&e.email){
     flags.push(`<span class="flag ${e.emailSent?'ok':'warn'}">${ICONS.mail} ${e.emailSent?'Confirmation envoyée':'Confirmation non envoyée'}</span>`);
   }
-  if(e.status==='accepted'&&e.depositLink){
+  if(e.depositStatus==='deposee'){
+    flags.push(`<span class="flag ok">${ICONS.card} Caution déposée au bar${e.depositAmount?' · '+escapeHTML(e.depositAmount)+' €':''}</span>`);
+  } else if(e.status==='accepted'&&e.depositLink){
     flags.push(`<span class="flag ${e.depositStatus==='autorisee'?'ok':'warn'}">${ICONS.card} ${e.depositStatus==='autorisee'?'Caution validée':'Caution en attente'}</span>`);
   }
   const action=(name,label,icon,cls='')=>`<button class="action ${cls}" data-entry="${data}" data-action="${name}">${icon} ${label}</button>`;
   return `<article class="card"><div class="card-top"><div class="avatar" style="--sc:${sc}">${escapeHTML(initials(e.name))}</div><div class="card-info"><div class="card-toprow"><div><h3 class="name">${escapeHTML(e.name)}</h3><p class="meta">${escapeHTML(formatDate(e.date))}${e.time?' · '+escapeHTML(e.time):''}${e.guests?' · '+escapeHTML(e.guests)+' pers.':''}</p>${e.type?`<p class="meta">Espace · ${escapeHTML(e.type)}</p>`:''}${e.source?`<p class="meta">${escapeHTML(e.source)}</p>`:''}${e.contact?`<p class="meta">${escapeHTML(e.contact)}</p>`:''}${e.email&&e.email!==e.contact?`<p class="meta">${escapeHTML(e.email)}</p>`:''}</div><span class="badge" style="--sc:${sc}">${status.label}</span></div></div></div>
-  ${e.notes?`<p class="notes">${escapeHTML(e.notes)}</p>`:''}${flags.length?`<div class="flags">${flags.join('')}</div>`:''}
-  <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${e.email&&e.status!=='declined'?action('confirm-mail',e.emailSent?'Renvoyer la confirmation':'Envoyer la confirmation',ICONS.mail):''}${action('edit','Modifier',ICONS.edit)}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
+  ${e.notes?`<p class="notes">${escapeHTML(e.notes)}</p>`:''}${e.kitchenNote?`<div class="kitchen"><b>À préparer · note interne</b>${escapeHTML(e.kitchenNote)}</div>`:''}${flags.length?`<div class="flags">${flags.join('')}</div>`:''}
+  <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${e.email&&e.status!=='declined'?action('confirm-mail',e.emailSent?'Renvoyer la confirmation':'Envoyer la confirmation',ICONS.mail):''}${depositPending(e)?action('manual-deposit','Caution déposée',ICONS.check):''}${action('edit','Modifier',ICONS.edit)}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
   ${e.depositLink?`<div class="deposit">${e.depositAmount?escapeHTML(e.depositAmount)+' € · ':''}${escapeHTML(e.depositLink)}</div>`:''}</article>`;
 }
 
@@ -609,7 +615,7 @@ function cardHTML(e) {
 function renderStats() {
   const today=isoDate(new Date()),counts={pending:0,accepted:0,declined:0};entries.forEach(e=>counts[e.status]=(counts[e.status]||0)+1);
   const stat=(label,n,note,icon,cls='',action='')=>`<${action?'button':'div'} class="stat ${cls}" ${action?`onclick="${action}"`:''}><span class="stat-top">${label}<span class="stat-icon" aria-hidden="true">${icon}</span></span><span class="n">${loaded&&!loadFailed?n:'—'}</span><span class="l">${note}</span></${action?'button':'div'}>`;
-  document.getElementById('stats').innerHTML=stat('En attente',counts.pending,'Toutes les demandes','◷','pending',"timeScope='all';filter='pending';clearSearch();setView('list')")+stat('Acceptées',counts.accepted,'Toutes les dates','✓','accepted',"timeScope='all';filter='accepted';clearSearch();setView('list')")+stat('Refusées',counts.declined,'Toutes les dates','×','declined',"timeScope='all';filter='declined';clearSearch();setView('list')")+stat('Aujourd’hui',entries.filter(e=>e.date===today).length,'Tous les statuts','↗','today-stat','goToday()')+stat('Cautions validées',entries.filter(e=>e.depositStatus==='autorisee').length,'Toutes les dates','◇','',"setView('stats')")+stat('Devis envoyés',quotesSentThisSession,'Depuis cette connexion','↗');
+  document.getElementById('stats').innerHTML=stat('En attente',counts.pending,'Toutes les demandes','◷','pending',"timeScope='all';filter='pending';clearSearch();setView('list')")+stat('Acceptées',counts.accepted,'Toutes les dates','✓','accepted',"timeScope='all';filter='accepted';clearSearch();setView('list')")+stat('Refusées',counts.declined,'Toutes les dates','×','declined',"timeScope='all';filter='declined';clearSearch();setView('list')")+stat('Aujourd’hui',entries.filter(e=>e.date===today).length,'Tous les statuts','↗','today-stat','goToday()')+stat('Cautions validées',entries.filter(e=>['autorisee','deposee'].includes(e.depositStatus)).length,'Toutes les dates','◇','',"setView('stats')")+stat('Devis envoyés',quotesSentThisSession,'Depuis cette connexion','↗');
 }
 
 
@@ -679,7 +685,7 @@ function renderStatsView() {
   if(loadFailed){document.getElementById('statsView').innerHTML='';return;}
   const sources={};entries.forEach(e=>{const s=e.source||'Manuel';sources[s]=(sources[s]||0)+1;});
   const sourceEntries=Object.entries(sources).sort((a,b)=>b[1]-a[1]),max=Math.max(1,...sourceEntries.map(([,n])=>n)),total=entries.length;
-  document.getElementById('statsView').innerHTML=`<div class="stats-layout"><section class="panel"><div class="panel-title"><div><h2>D’où viennent vos clients ?</h2><p>Provenance des réservations · toutes les dates</p></div><span class="count-pill">${total} au total</span></div>${sourceEntries.length?sourceEntries.map(([s,n])=>statsRow(escapeHTML(s),n,max,SOURCE_COLORS[s]||'#78726a')).join(''):emptyState('Pas encore de données.')}</section><section class="panel"><div class="panel-title"><div><h2>Le suivi des cautions</h2><p>Une vue sur les confirmations de vos clients.</p></div></div>${statsRow('Réservations acceptées',entries.filter(e=>e.status==='accepted').length,total||1,'#24785d')}${statsRow('Liens de caution générés',entries.filter(e=>e.depositLink).length,total||1,'#db701f')}${statsRow('Cautions validées par le client',entries.filter(e=>e.depositStatus==='autorisee').length,total||1,'#99701e')}<p class="stats-note">Les barres de caution sont rapportées aux ${total} réservations. Le compteur de devis couvre cette connexion : l’API actuelle ne conserve pas l’historique des envois.</p></section></div>`;
+  document.getElementById('statsView').innerHTML=`<div class="stats-layout"><section class="panel"><div class="panel-title"><div><h2>D’où viennent vos clients ?</h2><p>Provenance des réservations · toutes les dates</p></div><span class="count-pill">${total} au total</span></div>${sourceEntries.length?sourceEntries.map(([s,n])=>statsRow(escapeHTML(s),n,max,SOURCE_COLORS[s]||'#78726a')).join(''):emptyState('Pas encore de données.')}</section><section class="panel"><div class="panel-title"><div><h2>Le suivi des cautions</h2><p>Une vue sur les confirmations de vos clients.</p></div></div>${statsRow('Réservations acceptées',entries.filter(e=>e.status==='accepted').length,total||1,'#24785d')}${statsRow('Liens de caution générés',entries.filter(e=>e.depositLink).length,total||1,'#db701f')}${statsRow('Cautions validées par le client',entries.filter(e=>['autorisee','deposee'].includes(e.depositStatus)).length,total||1,'#99701e')}<p class="stats-note">Les barres de caution sont rapportées aux ${total} réservations. Le compteur de devis couvre cette connexion : l’API actuelle ne conserve pas l’historique des envois.</p></section></div>`;
 }
 
 
@@ -697,7 +703,7 @@ document.addEventListener('click',async event=>{
   const btn=event.target.closest('[data-action][data-entry]');if(!btn)return;
   const entry=entries.find(e=>String(e.id)===btn.dataset.entry);if(!entry)return;
   btn.disabled=true;
-  try{switch(btn.dataset.action){case 'accepted':case 'declined':case 'pending':await setStatus(entry.id,btn.dataset.action);break;case 'stripe':await makeStripeLink(entry.id,entry.name);break;case 'delete':await deleteEntry(entry.id,entry.name);break;case 'copy':await copyMessage(entry);break;case 'quote':openQuote(entry);break;case 'edit':openEdit(entry);break;case 'confirm-mail':await sendConfirmation(entry);break;}}finally{btn.disabled=false;}
+  try{switch(btn.dataset.action){case 'accepted':case 'declined':case 'pending':await setStatus(entry.id,btn.dataset.action);break;case 'stripe':await makeStripeLink(entry.id,entry.name);break;case 'delete':await deleteEntry(entry.id,entry.name);break;case 'copy':await copyMessage(entry);break;case 'quote':openQuote(entry);break;case 'edit':openEdit(entry);break;case 'confirm-mail':await sendConfirmation(entry);break;case 'manual-deposit':await manualDeposit(entry);break;}}finally{btn.disabled=false;}
 });
 document.getElementById('quotePanel').addEventListener('keydown',event=>{
   if(event.key==='Escape'){closeQuote();return;}
@@ -720,6 +726,7 @@ function editSuggest(){
   const parts=[];
   if(sug)parts.push(`Montant suggéré selon la règle de l’espace : ${sug} €${on&&amount!==sug?` <button type="button" class="btn-ghost" style="min-height:30px;padding:4px 10px" onclick="document.getElementById('e-deposit').value='yes';document.getElementById('e-deposit-amount').value=${sug};editDepositToggle()">Appliquer</button>`:''}.`);
   if(editEntry.depositStatus==='debitee')parts.push('Caution déjà débitée : son montant ne peut plus être modifié.');
+  else if(editEntry.depositStatus==='deposee')parts.push('Caution déposée au bar : annulez la validation ci-dessous pour la modifier.');
   else if(wanted!==current){
     if(current&&wanted)parts.push(`La caution actuelle (${current} €) sera annulée et un nouveau lien de ${wanted} € sera envoyé au client.`);
     else if(current)parts.push(`La caution actuelle (${current} €) sera annulée.`);
@@ -734,9 +741,9 @@ function openEdit(entry){
   editEntry=entry;
   document.getElementById('editTitle').textContent=entry.name||'Réservation';
   document.getElementById('e-date').value=entry.date||'';document.getElementById('e-time').value=entry.time||'';
-  document.getElementById('e-guests').value=entry.guests||'';document.getElementById('e-type').value=entry.type||'';document.getElementById('e-email').value=entry.email||'';
+  document.getElementById('e-guests').value=entry.guests||'';document.getElementById('e-type').value=entry.type||'';document.getElementById('e-email').value=entry.email||'';document.getElementById('e-kitchen').value=entry.kitchenNote||'';renderManualBox();
   document.getElementById('e-deposit').value=hasDeposit(entry)?'yes':'no';document.getElementById('e-deposit-amount').value=hasDeposit(entry)?(entry.depositAmount||''):'';
-  document.getElementById('e-deposit').disabled=entry.depositStatus==='debitee';document.getElementById('e-deposit-amount').disabled=entry.depositStatus==='debitee';
+  const locked=['debitee','deposee'].includes(entry.depositStatus);document.getElementById('e-deposit').disabled=locked;document.getElementById('e-deposit-amount').disabled=locked;
   document.getElementById('e-notify').checked=true;
   document.getElementById('e-err').textContent='';editDepositToggle();
   const d=document.getElementById('editDialog');if(!d.open)d.showModal();
@@ -750,8 +757,8 @@ async function saveEdit(){
   if(!guests.checkValidity()){err.textContent='Vérifiez le nombre de personnes.';return;}
   const emailField=document.getElementById('e-email');if(!emailField.checkValidity()){err.textContent='Vérifiez l’email du client.';return;}
   if(on&&(!Number.isFinite(amount)||amount<=0)){err.textContent='Indiquez un montant de caution supérieur à 0 €.';return;}
-  const edit={date,time:document.getElementById('e-time').value,guests:guests.value,type:document.getElementById('e-type').value.trim(),email:emailField.value.trim(),notifyClient:document.getElementById('e-notify').checked};
-  if(editEntry.depositStatus!=='debitee')edit.depositAmount=on?amount:0;
+  const edit={date,time:document.getElementById('e-time').value,guests:guests.value,type:document.getElementById('e-type').value.trim(),email:emailField.value.trim(),kitchenNote:document.getElementById('e-kitchen').value.trim(),notifyClient:document.getElementById('e-notify').checked};
+  if(!['debitee','deposee'].includes(editEntry.depositStatus))edit.depositAmount=on?amount:0;
   const current=hasDeposit(editEntry)?Number(editEntry.depositAmount)||0:0;
   if(current&&edit.depositAmount!==undefined&&edit.depositAmount!==current&&!confirm(edit.depositAmount?`Annuler la caution de ${current} € et envoyer un nouveau lien de ${edit.depositAmount} € ?`:`Annuler la caution de ${current} € ?`))return;
   btn.disabled=true;err.textContent='';
@@ -765,6 +772,33 @@ async function saveEdit(){
   }catch(e){err.textContent=e.message;}finally{btn.disabled=false;}
 }
 document.getElementById('editDialog').addEventListener('close',()=>{editEntry=null;});
+function renderManualBox(){
+  const e=editEntry,box=document.getElementById('e-manual-box');if(!e){box.innerHTML='';return;}
+  if(e.depositStatus==='deposee'){
+    const when=e.manualDepositAt?new Date(e.manualDepositAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'';
+    box.innerHTML=`<p class="edit-note">✓ Caution déposée au bar${e.depositAmount?' · '+escapeHTML(e.depositAmount)+' €':''}${when?' · le '+when:''} <button type="button" class="btn-ghost" style="min-height:30px;padding:4px 10px" onclick="manualDeposit(editEntry,true)">Annuler la validation</button></p>`;
+  } else if(['autorisee','debitee'].includes(e.depositStatus)||e.status==='declined'){box.innerHTML='';}
+  else box.innerHTML=`<button type="button" class="btn-ghost" onclick="manualDeposit(editEntry)">${ICONS.check} Caution déposée au bar (validation manuelle)</button>`;
+}
+async function manualDeposit(entry,undo=false){
+  if(!entry)return;
+  let body;
+  if(undo){
+    if(!confirm('Annuler la validation manuelle de la caution ?'))return;
+    body={undo:true};
+  } else {
+    const amount=prompt(`Caution déposée au bar par ${entry.name}.\nMontant en € (laisser vide si inconnu) :`,entry.depositAmount||'');
+    if(amount===null)return;
+    if(amount.trim()&&!(Number(amount.replace(',','.'))>0)){toast('Montant invalide.','error');return;}
+    body={amount:amount.trim()?Number(amount.replace(',','.')):'',note:'Déposée au bar'};
+  }
+  try{
+    const res=await api(`/${entry.id}/manual-deposit`,{method:'POST',body:JSON.stringify(body)});
+    toast(undo?'Validation manuelle annulée.':'Caution validée manuellement (déposée au bar).','success');
+    entries=await api('');render();
+    if(editEntry&&editEntry.id===entry.id){editEntry=res.entry;const locked=['debitee','deposee'].includes(res.entry.depositStatus);document.getElementById('e-deposit').disabled=locked;document.getElementById('e-deposit-amount').disabled=locked;renderManualBox();editSuggest();}
+  }catch(e){toast(e.message,'error');}
+}
 async function sendConfirmation(entry){
   if(entry.emailSent&&!confirm(`Renvoyer l’email de confirmation à ${entry.email} ?`))return;
   try{

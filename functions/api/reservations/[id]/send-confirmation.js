@@ -35,7 +35,7 @@ export async function onRequestPost({ request, env, params }) {
 
   let emailResult;
   try {
-    const pendingCard = entry.depositLink && !["autorisee", "debitee"].includes(entry.depositStatus);
+    const pendingCard = entry.depositLink && !["autorisee", "debitee", "deposee"].includes(entry.depositStatus);
     emailResult = pendingCard
       ? await sendGuaranteeEmail(entry, env, { subject: "Votre réservation au Yonko Bar est confirmée" })
       : await sendDepositEmail({ ...entry, depositLink: "" }, env, { subject: "Votre réservation au Yonko Bar est confirmée" });
