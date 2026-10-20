@@ -41,8 +41,11 @@ export async function onRequestPost({ request, env, params }) {
     const origin = new URL(request.url).origin;
     const url = await createStripeGuaranteeLink(entry, amountEuros, origin, env);
 
-    const emailResult = await sendGuaranteeEmail(entry, env);
-    entry.emailSent = !!emailResult.sent;
+    // sendEmail:false = l'email part plus tard avec la confirmation (évite un doublon).
+    const emailResult = body.sendEmail === false
+      ? { sent: false, reason: "deferred" }
+      : await sendGuaranteeEmail(entry, env);
+    if (body.sendEmail !== false) entry.emailSent = !!emailResult.sent;
 
     await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(entry));
 

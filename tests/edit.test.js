@@ -101,8 +101,56 @@ test('Non-régression : acceptation sans caution envoie toujours la confirmation
   assert.match(JSON.parse(t.calls[0].body).html, /Réservation confirmée/);
 });
 
-test('Non-régression : acceptation Taverne > 6 génère le lien de garantie', async () => {
-  const t = setup({...base, status: 'pending', guests: '8'});
+test('Taverne > 6 un mardi : pas de caution automatique, confirmation simple', async () => {
+  const t = setup({...base, status: 'pending', guests: '8', date: '2026-10-20'});
+  const res = await (await t.patch({status: 'accepted'})).json();
+  assert.equal(res.entry.depositLink, ''); assert.equal(res.emailResult.sent, true);
+  assert.equal(t.calls.filter(c => c.url.includes('stripe')).length, 0);
+});
+
+test('Non-régression : acceptation Taverne > 6 un samedi génère le lien de garantie', async () => {
+  const t = setup({...base, status: 'pending', guests: '8', date: '2026-10-24'});
   const res = await (await t.patch({status: 'accepted'})).json();
   assert.equal(res.entry.depositAmount, 24); assert.equal(res.emailResult.sent, true);
+});
+
+import {onRequestPost as sendConfirmation} from '../functions/api/reservations/[id]/send-confirmation.js';
+import {computeDepositAmount} from '../functions/_shared.js';
+
+test('Règle caution : Taverne uniquement vendredi/samedi, privatisation tous les jours', () => {
+  const t = (date, type = 'Taverne', guests = '8') => computeDepositAmount({date, type, guests});
+  assert.equal(t('2026-10-20'), null); assert.equal(t('2026-10-21'), null); assert.equal(t('2026-10-22'), null);
+  assert.equal(t('2026-10-23'), 24); assert.equal(t('2026-10-24'), 24);
+  assert.equal(t('2026-10-24', 'Taverne', '6'), null);
+  assert.equal(t('2026-10-21', 'Privatisation', '20'), 250);
+});
+
+async function confirm(entry) {
+  const t = setup(entry);
+  const env = {DASHBOARD_KEY: 'k', RESEND_API_KEY: 're_x', RESERVATIONS: {get: async () => JSON.stringify(entry), put: async (k, v) => { t.saved = JSON.parse(v); }}};
+  const r = await sendConfirmation({request: new Request('https://yonkobar.com/x', {method: 'POST', headers: {'x-dashboard-key': 'k'}}), env, params: {id: entry.id}});
+  return {r, body: await r.json(), calls: t.calls, t};
+}
+
+test('Email de confirmation sans caution', async () => {
+  const {r, calls, t} = await confirm({...base});
+  assert.equal(r.status, 200);
+  const mail = JSON.parse(calls[0].body);
+  assert.match(mail.subject, /confirmée/); assert.match(mail.html, /Réservation confirmée/); assert.doesNotMatch(mail.html, /stripe/);
+  assert.ok(t.saved.confirmationEmailSentAt);
+});
+
+test('Email de confirmation avec caution en attente : contient le lien', async () => {
+  const {calls} = await confirm({...base, depositLink: 'https://checkout.stripe.com/abc', depositAmount: 24, depositStatus: 'lien_envoye'});
+  assert.match(JSON.parse(calls[0].body).html, /checkout\.stripe\.com\/abc/);
+});
+
+test('Email de confirmation avec carte déjà enregistrée : sans lien', async () => {
+  const {calls} = await confirm({...base, depositLink: 'https://checkout.stripe.com/abc', depositAmount: 24, depositStatus: 'autorisee'});
+  assert.doesNotMatch(JSON.parse(calls[0].body).html, /checkout\.stripe/);
+});
+
+test('Email de confirmation refusé sans email ou si annulée', async () => {
+  assert.equal((await confirm({...base, email: ''})).r.status, 400);
+  assert.equal((await confirm({...base, status: 'declined'})).r.status, 409);
 });

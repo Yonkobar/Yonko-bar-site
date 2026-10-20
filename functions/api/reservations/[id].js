@@ -2,7 +2,7 @@
 import { computeDepositAmount, sendDepositEmail } from "../../_shared.js";
 import { createStripeGuaranteeLink, sendGuaranteeEmail, expireCheckoutSession } from "../../_stripe-guarantee.js";
 
-const EDIT_LABELS = { date: "Date", time: "Heure", guests: "Personnes", type: "Espace" };
+const EDIT_LABELS = { date: "Date", time: "Heure", guests: "Personnes", type: "Espace", email: "Email" };
 const DEPOSIT_FIELDS = [
   "depositLink", "depositAmount", "depositStatus", "depositGuaranteeStatus",
   "stripeCheckoutSessionId", "stripeSetupIntentId", "stripePaymentMethodId",
@@ -34,6 +34,11 @@ async function handleEdit(entry, edit, request, env) {
   }
   if ("type" in edit) {
     next.type = String(edit.type || "").trim().slice(0, 200);
+  }
+  if ("email" in edit) {
+    const v = String(edit.email || "").trim().slice(0, 200);
+    if (v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return editError("Email invalide.");
+    next.email = v;
   }
 
   const changed = Object.keys(next).filter((k) => String(entry[k] ?? "") !== next[k]);
@@ -116,7 +121,7 @@ async function handleEdit(entry, edit, request, env) {
   let emailResult = null;
   let emailError = null;
   const notify = edit.notifyClient !== false;
-  const shouldEmail = notify && entry.email && entry.status !== "declined" && (entry.status === "accepted" || newLink) && (changed.length || newLink);
+  const shouldEmail = notify && entry.email && entry.status !== "declined" && (entry.status === "accepted" || newLink) && (changed.some((k) => k !== "email") || newLink);
   if (shouldEmail) {
     const opts = {
       title: "Réservation modifiée",

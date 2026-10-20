@@ -1,8 +1,17 @@
+// Vendredi (5) ou samedi (6), date au format AAAA-MM-JJ (jour calendaire, sans fuseau).
+export function isWeekendNight(dateStr) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ""));
+  if (!m) return false;
+  const day = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).getUTCDay();
+  return day === 5 || day === 6;
+}
+
 export function computeDepositAmount(entry) {
   const type = (entry.type || "").toLowerCase();
   const guests = parseInt(entry.guests, 10) || 0;
   if (type.includes("privatisation")) return 250;
-  if (type.includes("taverne") && guests > 6) return guests * 3;
+  // Taverne : caution uniquement le vendredi et le samedi, au-delà de 6 personnes.
+  if (type.includes("taverne") && guests > 6 && isWeekendNight(entry.date)) return guests * 3;
   return null; // "Bar entier" sur devis, ou petite table : pas de règle automatique
 }
 
