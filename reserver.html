@@ -54,7 +54,7 @@
       <section data-step="1">
         <h2 style="margin:0 0 16px;font-size:22px">Quel jour ?</h2>
         <div class="field" style="max-width:320px"><label for="f-date">Date</label><input id="f-date" type="date" required></div>
-        <p class="muted" style="margin:12px 0 26px;font-size:14px">Mardi – mercredi 17h30 – 2h · jeudi – vendredi 17h30 – minuit · samedi 15h – 2h. Fermé le dimanche et le lundi (privatisation du bar entier sur devis).</p>
+        <p class="muted" style="margin:12px 0 26px;font-size:14px">Mardi – mercredi 17h30 – minuit · jeudi – vendredi 17h30 – 2h · samedi 15h – 2h. Fermé le dimanche et le lundi (privatisation du bar entier sur devis).</p>
         <p class="notice" id="closed-note" hidden>Le dimanche et le lundi, le bar est fermé au public : seule la privatisation du bar entier est possible, sur devis.</p>
         <h2 style="margin:22px 0 16px;font-size:22px">À quelle heure ?</h2>
         <div class="chips" id="times" role="group" aria-label="Heure d'arrivée"><p class="muted" style="margin:0">Choisissez d'abord une date.</p></div>
@@ -149,7 +149,7 @@
     if (w < 0) return out;
     if (w === 6) { start = 15 * 60; end = 23 * 60; }
     else if (w === 0 || w === 1) { start = 18 * 60; end = 22 * 60; }
-    else { start = 17 * 60 + 30; end = 22 * 60 + 30; }
+    else { start = 17 * 60 + 30; end = (w === 4 || w === 5) ? 23 * 60 : 22 * 60 + 30; }
     for (var t = start; t <= end; t += 30) out.push(String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'));
     return out;
   }
