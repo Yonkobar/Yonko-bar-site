@@ -1,0 +1,271 @@
+/* Yonko Bar — page d'accueil : DA d'origine (yonko.css) + couche manga.
+   yonko.css reste partagé avec Réserver et Ma réservation : on ne le modifie pas, on le complète ici. */
+:root{
+  --nuit:#080604;--parchemin:var(--cream);--sable:var(--cream-dim);--pavillon:var(--red);
+  --texte:"DM Sans",sans-serif;--display:"Cinzel Decorative",serif;
+  --sfx-font:"Dela Gothic One","Cinzel Decorative",serif;
+}
+[hidden]{display:none!important}
+html{scroll-padding-top:88px}
+:focus-visible{outline:2px solid var(--orange-lt);outline-offset:3px}
+.skip{position:absolute;left:-9999px;top:0;z-index:2000;background:var(--red);color:var(--cream);padding:.7rem 1rem}
+.skip:focus{left:1rem;top:1rem}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.topbar{position:fixed;top:0;left:0;right:0}
+nav{top:31px}
+img{max-width:100%}
+
+/* ===== Intro : le logo arrive, coup de sabre, les deux moitiés foncent vers l'écran ===== */
+#intro{display:none}
+.avec-intro #intro{display:block;position:fixed;inset:0;z-index:1500;overflow:hidden}
+.intro-en-cours,.intro-en-cours body{overflow:hidden}
+/* Rien ne démarre avant que le logo soit chargé */
+.avec-intro:not(.go) #intro,.avec-intro:not(.go) #intro *,.avec-intro:not(.go) #hero *{animation-play-state:paused!important}
+.moitie{position:absolute;inset:0;display:grid;place-items:center;
+  background:radial-gradient(circle,rgba(244,232,212,.075) 1.1px,transparent 1.7px) 0 0/8px 8px,radial-gradient(62% 58% at 50% 50%,#2a1308 0,var(--nuit) 72%);
+  transition:transform 1.15s cubic-bezier(.7,0,.2,1),filter 1.15s;will-change:transform}
+.moitie.g{clip-path:polygon(0 0,63.2% 0,37.2% 100%,0 100%)}
+.moitie.d{clip-path:polygon(62.8% 0,100% 0,100% 100%,36.8% 100%)}
+.moitie img{width:min(50vh,62vw);height:auto;animation:logo-arrive 1.05s cubic-bezier(.2,.9,.25,1) .05s both,secousse .26s linear .62s}
+@keyframes logo-arrive{
+  0%{opacity:0;transform:scale(.08) rotate(-18deg);filter:blur(6px) brightness(2)}
+  45%{opacity:1;filter:blur(0) brightness(1.3) drop-shadow(0 0 50px rgba(255,110,0,.7))}
+  60%{transform:scale(1.09) rotate(1deg)}
+  100%{opacity:1;transform:none;filter:drop-shadow(0 0 22px rgba(255,110,0,.3))}}
+@keyframes secousse{0%,100%{translate:0 0}20%{translate:-7px 4px}40%{translate:6px -5px}60%{translate:-4px -3px}80%{translate:3px 3px}}
+.vitesse{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;animation:fondu .25s .45s forwards;transition:opacity .2s}
+.sabre{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;transition:opacity .3s}
+.sabre line{stroke:#fff8ec;stroke-width:3;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;
+  filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 16px #ff8a1f);animation:coupe .2s cubic-bezier(.8,0,.2,1) 1.12s forwards}
+@keyframes coupe{to{stroke-dashoffset:0}}
+.impact{position:absolute;inset:0;background:#fff;mix-blend-mode:difference;opacity:0;pointer-events:none;animation:impact .2s steps(1,end) 1.3s}
+@keyframes impact{0%{opacity:1}50%{opacity:0}75%{opacity:1}100%{opacity:0}}
+.sfx{position:absolute;right:8vw;top:13vh;font:400 clamp(64px,11vw,170px)/1 var(--sfx-font);color:#fff6e8;letter-spacing:-.04em;
+  -webkit-text-stroke:3px var(--red);paint-order:stroke fill;text-shadow:7px 7px 0 var(--red);
+  transform:rotate(-11deg) skewX(-8deg);opacity:0;pointer-events:none;animation:sfx .45s cubic-bezier(.2,1.6,.4,1) 1.3s forwards}
+@keyframes sfx{from{opacity:0;transform:rotate(-11deg) skewX(-8deg) scale(2.2)}to{opacity:1;transform:rotate(-11deg) skewX(-8deg) scale(1)}}
+.passer{position:absolute;right:20px;bottom:20px;z-index:2;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(244,232,212,.22);background:rgba(8,6,4,.6);color:var(--cream-dim);font:500 14px var(--texte);cursor:pointer;opacity:0;animation:fondu .5s .6s forwards}
+.passer:hover{color:var(--cream);border-color:var(--cream-dim)}
+@keyframes fondu{to{opacity:1}}
+.ouvre .moitie.g{transform:translate3d(-105vw,-22vh,0) rotate(-9deg) scale(1.45);filter:brightness(1.4)}
+.ouvre .moitie.d{transform:translate3d(105vw,22vh,0) rotate(9deg) scale(1.45);filter:brightness(1.4)}
+.ouvre .sabre,.ouvre .passer,.ouvre .vitesse{opacity:0!important;transition:opacity .2s}
+.ouvre .sfx{animation:sfx-part .6s cubic-bezier(.5,0,.2,1) forwards}
+@keyframes sfx-part{from{opacity:1;transform:rotate(-11deg) skewX(-8deg) scale(1);filter:none}to{opacity:0;transform:rotate(-11deg) skewX(-8deg) scale(1.7);filter:blur(6px)}}
+
+/* ===== Hero : le logo « atterrit » au centre quand les deux moitiés s'écartent ===== */
+#hero{padding-top:10rem;isolation:isolate}
+.hero-bg{background-image:url("/img/v2/cave-rouge.jpg");filter:brightness(.3) saturate(.9);will-change:transform}
+.hero-trame{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(circle,rgba(8,6,4,.85) 1.3px,transparent 1.9px) 0 0/7px 7px;
+  -webkit-mask-image:linear-gradient(to top,#000 0,transparent 55%);mask-image:linear-gradient(to top,#000 0,transparent 55%)}
+/* Lignes de vitesse fixes derrière le logo (dessinées en CSS, tournent très lentement) */
+.hero-burst{position:absolute;left:50%;top:44%;width:170vmax;height:170vmax;translate:-50% -50%;z-index:1;pointer-events:none;opacity:.5;
+  background:repeating-conic-gradient(from 0deg,rgba(244,232,212,.07) 0deg .7deg,transparent .7deg 4.3deg,rgba(224,112,16,.06) 4.3deg 4.9deg,transparent 4.9deg 9deg);
+  -webkit-mask-image:radial-gradient(circle,transparent 9%,#000 22%,transparent 46%);mask-image:radial-gradient(circle,transparent 9%,#000 22%,transparent 46%);
+  animation:burst-tourne 90s linear infinite}
+@keyframes burst-tourne{to{transform:rotate(360deg)}}
+.braises{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;mix-blend-mode:screen}
+.hero-logo{margin:0 0 .9rem;font-size:inherit}
+.hero-logo img{height:clamp(150px,24vh,230px);width:auto}
+.etat{display:inline-flex;align-items:center;gap:.6rem;margin:0 auto 1.6rem;padding:.5rem 1rem;border:1px solid rgba(224,112,16,.25);border-radius:999px;background:rgba(8,6,4,.55);backdrop-filter:blur(6px);font-size:.8rem;color:var(--cream-dim);animation:fadeUp .8s .3s both}
+.etat i{width:8px;height:8px;border-radius:50%;background:rgba(244,232,212,.35);flex:none}
+.etat.ouvert i{background:var(--teal-lt);box-shadow:0 0 0 0 rgba(78,207,197,.6);animation:pouls 2s infinite}
+.etat b{color:var(--cream);font-weight:600}
+.etat .hh{color:var(--teal-lt)}
+@keyframes pouls{70%{box-shadow:0 0 0 9px rgba(78,207,197,0)}100%{box-shadow:0 0 0 0 rgba(78,207,197,0)}}
+.hero-desc{color:rgba(244,232,212,.72);max-width:600px}
+.hero-stats{gap:2.4rem}
+/* Séquence après l'intro (décalée sur le coup de sabre) */
+@keyframes atterrit{0%{opacity:0;transform:scale(1.9);filter:blur(10px) brightness(1.8)}55%{opacity:1;transform:scale(.94);filter:blur(0) brightness(1.2)}75%{transform:scale(1.03)}100%{opacity:1;transform:none;filter:drop-shadow(0 0 45px rgba(224,112,16,.55))}}
+@keyframes recul{from{transform:scale(1.2)}to{transform:none}}
+@keyframes burst-flash{0%{opacity:0}25%{opacity:1}100%{opacity:.5}}
+.avec-intro .hero-logo{animation:none}
+.avec-intro .hero-logo img{animation:atterrit .75s cubic-bezier(.2,.9,.3,1) 1.55s both}
+.avec-intro .hero-bg{animation:recul 2.4s cubic-bezier(.2,.7,.2,1) 1.5s both}
+.avec-intro .hero-burst{animation:burst-flash 1.2s ease 1.6s both,burst-tourne 90s linear 1.6s infinite}
+.avec-intro .eyebrow{animation-delay:1.9s}
+.avec-intro .hero-sub{animation-delay:2s}
+.avec-intro .hero-desc{animation-delay:2.1s}
+.avec-intro .etat{animation-delay:2.2s}
+.avec-intro .hero-btns{animation-delay:2.3s}
+.avec-intro .hero-stats{animation-delay:2.4s}
+.avec-intro .hero-bar{animation-delay:2.5s}
+.avec-intro .topbar,.avec-intro nav,.avec-intro .floaters{animation:fondu-in .8s ease 2.3s both}
+@keyframes fondu-in{from{opacity:0}to{opacity:1}}
+
+/* ===== Cases de manga (photos) ===== */
+.case-w{margin:0;position:relative}
+.case{position:relative;overflow:hidden;border:3px solid var(--cream);border-radius:3px;box-shadow:8px 8px 0 var(--red);background:#120c08}
+.case.o{box-shadow:8px 8px 0 var(--orange)}
+.case.t{box-shadow:-8px 8px 0 var(--teal)}
+.case img{display:block;width:100%;height:100%;object-fit:cover}
+.case::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle,rgba(8,6,4,.7) 1.2px,transparent 1.8px) 0 0/6px 6px;
+  -webkit-mask-image:linear-gradient(to top,#000 0,transparent 45%);mask-image:linear-gradient(to top,#000 0,transparent 45%)}
+.case figcaption{position:absolute;left:0;bottom:0;z-index:1;margin:0 0 12px 12px;padding:.35rem .7rem;background:var(--cream);color:var(--black);font:600 .72rem/1.2 "Cinzel",serif;letter-spacing:.08em;border:2px solid var(--black);transform:rotate(-1.5deg)}
+/* Onomatopées manga (décoratives) */
+.sfx-tag{position:absolute;z-index:3;pointer-events:none;font:400 clamp(30px,4.2vw,58px)/1 var(--sfx-font);color:var(--cream);letter-spacing:-.03em;
+  -webkit-text-stroke:2px var(--red);paint-order:stroke fill;text-shadow:4px 4px 0 var(--red);transform:rotate(-10deg)}
+.sfx-tag.o{-webkit-text-stroke-color:var(--orange);text-shadow:4px 4px 0 var(--orange)}
+.sfx-tag.t{-webkit-text-stroke-color:var(--teal);text-shadow:4px 4px 0 var(--teal)}
+
+/* Taverne */
+.tav-grid{align-items:center}
+.tav-text p{font-size:.95rem}
+.tav-imgs{position:relative;gap:1.6rem;padding:0 8px 8px 0}
+.tav-imgs .case-w:first-child .case{aspect-ratio:4/3}
+.tav-imgs .case-w:last-child{width:72%;margin-left:auto;margin-top:-4.5rem}
+.tav-imgs .case-w:last-child .case{aspect-ratio:3/2}
+.tav-imgs .sfx-tag{left:-.6rem;top:-1.4rem}
+.pill .pic,.cf .cfi{display:inline-grid;place-items:center;width:2.6rem;height:2.6rem;font-size:1.25rem;margin-bottom:.6rem;
+  background:rgba(224,112,16,.12);clip-path:polygon(50% 0,61% 20%,84% 10%,78% 34%,100% 42%,80% 56%,92% 78%,68% 76%,58% 100%,46% 80%,24% 94%,26% 70%,2% 62%,20% 46%,6% 24%,30% 26%)}
+.capa{margin-top:1.2rem;font-size:.8rem;color:var(--cream-dim)}
+.capa b{color:var(--orange-lt);font-family:"Cinzel",serif;font-weight:600}
+
+/* Galerie : bande de cases qui défile */
+#galerie{overflow:hidden}
+.gal-wrap{padding:14px 0 26px}
+.gal-track{gap:22px;animation-duration:55s}
+.gal-item{width:300px;height:210px;border:3px solid var(--cream);border-radius:3px;box-shadow:6px 6px 0 var(--red);padding:0;background:none;overflow:hidden}
+.gal-item:nth-child(3n+2){box-shadow:6px 6px 0 var(--orange);transform:rotate(1.2deg)}
+.gal-item:nth-child(3n){box-shadow:6px 6px 0 var(--teal);transform:rotate(-1deg)}
+.gal-item:hover{transform:rotate(0) scale(1.04)}
+.gal-track.lent{animation-play-state:paused}
+#lb{z-index:1600}
+#lb img{border:3px solid var(--cream)}
+
+/* Cave */
+.cave-main{border:3px solid var(--cream);border-radius:3px;box-shadow:10px 10px 0 var(--red);overflow:hidden}
+.cave-main img{max-height:none;height:clamp(300px,52vh,480px);object-position:center 45%;will-change:transform;scale:1.12}
+.cave-overlay{padding:3rem 3.2rem}
+.cave-overlay h3{font-family:"Cinzel Decorative",serif;font-size:clamp(1.3rem,3vw,2.1rem);color:var(--orange-lt);margin-bottom:.7rem}
+.cave-overlay p{font-size:.92rem;color:rgba(244,232,212,.78);max-width:380px;line-height:1.8}
+.cave-wrap{position:relative}
+.cave-wrap .sfx-tag{right:1.5rem;top:-1.6rem;font-size:clamp(40px,6vw,84px);transform:rotate(8deg)}
+.cave-duo{gap:1.4rem;margin:1.8rem 0 1.4rem;padding-right:8px}
+.cave-duo .case{aspect-ratio:16/9}
+.cave-duo .case-w:last-child .case{box-shadow:8px 8px 0 var(--teal)}
+.priv-note{margin-top:1rem;font-size:.8rem;line-height:1.7;color:rgba(244,232,212,.5);border-left:2px solid rgba(224,112,16,.3);padding-left:.9rem}
+
+/* Carte */
+.happy-bar{justify-content:space-between}
+.happy-bar .hh-live{display:none;align-items:center;gap:.5rem;font-weight:600;color:var(--cream)}
+.happy-bar.en-cours{background:rgba(41,168,154,.18);border-color:var(--teal)}
+.happy-bar.en-cours .hh-live{display:inline-flex}
+.happy-bar .hh-live i{width:8px;height:8px;border-radius:50%;background:var(--teal-lt);animation:pouls 2s infinite}
+.mpanel.on{animation:case-entre .45s cubic-bezier(.2,1,.3,1)}
+@keyframes case-entre{from{opacity:0;transform:translateX(-18px) skewX(-6deg)}to{opacity:1;transform:none}}
+.menu-wrap{position:relative}
+.menu-wrap .sfx-tag{right:0;top:-3.2rem;transform:rotate(9deg)}
+
+/* Événements : cases avec lignes de vitesse au survol */
+.ev{background:#0d0906;border:2px solid rgba(244,232,212,.14);isolation:isolate}
+.ev::after{content:"";position:absolute;inset:-40%;z-index:-1;opacity:0;transition:opacity .35s;
+  background:repeating-conic-gradient(from 0deg,rgba(224,112,16,.16) 0deg 1.2deg,transparent 1.2deg 7deg);
+  -webkit-mask-image:radial-gradient(circle,transparent 18%,#000 60%);mask-image:radial-gradient(circle,transparent 18%,#000 60%)}
+.ev:hover::after{opacity:1}
+.ev:hover{border-color:var(--cream);box-shadow:6px 6px 0 var(--red)}
+.ev-em{display:inline-grid;place-items:center;width:3.4rem;height:3.4rem;font-size:1.6rem;background:var(--orange);
+  clip-path:polygon(50% 0,61% 20%,84% 10%,78% 34%,100% 42%,80% 56%,92% 78%,68% 76%,58% 100%,46% 80%,24% 94%,26% 70%,2% 62%,20% 46%,6% 24%,30% 26%)}
+.ev:nth-child(3n+2) .ev-em{background:var(--red)}
+.ev:nth-child(3n) .ev-em{background:var(--teal)}
+.ev-intro{max-width:620px;font-size:.92rem;line-height:1.8;color:rgba(244,232,212,.6)}
+.ev-wrap{position:relative}
+.ev-wrap .sfx-tag{right:0;top:-1rem;transform:rotate(-7deg)}
+
+/* Avis : bulles de manga */
+.badges-avis{display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem}
+.badge-avis{display:flex;align-items:center;gap:.7rem;background:rgba(255,255,255,.03);border:1px solid rgba(224,112,16,.18);border-radius:6px;padding:.7rem 1.1rem;text-decoration:none}
+.badge-avis small{display:block;font-family:"Cinzel",serif;font-size:.6rem;color:rgba(244,232,212,.5);letter-spacing:.1em}
+.badge-avis .etoiles{color:#FFC107;font-size:.85rem}
+.badge-avis b{display:block;font-family:"Cinzel",serif;font-size:.72rem;color:var(--orange);font-weight:600}
+.rv-wrap{padding:10px 0 30px}
+.rv-track{gap:1.6rem;animation-duration:70s;align-items:flex-start}
+.rv{width:300px;background:none;border:0;padding:0}
+.rv-bulle{position:relative;background:var(--cream);color:var(--black);border:3px solid var(--black);border-radius:26px;padding:1.1rem 1.25rem;box-shadow:6px 6px 0 var(--orange);margin-bottom:1.6rem}
+.rv:nth-child(even) .rv-bulle{box-shadow:6px 6px 0 var(--red)}
+.rv-bulle::after{content:"";position:absolute;left:34px;bottom:-21px;width:28px;height:22px;background:var(--cream);clip-path:polygon(0 0,100% 0,8% 100%)}
+.rv-bulle::before{content:"";position:absolute;left:31px;bottom:-26px;width:34px;height:26px;background:var(--black);clip-path:polygon(0 0,100% 0,8% 100%)}
+.rv-s{color:var(--red);font-size:.8rem;margin-bottom:.4rem}
+.rv-t{color:#2a1d12;font-style:normal;font-size:.84rem;line-height:1.6;margin:0}
+.rv-n{padding-left:1.2rem}
+.rv-o{padding-left:1.2rem;color:rgba(244,232,212,.38)}
+
+/* FAQ, réservation, contact */
+.faq-a.open{max-height:320px}
+.hr.auj{background:rgba(224,112,16,.1)}
+.hr.auj .d{color:var(--orange-lt)}
+.hr.auj .d::after{content:" · aujourd’hui";font-family:"DM Sans",sans-serif;letter-spacing:0;text-transform:none;color:var(--cream-dim)}
+.fbox{border:3px solid var(--cream);box-shadow:10px 10px 0 var(--red);background:#0f0a07}
+.mf{border:3px solid var(--cream);box-shadow:8px 8px 0 var(--teal);border-radius:3px}
+.alcool{margin-top:.9rem;font-size:.68rem;color:rgba(244,232,212,.3)}
+
+/* ===== Apparitions au défilement (uniquement si JS et animations autorisées) ===== */
+.anim .stitle .l{display:block;overflow:hidden;padding:0 .2em .14em 0;margin:0 -.2em -.14em 0}
+.anim .stitle .l>span{display:block;transform:translate3d(-8%,110%,0) skewX(-14deg);transform-origin:0 100%;transition:transform .85s cubic-bezier(.2,1.25,.35,1)}
+.anim .stitle.vu .l>span{transform:none}
+.anim .sdiv{width:0;transition:width .9s cubic-bezier(.2,.8,.2,1) .25s}
+.anim .sdiv.vu{width:46px}
+.anim .apparait{opacity:0;transform:translate3d(0,26px,0);transition:opacity .8s ease var(--d,0s),transform 1s cubic-bezier(.16,1,.3,1) var(--d,0s)}
+.anim .apparait.vu{opacity:1;transform:none}
+.anim .pop{opacity:0;transform:scale(.7) rotate(-3deg);transition:opacity .3s ease var(--d,0s),transform .6s cubic-bezier(.3,1.6,.5,1) var(--d,0s)}
+.anim .pop.vu{opacity:1;transform:none}
+/* Case qui se découpe en diagonale, comme un coup de lame */
+.anim .case-w>.case,.anim .case-w>.cave-main{clip-path:polygon(-30px -30px,-30px -30px,-30px calc(100% + 30px),-30px calc(100% + 30px));transition:clip-path .95s cubic-bezier(.75,0,.2,1) var(--d,0s)}
+.anim .case-w.vu>.case,.anim .case-w.vu>.cave-main{clip-path:polygon(-30px -30px,calc(140% + 30px) -30px,calc(100% + 30px) calc(100% + 30px),-30px calc(100% + 30px))}
+.anim .case-w .case>img{scale:1.22;transition:scale 1.6s cubic-bezier(.16,1,.3,1) var(--d,0s)}
+.anim .case-w.vu .case>img{scale:1}
+/* Onomatopée qui claque à l'écran */
+.anim .sfx-tag{opacity:0;scale:2.2;transition:opacity .2s ease .35s,scale .45s cubic-bezier(.2,1.6,.4,1) .35s}
+.anim .vu .sfx-tag,.anim .sfx-tag.vu{opacity:1;scale:1}
+
+/* Défilement fluide (Lenis) */
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+.lenis.lenis-stopped{overflow:hidden}
+
+@media(max-width:900px){
+  #hero{padding-top:8.5rem}
+  .tav-imgs .case-w:last-child{width:80%;margin-top:-2.5rem}
+  .cave-overlay{padding:1.6rem;background:linear-gradient(to top,rgba(8,6,4,.92) 30%,rgba(8,6,4,.1) 100%);justify-content:flex-end}
+  .cave-main img{height:420px}
+  .sfx{right:5vw;top:16vh}
+  .case{box-shadow:5px 5px 0 var(--red)}.case.o{box-shadow:5px 5px 0 var(--orange)}
+  .gal-item{width:240px;height:170px}
+  .rv{width:260px}
+  .hero-stats{gap:1.2rem 2rem}
+}
+@media(max-width:600px){
+  nav{top:0}
+  .topbar{display:none}
+  .hero-bar{gap:1rem}
+  .etat{font-size:.74rem}
+}
+@media (prefers-reduced-motion:reduce){
+  #intro,.braises{display:none!important}
+  .hero-burst{animation:none}
+  .gal-track,.rv-track{animation:none;flex-wrap:wrap;width:auto;justify-content:center}
+}
+
+/* Titres de cartes (h3 à la place des h4 d'origine, même style) */
+.pill h3{font-family:"Cinzel",serif;font-size:.72rem;color:var(--orange-lt);margin-bottom:.26rem}
+.cf h3{font-family:"Cinzel",serif;font-size:.72rem;color:var(--orange-lt);margin-bottom:.28rem}
+.rf h3{font-family:"Cinzel",serif;font-size:.73rem;color:var(--orange-lt);margin-bottom:.2rem}
+.ci h3{font-family:"Cinzel",serif;font-size:.67rem;letter-spacing:.13em;color:var(--orange);margin-bottom:.2rem}
+/* Tableau des pressions */
+.pression{overflow-x:auto;margin-bottom:1rem}
+.pression table{width:100%;border-collapse:collapse;font-size:.85rem}
+.pression th,.pression td{padding:.65rem .7rem;border-bottom:1px solid rgba(255,255,255,.05);text-align:center}
+.pression thead th{font:400 .65rem "Cinzel",serif;color:var(--cream-dim);letter-spacing:.08em;border-bottom-color:rgba(224,112,16,.2)}
+.pression thead th:first-child{color:var(--orange);text-align:left}
+.pression thead th:last-child{color:var(--teal-lt)}
+.pression tbody th{text-align:left;font-weight:500;color:var(--cream)}
+.pression td{font-family:"Cinzel",serif}
+.mst .ph{font-size:.67rem;letter-spacing:.05em;text-transform:none}
+.mn small{color:var(--cream-dim);font-weight:400}
+@media (prefers-reduced-motion:reduce){.gal-item[aria-hidden],.rv[aria-hidden]{display:none}}
+/* Le découpage des titres en lignes ne doit pas colorer tout le titre */
+.stitle .l,.stitle .l>span{color:var(--cream)}
+.stitle .l>span span{color:var(--orange)}
+.hero-logo img{height:clamp(130px,21vh,210px)}

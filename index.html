@@ -3,22 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Yonko Bar — bar gaming, cocktails et cave voûtée à Paris 6e</title>
-<meta name="description" content="Cocktails signatures, consoles en libre accès, jeux de société, karaoké et une cave voûtée privatisable, au 15 rue Monsieur le Prince, Paris 6e.">
-<meta name="theme-color" content="#140d14">
+<title>Yonko Bar — Bar gaming &amp; manga, cave voûtée privatisable | Paris 6e</title>
+<meta name="description" content="Bar gaming inspiré des mangas au Quartier Latin : cocktails signatures, consoles et jeux de société en libre accès, karaoké, cave voûtée privatisable. 15 rue Monsieur le Prince, Paris 6e.">
+<meta property="og:title" content="Yonko Bar — Bar gaming manga, Paris 6e">
+<meta property="og:description" content="Cocktails manga, gaming, karaoké et une cave voûtée privatisable au cœur du Quartier Latin.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.yonkobar.com">
+<meta property="og:image" content="https://www.yonkobar.com/img/v2/cave-rouge.jpg">
+<meta name="theme-color" content="#080604">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BarOrPub","name":"Yonko Bar","url":"https://www.yonkobar.com","telephone":"+33750915905","email":"contact@yonkobar.com","address":{"@type":"PostalAddress","streetAddress":"15 Rue Monsieur le Prince","addressLocality":"Paris","postalCode":"75006","addressCountry":"FR"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Tuesday","Wednesday"],"opens":"17:30","closes":"00:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":["Thursday","Friday"],"opens":"17:30","closes":"02:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":["Saturday"],"opens":"15:00","closes":"02:00"}],"priceRange":"&#x20AC;&#x20AC;"}</script>
 <link rel="icon" href="/icons/logo-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&amp;family=Cinzel+Decorative:wght@700;900&amp;display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="/img/v2/cave-rouge.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&amp;family=Cinzel:wght@400;600;700&amp;family=DM+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&amp;text=%E3%82%A4%E3%82%AF%E3%82%B4%E3%82%BA%E3%83%83%E3%83%89%E3%83%90%E3%83%AF%E3%83%B3%EF%BC%81&amp;display=block" rel="stylesheet">
 <link rel="preload" as="image" href="/icons/logo.svg">
-<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&amp;text=%E3%82%BA%E3%83%90%E3%83%83%EF%BC%81&amp;display=block" rel="stylesheet">
-<link rel="stylesheet" href="/assets/v2.css?v=2">
+<link rel="preload" as="image" href="/img/v2/cave-rouge.jpg">
+<link rel="stylesheet" href="/assets/yonko.css?v=3">
+<link rel="stylesheet" href="/assets/home.css?v=1">
 <script>(function(d){d.classList.add('js');try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('avec-intro','intro-en-cours');window.yonkoGo=function(){if(d.classList.contains('go'))return;window.yonkoT0=performance.now();d.classList.add('go');dispatchEvent(new Event('yonko-go'))};setTimeout(window.yonkoGo,1800)}}catch(e){}})(document.documentElement)</script>
 </head>
 <body>
 <div id="intro">
-  <div class="moitie g" aria-hidden="true"><img src="/icons/logo.svg" alt="" onload="window.yonkoGo&&yonkoGo()"></div>
+  <div class="moitie g" aria-hidden="true"><img src="/icons/logo.svg" alt="" onload="window.yonkoGo&amp;&amp;yonkoGo()"></div>
   <div class="moitie d" aria-hidden="true"><img src="/icons/logo.svg" alt=""></div>
   <canvas class="vitesse" id="vitesse" aria-hidden="true"></canvas>
   <svg class="sabre" id="sabre" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="63" y1="-4" x2="37" y2="104" pathLength="1"/></svg>
@@ -26,176 +33,401 @@
   <div class="impact" aria-hidden="true"></div>
   <button class="passer" type="button" id="passer">Passer l’intro</button>
 </div>
-<a class="skip" href="#contenu">Aller au contenu</a>
-<header class="nav" id="nav">
-  <div class="wrap">
-    <a class="logo" href="/"><img src="/icons/logo.svg" alt="" width="42" height="47"><span>Yonko</span></a>
-    <ul>
-      <li><a href="#salles">Les salles</a></li>
-      <li><a href="#cave">Privatiser</a></li>
-      <li><a href="#carte">La carte</a></li>
-      <li><a href="#jeux">Jeux et soirées</a></li>
-      <li><a href="#infos">Infos</a></li>
-    </ul>
-    <a class="btn btn-feu" href="/reserver">Réserver</a>
-    <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-  </div>
-</header>
-<nav class="menu-mobile" id="menu" aria-label="Menu" hidden>
-  <button class="fermer" id="fermer" aria-label="Fermer le menu">×</button>
-  <a href="#salles">Les salles</a><a href="#cave">Privatiser</a><a href="#carte">La carte</a><a href="#jeux">Jeux et soirées</a><a href="#infos">Infos</a>
-  <a href="/reserver" style="color:var(--lanterne)">Réserver</a>
+<a class="skip" href="#taverne">Aller au contenu</a>
+<div class="topbar">Happy hour du mardi au samedi, 17h30 – 21h &nbsp;|&nbsp; <a href="/reserver">Réserver maintenant</a></div>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#taverne">La Taverne</a>
+  <a href="#cave">La Cave</a>
+  <a href="#galerie">Galerie</a>
+  <a href="#menu">Carte</a>
+  <a href="#events">Événements</a>
+  <a href="#faq">FAQ</a>
+  <a href="/reserver" class="mm-cta">Réserver</a>
+</div>
+<nav aria-label="Navigation principale">
+  <a href="#hero" class="nav-logo"><img src="/icons/logo.svg" alt="Yonko Bar, retour en haut" width="47" height="52"></a>
+  <ul class="nav-links">
+    <li><a href="#taverne">La Taverne</a></li>
+    <li><a href="#cave">La Cave</a></li>
+    <li><a href="#menu">Carte</a></li>
+    <li><a href="#events">Événements</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="/reserver" class="nav-cta">Réserver</a></li>
+  </ul>
+  <button class="burger" id="burgerBtn" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobileMenu"><span></span><span></span><span></span></button>
 </nav>
+<div class="floaters">
+  <a href="https://wa.me/33750915905" target="_blank" rel="noopener" class="float-wa">WhatsApp</a>
+  <a href="tel:+33750915905" class="float-call">Appeler</a>
+</div>
+<div id="lb" role="dialog" aria-modal="true" aria-label="Photo agrandie"><button id="lb-x" type="button" aria-label="Fermer">✕</button><img id="lb-img" src="data:," alt=""></div>
 
-<main id="contenu">
-<section class="hero">
+<main>
+<section id="hero">
+  <div class="hero-bg"></div><div class="hero-grad"></div><div class="hero-trame"></div><div class="hero-burst" aria-hidden="true"></div>
   <canvas class="braises" id="braises" aria-hidden="true"></canvas>
-  <div class="photo" role="img" aria-label="La cave du Yonko éclairée en rouge, consoles branchées"></div>
-  <div class="wrap">
-    <h1>Le repaire gaming du Quartier Latin</h1>
-    <p class="accroche">Cocktails signatures, consoles en libre accès et karaoké, dans une taverne à poutres et une cave voûtée qui se privatise.</p>
-    <div class="actions"><a class="btn btn-feu" href="/reserver">Réserver une table</a><a class="btn btn-trait" href="#cave">Privatiser la cave</a></div>
-    <div class="ce-soir" aria-live="polite">
-      <span class="etat" id="etat"><i></i><span id="etat-txt">Mardi au samedi, dès 17h30</span></span>
-      <span class="hh" id="hh-txt"></span>
-      <a href="https://g.page/yonkobar" target="_blank" rel="noopener">15 rue Monsieur le Prince, métro Odéon</a>
+  <div class="hero-c">
+    <div class="eyebrow">Bar gaming · Univers manga · Paris 6e</div>
+    <h1 class="hero-logo"><img src="/icons/logo.svg" alt="Yonko Bar" width="206" height="230"></h1>
+    <p class="hero-sub">Bar · Gaming · Karaoké · Privatisation</p>
+    <p class="hero-desc">Montez à bord du QG des pirates du Quartier Latin : cocktails signatures inspirés des mangas, consoles et jeux de société en libre accès, karaoké, et une cave voûtée rien que pour votre équipage.</p>
+    <p class="etat" id="etat" aria-live="polite"><i aria-hidden="true"></i><span id="etat-txt">Du mardi au samedi, dès 17h30</span><span class="hh" id="etat-hh"></span></p>
+    <div class="hero-btns">
+      <a href="/reserver" class="btn btn-red">Réserver une table</a>
+      <a href="#cave" class="btn btn-orange">Privatiser la cave</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num" id="hero-avis-num">…</div><div class="stat-label">Avis Google</div></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><div class="stat-num" data-target="100">100</div><div class="stat-label">Pirates à bord</div></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><div class="stat-num" data-target="5">5</div><div class="stat-label">Écrans de jeu</div></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><div class="stat-num" data-target="12">12</div><div class="stat-label">Cocktails manga</div></div>
+    </div>
+    <div class="hero-bar">
+      <div class="hbi"><span aria-hidden="true">📍</span><div><strong>15 rue Monsieur le Prince</strong>Paris 6e · Métro Odéon</div></div>
+      <div class="hbi"><span aria-hidden="true">🕐</span><div><strong>Mar – ven dès 17h30</strong>Samedi dès 15h</div></div>
+      <div class="hbi"><span aria-hidden="true">📞</span><div><a href="tel:+33750915905" style="color:var(--orange-lt);text-decoration:none"><strong>09 74 64 02 98</strong></a></div></div>
+    </div>
+  </div>
+  <a class="scroll-hint" href="#taverne" style="text-decoration:none">Découvrir ↓</a>
+</section>
+
+<section id="taverne">
+  <div class="inner">
+    <div class="tav-grid">
+      <div class="tav-text">
+        <span class="stag">La Taverne · Rez-de-chaussée</span>
+        <h2 class="stitle">La <span>Taverne Pirate</span></h2>
+        <div class="sdiv"></div>
+        <p>Le pont principal du Yonko. Poutres au plafond, affiches manga aux murs, deux écrans branchés sur les consoles et un comptoir qui ne désemplit pas : c’est ici que la soirée prend le large.</p>
+        <p>Cocktails signatures, bières pression et planches à partager. L’équipe est aux petits soins et l’ambiance monte au fil des parties.</p>
+        <div class="pills">
+          <div class="pill"><div class="pic" aria-hidden="true">🎮</div><h3 class="h4">Gaming</h3><p>Deux écrans et des consoles en libre accès : Mario Kart, Smash Bros, Street Fighter.</p></div>
+          <div class="pill"><div class="pic" aria-hidden="true">🍹</div><h3 class="h4">Cocktails manga</h3><p>All Blue, Demon Slayer, Gear 5, One Punch Man…</p></div>
+          <div class="pill"><div class="pic" aria-hidden="true">🎲</div><h3 class="h4">Jeux de société</h3><p>Une ludothèque complète : Uno, Skyjo, Skull King…</p></div>
+          <div class="pill"><div class="pic" aria-hidden="true">🏴‍☠️</div><h3 class="h4">Manga vibes</h3><p>Des références partout, des affiches aux noms des cocktails.</p></div>
+        </div>
+        <p class="capa">Tables de <b>4 à 35 personnes</b>, avec ou sans réservation.</p>
+      </div>
+      <div class="tav-imgs">
+        <span class="sfx-tag" aria-hidden="true">ワイワイ</span>
+        <figure class="case-w"><div class="case"><img src="/img/v2/taverne-salle.jpg" alt="La taverne : poutres, tables hautes et comptoir en bois" loading="lazy"></div></figure>
+        <figure class="case-w" style="--d:.15s"><div class="case o"><img src="/img/v2/exemple.jpg" alt="La vitrine du Yonko Bar, rue Monsieur le Prince" loading="lazy"></div></figure>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="bloc" id="salles">
-  <div class="wrap">
-    <h2 class="titre">Deux ambiances, un seul équipage</h2>
-    <p class="intro">En haut, la taverne pour boire un verre et lancer une partie de Mario Kart entre amis. En bas, la cave voûtée, ses néons et son karaoké, pour les soirées qui comptent.</p>
-    <div class="duo">
-      <a class="salle" href="/reserver?espace=taverne">
-        <img src="/img/v2/taverne-salle.jpg" alt="La taverne : poutres, tables hautes et bar en bois" loading="lazy">
-        <div class="txt"><h3>La Taverne</h3><p>Poutres apparentes, deux écrans et le comptoir des cocktails.</p>
-          <div class="spec"><span>Jusqu'à 35 personnes</span><span>Sans caution du mardi au jeudi</span></div></div>
+<section id="galerie" aria-label="Galerie photos">
+  <div class="inner">
+    <span class="stag">En images</span>
+    <h2 class="stitle">L’ambiance <span>Yonko</span></h2>
+    <div class="sdiv"></div>
+  </div>
+  <div class="gal-wrap">
+    <div class="gal-track">
+      <button class="gal-item" type="button"><img src="/img/v2/taverne-salle.jpg" alt="La taverne : poutres, tables hautes et comptoir" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button"><img src="/img/v2/cave-rouge.jpg" alt="La cave sous les néons rouges, consoles branchées" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button"><img src="/img/v2/bar-planche.jpg" alt="Planche mixte servie au comptoir" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button"><img src="/img/v2/cave-bleue.jpg" alt="La cave voûtée éclairée en bleu" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button"><img src="/img/v2/manettes.jpg" alt="Manettes Super Nintendo sur une table" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button"><img src="/img/v2/ecran-logo.jpg" alt="Le logo Yonko sur grand écran et la ludothèque" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button"><img src="/img/v2/verres.jpg" alt="Bières pression servies au comptoir" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button"><img src="/img/v2/exemple.jpg" alt="La vitrine du Yonko, rue Monsieur le Prince" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button"><img src="/img/v2/cave-tables.jpg" alt="Les tables de la cave sous les néons violets" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button"><img src="/img/v2/tireuses.jpg" alt="Les tireuses à bière" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button"><img src="/img/v2/cave-jeux.jpg" alt="La ludothèque de la cave" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button"><img src="/img/v2/taverne-bar.jpg" alt="Le comptoir de la taverne" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/taverne-salle.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/cave-rouge.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/bar-planche.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/cave-bleue.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/manettes.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/ecran-logo.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/verres.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/exemple.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/cave-tables.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/tireuses.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/cave-jeux.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+      <button class="gal-item" type="button" aria-hidden="true" tabindex="-1"><img src="/img/v2/taverne-bar.jpg" alt="" loading="lazy" decoding="async"><span class="sr">Agrandir la photo</span></button>
+    </div>
+  </div>
+</section>
+
+<section id="cave">
+  <div class="inner">
+    <span class="stag">La Cave · Sous-sol privatisable</span>
+    <h2 class="stitle">La <span>Cave</span></h2>
+    <div class="sdiv"></div>
+    <div class="case-w cave-wrap">
+      <span class="sfx-tag o" aria-hidden="true">ドン！</span>
+      <div class="cave-main">
+        <img src="/img/v2/pano-rose.jpg" alt="La cave voûtée sous les néons roses, écrans et tables" loading="lazy">
+        <div class="cave-overlay">
+          <h3>Cave voûtée</h3>
+          <p>Pierre de taille, néons colorés, trois grands écrans, sono complète et karaoké. Une cave rien que pour vous, de 30 à 60 personnes.</p>
+          <div class="caps"><span class="cap">30 – 60 personnes</span><span class="cap cap-t">Privatisable</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="cave-duo">
+      <figure class="case-w"><div class="case"><img src="/img/v2/cave-bleue.jpg" alt="La cave éclairée en bleu" loading="lazy"></div></figure>
+      <figure class="case-w" style="--d:.15s"><div class="case"><img src="/img/v2/cave-tables.jpg" alt="Les tables et les écrans de la cave" loading="lazy"></div></figure>
+    </div>
+    <div class="cave-feats">
+      <div class="cf"><div class="cfi" aria-hidden="true">📺</div><h3 class="h4">3 grands écrans</h3><p>Tournois, projections, karaoké sur grand écran.</p></div>
+      <div class="cf"><div class="cfi" aria-hidden="true">🎵</div><h3 class="h4">Sono complète</h3><p>Votre playlist, un volume maîtrisé, l’ambiance sur mesure.</p></div>
+      <div class="cf"><div class="cfi" aria-hidden="true">🎤</div><h3 class="h4">Karaoké</h3><p>2 micros et des milliers de titres, en libre ou animé.</p></div>
+      <div class="cf"><div class="cfi" aria-hidden="true">🎮</div><h3 class="h4">Consoles</h3><p>Mario Kart, Smash Bros, Street Fighter…</p></div>
+      <div class="cf"><div class="cfi" aria-hidden="true">🧀</div><h3 class="h4">Service sur place</h3><p>Planches, snacks, et votre gâteau d’anniversaire.</p></div>
+      <div class="cf"><div class="cfi" aria-hidden="true">🔒</div><h3 class="h4">Espace privé</h3><p>Une cave isolée, rien que pour votre équipage.</p></div>
+    </div>
+    <div style="margin-top:2.6rem">
+      <div class="priv-table" role="table" aria-label="Tarifs de privatisation de la cave">
+        <div class="priv-row header" role="row"><span role="columnheader">Jour</span><span role="columnheader">Minimum conso</span><span role="columnheader">Inclus</span></div>
+        <div class="priv-row" role="row"><span class="jour" role="cell">Mardi – jeudi</span><span class="prix" role="cell">500 €</span><span class="note" role="cell">Cave, sono, écrans, karaoké</span></div>
+        <div class="priv-row" role="row"><span class="jour" role="cell">Vendredi</span><span class="prix" role="cell">600 €</span><span class="note" role="cell">Cave, sono, écrans, karaoké</span></div>
+        <div class="priv-row" role="row"><span class="jour" role="cell">Samedi</span><span class="prix" role="cell">700 €</span><span class="note" role="cell">Cave, sono, écrans, karaoké</span></div>
+        <div class="priv-row" role="row"><span class="jour" role="cell">Lundi · dimanche · bar entier</span><span class="prix" role="cell" style="font-size:.8rem">Sur devis</span><span class="note" role="cell">Bar entier de 60 à 100 personnes</span></div>
+      </div>
+      <p class="priv-note">Pas de location de salle : le minimum correspond à ce que votre groupe consomme sur la soirée. Une caution de 250 € est demandée par empreinte bancaire, rien n’est débité si la soirée se passe comme prévu.</p>
+    </div>
+    <div class="cave-cta" style="margin-top:1.8rem;display:flex;gap:.9rem;flex-wrap:wrap">
+      <a href="/reserver?espace=cave" class="btn btn-red">Réserver la cave</a>
+      <a href="https://g.page/yonkobar" target="_blank" rel="noopener" class="btn btn-orange">Voir sur Google Maps</a>
+    </div>
+  </div>
+</section>
+
+<section id="menu">
+  <div class="inner menu-wrap">
+    <span class="sfx-tag t" aria-hidden="true">ゴクッ</span>
+    <span class="stag">La carte</span>
+    <h2 class="stitle">Boissons &amp; <span>Cocktails</span></h2>
+    <div class="sdiv"></div>
+    <div class="happy-bar" id="happy-bar"><span>Happy hour du mardi au samedi, 17h30 – 21h : prix réduits sur les bières, les vins et les cocktails.</span><span class="hh-live" id="hh-live"><i aria-hidden="true"></i><span></span></span></div>
+    <div class="mtabs" role="tablist" aria-label="Rubriques de la carte">
+      <button class="mt on" type="button" role="tab" id="t-cocktails" aria-selected="true" aria-controls="tab-cocktails">Cocktails manga</button>
+      <button class="mt" type="button" role="tab" id="t-bieres" aria-selected="false" aria-controls="tab-bieres" tabindex="-1">Bières &amp; softs</button>
+      <button class="mt" type="button" role="tab" id="t-spiritueux" aria-selected="false" aria-controls="tab-spiritueux" tabindex="-1">Spiritueux</button>
+      <button class="mt" type="button" role="tab" id="t-vins" aria-selected="false" aria-controls="tab-vins" tabindex="-1">Vins &amp; bulles</button>
+      <button class="mt" type="button" role="tab" id="t-food" aria-selected="false" aria-controls="tab-food" tabindex="-1">À grignoter</button>
+    </div>
+    <div class="mleg"><span><span class="dot dt"></span>Happy hour</span><span><span class="dot dg"></span>Prix normal</span></div>
+    <div id="tab-cocktails" class="mpanel on" role="tabpanel" aria-labelledby="t-cocktails">
+      <span class="mst">Cocktails signatures · 11 € <span class="ph">(happy hour 9 €)</span></span>
+      <div class="mgrid"><div class="mi"><div><span class="mn">All Blue</span><span class="ms">Vodka, jus de pomme, sirop de kiwi, curaçao</span></div></div><div class="mi"><div><span class="mn">Santoryu</span><span class="ms">Rhum blanc agricole, ananas, coco, maracuja, curaçao</span></div></div><div class="mi"><div><span class="mn">Demon Slayer</span><span class="ms">Rhum, litchi, cranberry, fraise, citron vert</span></div></div><div class="mi"><div><span class="mn">Ashura</span><span class="ms">Tequila, crème de cassis, citron vert, ginger beer</span></div></div><div class="mi"><div><span class="mn">Gear 5</span><span class="ms">Rhum ou vodka, triple sec, amaretto, ananas</span></div></div><div class="mi"><div><span class="mn">Gin Freeccs</span><span class="ms">Gin, cranberry, concombre, fraise, menthe fraîche</span></div></div><div class="mi"><div><span class="mn">Shingeki No Kyo-Gin</span><span class="ms">Gin, kiwi, citron vert, eau gazeuse</span></div></div><div class="mi"><div><span class="mn">One Punch Man</span><span class="ms">Rhum, vanille, cannelle · planteur goyave, passion ou mangue</span></div></div><div class="mi"><div><span class="mn">Mugetsu</span><span class="ms">Rhum, mangue, fruit de la passion, coco</span></div></div><div class="mi"><div><span class="mn">Sukuna Finger</span><span class="ms">Whisky, orgeat, citron vert, limonade</span></div></div><div class="mi"><div><span class="mn">Dodompa <small>(+4 €)</small></span><span class="ms">Don Papa, mangue, citron vert, orgeat, cannelle</span></div></div><div class="mi"><div><span class="mn">Rocklee Martini <small>(+2 €)</small></span><span class="ms">Vodka, passion, vanille, prosecco</span></div></div></div>
+      <span class="mst">Classiques · 10 € <span class="ph">(happy hour 8 €)</span></span>
+      <p class="menu-note">Blue Lagoon · Caïpirinha · Cosmopolitan · Daïquiri · Margarita · Mai Tai (+2 €) · Mule · Mojito · Sex on the Beach · Ti’ Punch · Tequila Sunrise · Long Island Iced Tea (+2 €)…</p>
+      <span class="mst">Mocktails · 7 € <span class="ph">(happy hour 6 €)</span></span>
+      <div class="mgrid"><div class="mi"><div><span class="mn">Shirley Temple</span><span class="ms">Ginger ale, limonade, grenadine</span></div></div><div class="mi"><div><span class="mn">Virgin Mojito</span><span class="ms">Classique, passion ou mangue</span></div></div><div class="mi"><div><span class="mn">Coco Mango</span><span class="ms">Mangue, purée de coco, vanille</span></div></div><div class="mi"><div><span class="mn">Exotic Cosmo</span><span class="ms">Cranberry, purée de passion, goyave</span></div></div><div class="mi"><div><span class="mn">Planteur</span><span class="ms">Goyave, passion, mangue, vanille, cannelle</span></div></div></div>
+    </div>
+    <div id="tab-bieres" class="mpanel" role="tabpanel" aria-labelledby="t-bieres">
+      <span class="mst">Bières pression</span>
+      <div class="pression"><table><thead><tr><th scope="col">Pression</th><th scope="col">50 cl</th><th scope="col">50 cl happy hour</th></tr></thead><tbody><tr><th scope="row">Yonko Blonde 5,2 %</th><td class="pn">6,50 €</td><td class="ph">5 €</td></tr><tr><th scope="row">Yonko Blanche 4,5 %</th><td class="pn">8 €</td><td class="ph">7 €</td></tr><tr><th scope="row">Brooklyn Defender IPA 5,5 %</th><td class="pn">8,50 €</td><td class="ph">7,50 €</td></tr><tr><th scope="row">Delirium 8,5 %</th><td class="pn">9 €</td><td class="ph">8 €</td></tr></tbody></table>
+        <p class="menu-note">Happy hour sur les pressions en 50 cl uniquement.</p></div>
+      <span class="mst">Bières bouteille</span>
+      <div class="mgrid"><div class="mi"><div><span class="mn">Corona 4,6 %</span></div><div class="prices"><span class="pn">7 €</span></div></div><div class="mi"><div><span class="mn">Desperados 5,9 %</span></div><div class="prices"><span class="pn">7 €</span></div></div></div>
+      <span class="mst">Softs</span>
+      <div class="mgrid"><div class="mi"><div><span class="mn">Soft</span></div><div class="prices"><span class="ph">4 €</span><span class="pn">4,50 €</span></div></div><div class="mi"><div><span class="mn">Red Bull</span></div><div class="prices"><span class="ph">4,50 €</span><span class="pn">5 €</span></div></div><div class="mi"><div><span class="mn">Ginger beer</span></div><div class="prices"><span class="ph">4,50 €</span><span class="pn">5 €</span></div></div></div>
+    </div>
+    <div id="tab-spiritueux" class="mpanel" role="tabpanel" aria-labelledby="t-spiritueux">
+      <span class="mst">Shots</span>
+      <div class="mgrid"><div class="mi"><div><span class="mn">Shot</span></div><div class="prices"><span class="pn">4 €</span></div></div><div class="mi"><div><span class="mn">Shot supérieur</span></div><div class="prices"><span class="pn">5 €</span></div></div><div class="mi"><div><span class="mn">Shot premium</span></div><div class="prices"><span class="pn">6 €</span></div></div><div class="mi"><div><span class="mn">Rail de shots</span></div><div class="prices"><span class="pn">35 €</span></div></div><div class="mi"><div><span class="mn">Rail de shots supérieur</span></div><div class="prices"><span class="pn">45 €</span></div></div></div>
+      <span class="mst">Alcools &amp; mixers</span>
+      <div class="mgrid"><div class="mi"><div><span class="mn">Alcool + soft</span></div><div class="prices"><span class="ph">7 €</span><span class="pn">9 €</span></div></div><div class="mi"><div><span class="mn">Alcool + Red Bull</span></div><div class="prices"><span class="ph">8 €</span><span class="pn">10 €</span></div></div><div class="mi"><div><span class="mn">Alcool supérieur + soft</span></div><div class="prices"><span class="ph">8 €</span><span class="pn">10 €</span></div></div><div class="mi"><div><span class="mn">Alcool supérieur + Red Bull</span></div><div class="prices"><span class="ph">9 €</span><span class="pn">11 €</span></div></div><div class="mi"><div><span class="mn">Ti’ Punch</span></div><div class="prices"><span class="ph">7 €</span><span class="pn">8 €</span></div></div><div class="mi"><div><span class="mn">Alcool premium</span></div><div class="prices"><span class="pn">12 €</span></div></div><div class="mi"><div><span class="mn">Liqueur</span></div><div class="prices"><span class="pn">7 €</span></div></div><div class="mi"><div><span class="mn">Pastis (3 cl)</span></div><div class="prices"><span class="pn">4 €</span></div></div></div>
+    </div>
+    <div id="tab-vins" class="mpanel" role="tabpanel" aria-labelledby="t-vins">
+      <span class="mst">Vins · verre 12 cl / bouteille</span>
+      <div class="mgrid"><div class="mi"><div><span class="mn">Blanc · Chardonnay</span></div><div class="prices"><span class="pn">5 € / 24 €</span></div></div><div class="mi"><div><span class="mn">Rouge · Pinot noir</span></div><div class="prices"><span class="pn">6 € / 29 €</span></div></div><div class="mi"><div><span class="mn">Rosé</span></div><div class="prices"><span class="pn">6 € / 29 €</span></div></div><div class="mi"><div><span class="mn">Prosecco</span></div><div class="prices"><span class="pn">6 € / 35 €</span></div></div><div class="mi"><div><span class="mn">Champagne</span></div><div class="prices"><span class="pn">60 € la bouteille</span></div></div></div>
+    </div>
+    <div id="tab-food" class="mpanel" role="tabpanel" aria-labelledby="t-food">
+      <div class="mgrid"><div class="mi"><div><span class="mn">Planche fromage</span></div><div class="prices"><span class="pn">10 €</span></div></div><div class="mi"><div><span class="mn">Planche charcuterie</span></div><div class="prices"><span class="pn">10 €</span></div></div><div class="mi"><div><span class="mn">Planche mixte</span></div><div class="prices"><span class="pn">19 €</span></div></div><div class="mi"><div><span class="mn">Croque-monsieur légendaire</span></div><div class="prices"><span class="pn">6 €</span></div></div><div class="mi"><div><span class="mn">Frites</span></div><div class="prices"><span class="pn">5 €</span></div></div><div class="mi"><div><span class="mn">Pain à l’ail</span></div><div class="prices"><span class="pn">8 €</span></div></div></div>
+      <p class="menu-note">Gâteau d’anniversaire bienvenu sur demande · Nourriture extérieure non autorisée</p>
+    </div>
+    <div class="menu-pdf" style="margin-top:2rem;display:flex;gap:.8rem;flex-wrap:wrap">
+      <a href="/Carte_Cocktails.pdf" target="_blank" class="btn btn-orange">Carte cocktails (PDF)</a>
+      <a href="/Carte_Boissons.pdf" target="_blank" class="btn btn-orange">Carte boissons (PDF)</a>
+    </div>
+  </div>
+</section>
+
+<section id="events">
+  <div class="inner ev-wrap">
+    <span class="sfx-tag" aria-hidden="true">ドドド</span>
+    <span class="stag">Animations</span>
+    <h2 class="stitle">Chaque soir, <span>une aventure</span></h2>
+    <div class="sdiv"></div>
+    <p class="ev-intro">Pas de programme figé : tournois, blind tests et quiz tombent au fil des semaines, et les dates sont annoncées sur Instagram. Le reste du temps, les manettes sont à vous.</p>
+    <div class="ev-grid">
+      <div class="ev"><div class="ev-em" aria-hidden="true">🏆</div><h3>Tournois Mario Kart</h3><p>Sur les écrans de la taverne et de la cave. Les perdants se consolent avec un cocktail.</p></div>
+      <div class="ev"><div class="ev-em" aria-hidden="true">🎤</div><h3>Karaoké privé</h3><p>2 micros, des milliers de titres et la cave rien que pour vous.</p></div>
+      <div class="ev"><div class="ev-em" aria-hidden="true">🎵</div><h3>Blind test musical</h3><p>En équipe et à fond. Prochaines dates sur Instagram.</p><a href="https://www.instagram.com/yonko.bar" target="_blank" rel="noopener" class="ev-badge">@yonko.bar</a></div>
+      <div class="ev"><div class="ev-em" aria-hidden="true">🧠</div><h3>Soirées quiz</h3><p>Culture générale, musique, gaming, manga… ambiance survoltée garantie.</p><a href="https://www.instagram.com/yonko.bar" target="_blank" rel="noopener" class="ev-badge">Agenda sur Instagram</a></div>
+      <div class="ev"><div class="ev-em" aria-hidden="true">🎂</div><h3>Anniversaires &amp; EVJF / EVG</h3><p>La cave jusqu’à 60 personnes, sono incluse, déco et gâteau bienvenus.</p></div>
+      <div class="ev"><div class="ev-em" aria-hidden="true">🏢</div><h3>Afterworks &amp; entreprises</h3><p>Pots de départ, team building, soirées d’équipe. Le bar entier jusqu’à 100 personnes, sur devis.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="avis">
+  <div class="inner">
+    <span class="stag">Ils en parlent</span>
+    <h2 class="stitle">L’équipage <span>témoigne</span></h2>
+    <div class="sdiv"></div>
+    <div class="badges-avis">
+      <a class="badge-avis" href="https://g.page/yonkobar/review" target="_blank" rel="noopener">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.3 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.3 1 7.2 2.7l5.7-5.7C33.8 7.1 29.1 5 24 5 13 5 4 14 4 25s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="m6.3 15.5 6.6 4.8C14.6 16.3 19 13 24 13c2.8 0 5.3 1 7.2 2.7l5.7-5.7C33.8 7.1 29.1 5 24 5c-7.2 0-13.4 3.9-16.7 9.5z"/><path fill="#4CAF50" d="M24 45c5 0 9.7-1.9 13.2-5l-6.1-5.2C29.2 36.5 26.7 37 24 37c-5.2 0-9.6-3.3-11.2-7.8l-6.5 5C9.5 41 16.2 45 24 45z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l.1-.1 6.1 5.2C37.1 38.1 44 32 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+        <span><small>GOOGLE</small><span class="etoiles" id="g-stars" aria-hidden="true">★★★★★</span><b id="g-count">Avis Google</b></span>
       </a>
-      <a class="salle cave" href="/reserver?espace=cave">
-        <img src="/img/v2/cave-tables.jpg" alt="La cave voûtée éclairée en violet, tables et écrans" loading="lazy">
-        <div class="txt"><h3>La Cave</h3><p>Pierre de taille, trois grands écrans, sono et karaoké. Rien que pour vous.</p>
-          <div class="spec"><span>30 à 60 personnes</span><span>Privatisable</span></div></div>
-      </a>
+      <div class="badge-avis">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" fill="#FF5757"/><text x="50" y="66" text-anchor="middle" font-size="52" font-family="Arial" fill="white" font-weight="bold">P</text></svg>
+        <span><small>PRIVATEASER</small><span class="etoiles" aria-hidden="true">★★★★★</span><b>207 avis</b></span>
+      </div>
+    </div>
+  </div>
+  <div class="rv-wrap">
+    <div class="rv-track">
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">J’ai passé un incroyable anniversaire au Yonko. Les barmans étaient aux petits oignons et ont arrangé la salle selon nos besoins. La cave est vraiment top : consoles, micros, écrans, de la place pour danser. Je reviendrai avec grand plaisir !</p></blockquote><figcaption><div class="rv-n">Sarah L.</div><div class="rv-o">Anniversaire · 30 pers. · Google</div></figcaption></figure>
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Super soirée, ambiance incroyable, service impeccable. L’équipe a été extrêmement réactive pour répondre à toutes mes questions. Je recommande !</p></blockquote><figcaption><div class="rv-n">Kevin M.</div><div class="rv-o">Verre entre amis · 6 pers. · Google</div></figcaption></figure>
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Tout est toujours parfait au Yonko : les propriétaires, l’ambiance, les prestations. Un bar qui comprend les besoins et qui s’adapte.</p></blockquote><figcaption><div class="rv-n">Clémence B.</div><div class="rv-o">Anniversaire · 20 pers. · Google</div></figcaption></figure>
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Encore une super soirée, c’est le deuxième anniversaire qu’on fait ici et c’est toujours un plaisir ! On a même pu avoir la salle du bas. Merci à l’équipe, toujours aussi cool.</p></blockquote><figcaption><div class="rv-n">Amandine R.</div><div class="rv-o">Anniversaire · 15 pers. · Google</div></figcaption></figure>
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Super soirée, gérant et barman géniaux. Ce bar mérite vraiment plus de visibilité. Surtout très bienveillant.</p></blockquote><figcaption><div class="rv-n">Thomas K.</div><div class="rv-o">Anniversaire · 25 pers. · Google</div></figcaption></figure>
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Une très chouette soirée pour mes 40 ans. L’équipe est aux petits soins et les prix sont très doux. Karaoké, jeux et danse : tout était au rendez-vous !</p></blockquote><figcaption><div class="rv-n">Sandrine M.</div><div class="rv-o">Anniversaire · 35 pers. · Google</div></figcaption></figure>
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Cadre incroyable pour mon anniversaire, équipe très accueillante. Les cocktails sont délicieux et il y a une super sélection de jeux. Je recommande vivement !</p></blockquote><figcaption><div class="rv-n">Yasmine D.</div><div class="rv-o">Anniversaire · 35 pers. · Google</div></figcaption></figure>
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">J’ai fêté mon anniversaire en privatisant la cave et c’était incroyable. Moncef était hyper serviable, les prix très raisonnables.</p></blockquote><figcaption><div class="rv-n">Fatou D.</div><div class="rv-o">Anniversaire · 30 pers. · Google</div></figcaption></figure>
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Boissons, planches et jeux ont rendu notre expérience inoubliable. Bravo à toute l’équipe !</p></blockquote><figcaption><div class="rv-n">Me Teixeira P.</div><div class="rv-o">Pot de départ · 25 pers. · Google</div></figcaption></figure>
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Super à tous les niveaux ! Les gérants sont très sympas, les cocktails sont bons et il y a une bonne sélection de jeux. Consoles, karaoké, super accueil : idéal entre amis !</p></blockquote><figcaption><div class="rv-n">Romain L.</div><div class="rv-o">Anniversaire · 25 pers. · Google</div></figcaption></figure>
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Très belle expérience pour mes 30 ans. On a pu gérer la musique, la déco et apporter le gâteau. Les propriétaires sont adorables.</p></blockquote><figcaption><div class="rv-n">Marie C.</div><div class="rv-o">Anniversaire · 20 pers. · Google</div></figcaption></figure>
+    <figure class="rv"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Super soirée dans le sous-sol. L’équipement est au top pour chiller sur les consoles et mettre l’ambiance en musique.</p></blockquote><figcaption><div class="rv-n">Alex T.</div><div class="rv-o">Soirée festive · 30 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">J’ai passé un incroyable anniversaire au Yonko. Les barmans étaient aux petits oignons et ont arrangé la salle selon nos besoins. La cave est vraiment top : consoles, micros, écrans, de la place pour danser. Je reviendrai avec grand plaisir !</p></blockquote><figcaption><div class="rv-n">Sarah L.</div><div class="rv-o">Anniversaire · 30 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Super soirée, ambiance incroyable, service impeccable. L’équipe a été extrêmement réactive pour répondre à toutes mes questions. Je recommande !</p></blockquote><figcaption><div class="rv-n">Kevin M.</div><div class="rv-o">Verre entre amis · 6 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Tout est toujours parfait au Yonko : les propriétaires, l’ambiance, les prestations. Un bar qui comprend les besoins et qui s’adapte.</p></blockquote><figcaption><div class="rv-n">Clémence B.</div><div class="rv-o">Anniversaire · 20 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Encore une super soirée, c’est le deuxième anniversaire qu’on fait ici et c’est toujours un plaisir ! On a même pu avoir la salle du bas. Merci à l’équipe, toujours aussi cool.</p></blockquote><figcaption><div class="rv-n">Amandine R.</div><div class="rv-o">Anniversaire · 15 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Super soirée, gérant et barman géniaux. Ce bar mérite vraiment plus de visibilité. Surtout très bienveillant.</p></blockquote><figcaption><div class="rv-n">Thomas K.</div><div class="rv-o">Anniversaire · 25 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Une très chouette soirée pour mes 40 ans. L’équipe est aux petits soins et les prix sont très doux. Karaoké, jeux et danse : tout était au rendez-vous !</p></blockquote><figcaption><div class="rv-n">Sandrine M.</div><div class="rv-o">Anniversaire · 35 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Cadre incroyable pour mon anniversaire, équipe très accueillante. Les cocktails sont délicieux et il y a une super sélection de jeux. Je recommande vivement !</p></blockquote><figcaption><div class="rv-n">Yasmine D.</div><div class="rv-o">Anniversaire · 35 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">J’ai fêté mon anniversaire en privatisant la cave et c’était incroyable. Moncef était hyper serviable, les prix très raisonnables.</p></blockquote><figcaption><div class="rv-n">Fatou D.</div><div class="rv-o">Anniversaire · 30 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Boissons, planches et jeux ont rendu notre expérience inoubliable. Bravo à toute l’équipe !</p></blockquote><figcaption><div class="rv-n">Me Teixeira P.</div><div class="rv-o">Pot de départ · 25 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Super à tous les niveaux ! Les gérants sont très sympas, les cocktails sont bons et il y a une bonne sélection de jeux. Consoles, karaoké, super accueil : idéal entre amis !</p></blockquote><figcaption><div class="rv-n">Romain L.</div><div class="rv-o">Anniversaire · 25 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Très belle expérience pour mes 30 ans. On a pu gérer la musique, la déco et apporter le gâteau. Les propriétaires sont adorables.</p></blockquote><figcaption><div class="rv-n">Marie C.</div><div class="rv-o">Anniversaire · 20 pers. · Google</div></figcaption></figure>
+    <figure class="rv" aria-hidden="true"><blockquote class="rv-bulle"><div class="rv-s" aria-label="5 étoiles sur 5">★★★★★</div><p class="rv-t">Super soirée dans le sous-sol. L’équipement est au top pour chiller sur les consoles et mettre l’ambiance en musique.</p></blockquote><figcaption><div class="rv-n">Alex T.</div><div class="rv-o">Soirée festive · 30 pers. · Google</div></figcaption></figure>
     </div>
   </div>
 </section>
 
-<section class="pano" id="cave" aria-label="La cave en panorama">
-  <div class="colle">
-    <div class="bande" id="bande"><img src="/img/v2/pano-rose.jpg" alt="Panorama de la cave voûtée sous les néons roses" loading="lazy"></div>
-    <div class="voile"></div>
-    <div class="carte-cave">
-      <h2 class="titre">La cave se privatise</h2>
-      <p class="intro">Sono, écrans, consoles et karaoké compris. Pas de location : un minimum de consommation selon le soir.</p>
-      <dl>
-        <dt>Mardi au jeudi</dt><dd>500 €</dd>
-        <dt>Vendredi</dt><dd>600 €</dd>
-        <dt>Samedi</dt><dd>700 €</dd>
-        <dt>Dimanche, lundi ou bar entier</dt><dd>Sur devis</dd>
-      </dl>
-      <a class="btn btn-feu" href="/reserver?espace=cave">Demander la cave</a>
-      <p class="note" style="margin-top:16px">Caution de 250 € par carte enregistrée, rien n’est débité.</p>
+<section id="faq">
+  <div class="inner">
+    <span class="stag">Questions fréquentes</span>
+    <h2 class="stitle">Tout ce qu’il <span>faut savoir</span></h2>
+    <div class="sdiv"></div>
+    <div class="faq-grid">
+      <div class="faq-item"><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-0">Faut-il réserver à l’avance ? <span class="faq-icon" aria-hidden="true">+</span></button><div class="faq-a" id="faq-0">Pour une table à la taverne, vous pouvez passer sans réserver. Pour la cave ou le bar entier, la réservation est obligatoire.</div></div>
+      <div class="faq-item"><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-1">Une caution est-elle demandée ? <span class="faq-icon" aria-hidden="true">+</span></button><div class="faq-a" id="faq-1">Le vendredi et le samedi, pour les groupes de plus de 6 personnes à la taverne : 3 € par personne. Pour la cave : 250 €. Il s’agit d’une empreinte bancaire, rien n’est débité si la réservation est honorée.</div></div>
+      <div class="faq-item"><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-2">Comment modifier ou annuler ma réservation ? <span class="faq-icon" aria-hidden="true">+</span></button><div class="faq-a" id="faq-2">Votre email de confirmation contient le lien vers votre page « Ma réservation » : vous y suivez votre réservation, écrivez directement à l’équipe et pouvez annuler jusqu’à 48 h avant.</div></div>
+      <div class="faq-item"><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-3">Peut-on apporter son gâteau ? <span class="faq-icon" aria-hidden="true">+</span></button><div class="faq-a" id="faq-3">Oui, les gâteaux d’anniversaire sont les bienvenus : prévenez simplement l’équipe. La nourriture extérieure (plats, snacks) n’est pas autorisée, nos planches et snacks sont là pour ça.</div></div>
+      <div class="faq-item"><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-4">Quel est l’âge minimum ? <span class="faq-icon" aria-hidden="true">+</span></button><div class="faq-a" id="faq-4">Le Yonko Bar est réservé aux personnes majeures. Une pièce d’identité peut être demandée à l’entrée.</div></div>
+      <div class="faq-item"><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-5">Quand ont lieu les quiz et les blind tests ? <span class="faq-icon" aria-hidden="true">+</span></button><div class="faq-a" id="faq-5">Il n’y a pas de programme fixe : les dates sont annoncées sur notre Instagram <a href="https://www.instagram.com/yonko.bar" target="_blank" rel="noopener">@yonko.bar</a>.</div></div>
+      <div class="faq-item"><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-6">Comment venir ? <span class="faq-icon" aria-hidden="true">+</span></button><div class="faq-a" id="faq-6">Métro Odéon (lignes 4 et 10) à 140 m, RER B Luxembourg. Parkings Soufflot (300 m) et Mabillon (400 m).</div></div>
+      <div class="faq-item"><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-7">Combien coûte la privatisation de la cave ? <span class="faq-icon" aria-hidden="true">+</span></button><div class="faq-a" id="faq-7">Il n’y a pas de location : un minimum de consommation de 500 € du mardi au jeudi, 600 € le vendredi et 700 € le samedi. Lundi, dimanche et bar entier : sur devis.</div></div>
+      <div class="faq-item"><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-8">Les jeux sont-ils en libre accès ? <span class="faq-icon" aria-hidden="true">+</span></button><div class="faq-a" id="faq-8">Oui : consoles et jeux de société sont en libre accès dès que vous consommez. Aucun supplément pour jouer.</div></div>
+      <div class="faq-item"><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-9">Le bar est-il accessible PMR ? <span class="faq-icon" aria-hidden="true">+</span></button><div class="faq-a" id="faq-9">La taverne, au rez-de-chaussée, est accessible. La cave est en sous-sol, par un escalier uniquement : contactez-nous à l’avance pour organiser votre venue.</div></div>
     </div>
   </div>
 </section>
 
-<section class="bloc" id="carte">
-  <div class="wrap">
-    <div class="menu-tete">
-      <div><h2 class="titre">La carte</h2><p class="intro">Douze cocktails inspirés des mangas, quatre pressions et de quoi grignoter. Happy hour du mardi au samedi, de 17h30 à 21h.</p></div>
-      <label class="interrupteur"><input type="checkbox" id="hh-switch"><span class="rail" aria-hidden="true"></span>Prix happy hour</label>
-    </div>
-    <div class="onglets" role="tablist" aria-label="Rubriques de la carte">
-      <button role="tab" id="t-cocktails" aria-controls="p-cocktails" aria-selected="true">Cocktails</button>
-      <button role="tab" id="t-bieres" aria-controls="p-bieres" aria-selected="false" tabindex="-1">Bières et vins</button>
-      <button role="tab" id="t-softs" aria-controls="p-softs" aria-selected="false" tabindex="-1">Softs et spiritueux</button>
-      <button role="tab" id="t-grignoter" aria-controls="p-grignoter" aria-selected="false" tabindex="-1">À grignoter</button>
-    </div>
-    <div id="menu-prix">
-      <div class="panneau" role="tabpanel" id="p-cocktails" aria-labelledby="t-cocktails"><div class="plat"><h3>All Blue</h3><span class="prix"><span class="hh">9 €</span><span class="normal">11 €</span></span><p>Vodka, jus de pomme, sirop de kiwi, curaçao</p></div><div class="plat"><h3>Santoryu</h3><span class="prix"><span class="hh">9 €</span><span class="normal">11 €</span></span><p>Rhum blanc agricole, ananas, coco, maracuja, curaçao</p></div><div class="plat"><h3>Demon Slayer</h3><span class="prix"><span class="hh">9 €</span><span class="normal">11 €</span></span><p>Rhum, litchi, cranberry, fraise, citron vert</p></div><div class="plat"><h3>Ashura</h3><span class="prix"><span class="hh">9 €</span><span class="normal">11 €</span></span><p>Tequila, crème de cassis, citron vert, ginger beer</p></div><div class="plat"><h3>Gear 5</h3><span class="prix"><span class="hh">9 €</span><span class="normal">11 €</span></span><p>Rhum ou vodka, triple sec, amaretto, ananas</p></div><div class="plat"><h3>Gin Freeccs</h3><span class="prix"><span class="hh">9 €</span><span class="normal">11 €</span></span><p>Gin, cranberry, concombre, fraise, menthe fraîche</p></div><div class="plat"><h3>Shingeki no Kyo-Gin</h3><span class="prix"><span class="hh">9 €</span><span class="normal">11 €</span></span><p>Gin, kiwi, citron vert, eau gazeuse</p></div><div class="plat"><h3>One Punch Man</h3><span class="prix"><span class="hh">9 €</span><span class="normal">11 €</span></span><p>Rhum, vanille, cannelle, en planteur goyave, passion ou mangue</p></div><div class="plat"><h3>Mugetsu</h3><span class="prix"><span class="hh">9 €</span><span class="normal">11 €</span></span><p>Rhum, mangue, fruit de la passion, coco</p></div><div class="plat"><h3>Sukuna Finger</h3><span class="prix"><span class="hh">9 €</span><span class="normal">11 €</span></span><p>Whisky, orgeat, citron vert, limonade</p></div><div class="plat"><h3>Dodompa</h3><span class="prix"><span class="hh">13 €</span><span class="normal">15 €</span></span><p>Don Papa, mangue, citron vert, orgeat, cannelle</p></div><div class="plat"><h3>Rock Lee Martini</h3><span class="prix"><span class="hh">11 €</span><span class="normal">13 €</span></span><p>Vodka, passion, vanille, prosecco</p></div><div class="plat"><h3>Les classiques</h3><span class="prix"><span class="hh">8 €</span><span class="normal">10 €</span></span><p>Mojito, Caïpirinha, Margarita, Cosmopolitan, Daïquiri, Mule, Ti Punch… Mai Tai et Long Island +2 €</p></div></div>
-      <div class="panneau" role="tabpanel" id="p-bieres" aria-labelledby="t-bieres" hidden><div class="plat"><h3>Yonko Blonde 5,2 %</h3><span class="prix"><span class="hh">5 €</span><span class="normal">6,50 €</span></span><p>Pression, 50 cl · 3,50 € les 25 cl</p></div><div class="plat"><h3>Yonko Blanche 4,5 %</h3><span class="prix"><span class="hh">7 €</span><span class="normal">8 €</span></span><p>Pression, 50 cl · 4 € les 25 cl</p></div><div class="plat"><h3>Brooklyn Defender IPA 5,5 %</h3><span class="prix"><span class="hh">7,50 €</span><span class="normal">8,50 €</span></span><p>Pression, 50 cl · 4,50 € les 25 cl</p></div><div class="plat"><h3>Delirium 8,5 %</h3><span class="prix"><span class="hh">8 €</span><span class="normal">9 €</span></span><p>Pression, 50 cl · 5 € les 25 cl</p></div><div class="plat"><h3>Corona, Desperados</h3><span class="prix"><span class="normal">7 €</span></span><p>Bouteille</p></div><div class="plat"><h3>Vin blanc, rouge ou rosé</h3><span class="prix"><span class="normal">5–6 €</span></span><p>Au verre, 24 à 29 € la bouteille</p></div><div class="plat"><h3>Prosecco</h3><span class="prix"><span class="normal">6 €</span></span><p>Au verre, 35 € la bouteille</p></div><div class="plat"><h3>Champagne</h3><span class="prix"><span class="normal">60 €</span></span><p>La bouteille</p></div></div>
-      <div class="panneau" role="tabpanel" id="p-softs" aria-labelledby="t-softs" hidden><div class="plat"><h3>Mocktails</h3><span class="prix"><span class="hh">6 €</span><span class="normal">7 €</span></span><p>Shirley Temple, Virgin Mojito, Coco Mango, Exotic Cosmo, Planteur</p></div><div class="plat"><h3>Soft</h3><span class="prix"><span class="hh">4 €</span><span class="normal">4,50 €</span></span></div><div class="plat"><h3>Red Bull, ginger beer</h3><span class="prix"><span class="hh">4,50 €</span><span class="normal">5 €</span></span></div><div class="plat"><h3>Alcool + soft</h3><span class="prix"><span class="hh">7 €</span><span class="normal">9 €</span></span><p>Supérieur 10 €, premium 12 €</p></div><div class="plat"><h3>Alcool + Red Bull</h3><span class="prix"><span class="hh">8 €</span><span class="normal">10 €</span></span><p>Supérieur 11 €</p></div><div class="plat"><h3>Shots</h3><span class="prix"><span class="normal">4 €</span></span><p>Supérieur 5 €, premium 6 €, rail de shots 35 €</p></div></div>
-      <div class="panneau" role="tabpanel" id="p-grignoter" aria-labelledby="t-grignoter" hidden><div class="plat"><h3>Planche mixte</h3><span class="prix"><span class="normal">19 €</span></span><p>Fromages et charcuterie à partager</p></div><div class="plat"><h3>Planche fromage ou charcuterie</h3><span class="prix"><span class="normal">10 €</span></span></div><div class="plat"><h3>Croque-monsieur légendaire</h3><span class="prix"><span class="normal">6 €</span></span></div><div class="plat"><h3>Pain à l’ail</h3><span class="prix"><span class="normal">8 €</span></span></div><div class="plat"><h3>Frites</h3><span class="prix"><span class="normal">5 €</span></span></div><div class="plat"><h3>Gâteau d’anniversaire</h3><span class="prix"><span class="normal">Sur demande</span></span><p>La nourriture extérieure n’est pas autorisée</p></div></div>
-    </div>
-    <p class="menu-pied">Toute la carte en PDF : <a href="/Carte_Cocktails.pdf" target="_blank">cocktails</a> et <a href="/Carte_Boissons.pdf" target="_blank">boissons</a>.</p>
-  </div>
-</section>
-
-<section class="bloc" id="jeux" style="padding-top:20px">
-  <div class="wrap jeux">
-    <div class="photos">
-      <img src="/img/v2/cave-jeux.jpg" alt="La ludothèque et les tables de la cave" loading="lazy">
-      <img src="/img/v2/manettes.jpg" alt="Manettes Super Nintendo sur une table en bois" loading="lazy">
-      <img src="/img/v2/tireuses.jpg" alt="Les tireuses à bière du comptoir" loading="lazy">
-    </div>
-    <div>
-      <h2 class="titre">On joue ici</h2>
-      <p class="intro">Les consoles et les jeux sont en libre accès. Prenez une manette, on s’occupe des verres.</p>
-      <ul>
-        <li><strong>Mario Kart 8 et Smash Bros Ultimate</strong><span>Sur les écrans de la taverne et de la cave</span></li>
-        <li><strong>Super Nintendo rétro</strong><span>Les classiques, manettes d’origine</span></li>
-        <li><strong>Une ludothèque complète</strong><span>Skull King, Skyjo, Uno et bien d’autres</span></li>
-        <li><strong>Karaoké privé</strong><span>Deux micros et des milliers de titres, dans la cave</span></li>
-        <li><strong>Tournois, blind tests et quiz</strong><span>Le programme change chaque semaine : <a href="https://www.instagram.com/yonko.bar" target="_blank" rel="noopener">suivez-le sur Instagram</a></span></li>
-      </ul>
+<section id="resa">
+  <div class="inner">
+    <div class="resa-grid">
+      <div>
+        <span class="stag">Réserver</span>
+        <h2 class="stitle">Rejoignez <span>l’équipage</span></h2>
+        <div class="sdiv"></div>
+        <div class="rf"><span class="ic" aria-hidden="true">🍺</span><div><h3 class="h4">Tables à la Taverne</h3><p>De 4 à 35 personnes. Jeux en libre accès, cocktails et bonne ambiance.</p></div></div>
+        <div class="rf"><span class="ic" aria-hidden="true">🏴‍☠️</span><div><h3 class="h4">Privatisation de la Cave</h3><p>De 30 à 60 personnes. Cave voûtée, sono, écrans, karaoké. Minimum de consommation de 500 à 700 €.</p></div></div>
+        <div class="rf"><span class="ic" aria-hidden="true">🎉</span><div><h3 class="h4">Bar entier, lundi et dimanche</h3><p>De 60 à 100 personnes, sur devis. Contactez-nous directement.</p></div></div>
+        <div class="ht" aria-label="Horaires d’ouverture">
+          <div class="hr" data-j="1"><span class="d">Lundi</span><span class="off">Sur devis uniquement</span></div>
+          <div class="hr" data-j="2 3"><span class="d">Mardi – mercredi</span><span class="t">17h30 – minuit</span></div>
+          <div class="hr" data-j="4 5"><span class="d">Jeudi – vendredi</span><span class="t">17h30 – 2h</span></div>
+          <div class="hr" data-j="6"><span class="d">Samedi</span><span class="t">15h – 2h</span></div>
+          <div class="hr" data-j="0"><span class="d">Dimanche</span><span class="off">Sur devis uniquement</span></div>
+        </div>
+        <div class="cta-row">
+          <a href="tel:+33750915905" class="btn btn-red">09 74 64 02 98</a>
+          <a href="https://wa.me/33750915905" target="_blank" rel="noopener" class="btn btn-wa">WhatsApp</a>
+        </div>
+      </div>
+      <div class="fbox">
+        <h3>Réservation en ligne</h3>
+        <p style="color:var(--cream-dim);line-height:1.75;margin:0 0 1.3rem">Choisissez votre date, votre heure et votre espace : la caution et le minimum de consommation s’affichent avant l’envoi. Vous recevez ensuite un email avec votre page « Ma réservation » pour suivre votre demande, écrire à l’équipe et annuler jusqu’à 48 h avant.</p>
+        <a href="/reserver" class="btn btn-red" style="display:block;text-align:center">Réserver une table</a>
+        <a href="/reserver?espace=cave" class="btn btn-orange" style="display:block;text-align:center;margin-top:.8rem">Privatiser la cave</a>
+        <p class="fnote">Confirmation par email · réponse sous 24 h</p>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="bloc" style="background:var(--nuit-2)">
-  <div class="wrap">
-    <div class="avis-tete">
-      <h2 class="titre" style="margin:0">Ils sont revenus</h2>
-      <div class="note-google"><b id="g-note">4,8</b><span><span id="g-nb">247</span> avis Google<br><a href="https://g.page/yonkobar/review" target="_blank" rel="noopener">Laisser le vôtre</a></span></div>
-    </div>
-    <div class="citations">
-      <figure><blockquote>J’ai passé un incroyable anniversaire au Yonko. Les barmans ont arrangé la salle selon nos besoins, et la cave est vraiment top.</blockquote><figcaption>Sarah, anniversaire à 30</figcaption></figure>
-      <figure><blockquote>Super soirée, ambiance incroyable, service impeccable. L’équipe a été extrêmement réactive.</blockquote><figcaption>Kevin, un verre entre amis</figcaption></figure>
-      <figure><blockquote>Tout est toujours parfait au Yonko. Un bar qui comprend les besoins et qui s’adapte.</blockquote><figcaption>Clémence, anniversaire à 20</figcaption></figure>
+<section id="contact">
+  <div class="inner">
+    <div class="cgrid">
+      <div>
+        <span class="stag">Nous trouver</span>
+        <h2 class="stitle">Au cœur du <span>Quartier Latin</span></h2>
+        <div class="sdiv"></div>
+        <div class="ci"><span class="ic" aria-hidden="true">📍</span><div><h3 class="h4">Adresse</h3><p>15 rue Monsieur le Prince<br>75006 Paris · Quartier Latin</p></div></div>
+        <div class="ci"><span class="ic" aria-hidden="true">🚇</span><div><h3 class="h4">Accès</h3><p>Métro Odéon (lignes 4 et 10) à 140 m<br>RER B Luxembourg</p></div></div>
+        <div class="ci"><span class="ic" aria-hidden="true">📞</span><div><h3 class="h4">Téléphone</h3><a href="tel:+33750915905">09 74 64 02 98</a></div></div>
+        <div class="ci"><span class="ic" aria-hidden="true">💬</span><div><h3 class="h4">WhatsApp</h3><a href="https://wa.me/33750915905" target="_blank" rel="noopener">Nous écrire sur WhatsApp</a></div></div>
+        <div class="ci"><span class="ic" aria-hidden="true">📧</span><div><h3 class="h4">Email</h3><a href="mailto:contact@yonkobar.com">contact@yonkobar.com</a></div></div>
+        <div class="soc">
+          <a href="https://www.instagram.com/yonko.bar" target="_blank" rel="noopener" class="sl sl-ig" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+          <a href="https://www.facebook.com/p/Yonko-Bar-100092517527164/" target="_blank" rel="noopener" class="sl sl-fb" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+          <a href="https://wa.me/33750915905" target="_blank" rel="noopener" class="sl sl-wa" aria-label="WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+          <a href="https://g.page/yonkobar" target="_blank" rel="noopener" class="sl" aria-label="Google Maps"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg></a>
+        </div>
+      </div>
+      <figure class="case-w" style="margin:0"><div class="mf"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2625.05!2d2.34298!3d48.85108!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e6715114a3a35f%3A0xbc6d13a183a87807!2s15%20Rue%20Monsieur%20le%20Prince%2C%2075006%20Paris!5e0!3m2!1sfr!2sfr!4v1700000000" title="Plan d’accès au Yonko Bar" width="100%" height="100%" style="border:0" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div></figure>
     </div>
   </div>
 </section>
 
-<section class="bloc" id="infos">
-  <div class="wrap infos">
-    <div>
-      <h2 class="titre">Venir au Yonko</h2>
-      <p class="intro">15 rue Monsieur le Prince, Paris 6e. Métro Odéon, à deux minutes à pied.</p>
-      <table class="horaires" id="horaires">
-        <tbody>
-          <tr data-j="2"><th scope="row">Mardi</th><td>17h30 – minuit</td></tr>
-          <tr data-j="3"><th scope="row">Mercredi</th><td>17h30 – minuit</td></tr>
-          <tr data-j="4"><th scope="row">Jeudi</th><td>17h30 – 2h</td></tr>
-          <tr data-j="5"><th scope="row">Vendredi</th><td>17h30 – 2h</td></tr>
-          <tr data-j="6"><th scope="row">Samedi</th><td>15h – 2h</td></tr>
-          <tr data-j="0"><th scope="row">Dimanche et lundi</th><td>Privatisation sur devis</td></tr>
-        </tbody>
-      </table>
-      <div class="contact"><a class="btn btn-feu" href="/reserver">Réserver</a><a class="btn btn-trait" href="tel:+33750915905">Appeler</a><a class="btn btn-trait" href="https://wa.me/33750915905" target="_blank" rel="noopener">WhatsApp</a></div>
-    </div>
-    <div class="faq">
-      <h2 class="titre" style="font-size:clamp(28px,3vw,38px)">Questions fréquentes</h2>
-      <details><summary>Faut-il réserver ?</summary><p>C’est conseillé le week-end et pour les groupes. Sans réservation, on vous installe selon la place.</p></details>
-      <details><summary>Quand une caution est-elle demandée ?</summary><p>Le vendredi et le samedi pour les groupes de plus de 6 à la taverne (3 € par personne), et pour la privatisation de la cave (250 €). La carte est enregistrée, rien n’est débité sauf absence non annoncée.</p></details>
-      <details><summary>Comment annuler ?</summary><p>Depuis votre page « Ma réservation », dont le lien est dans l’email de confirmation, jusqu’à 48 h avant. La caution est alors libérée.</p></details>
-      <details><summary>Les consoles sont-elles payantes ?</summary><p>Non, consoles et jeux de société sont en libre accès pour les clients.</p></details>
-      <details><summary>Peut-on apporter un gâteau ?</summary><p>Oui, sur demande. La nourriture extérieure n’est pas autorisée par ailleurs.</p></details>
+<section id="mentions">
+  <div class="inner">
+    <span class="stag">Légal</span>
+    <h2 class="stitle"><span>Mentions</span> légales</h2>
+    <div class="sdiv"></div>
+    <div class="mentions-content">
+      <h3>Éditeur du site</h3>
+      <p>Kaizoku Corp, SAS au capital de 10 000 €<br>Siège : 42 rue de Paris, 78600 Maisons-Laffitte · Établissement : 15 rue Monsieur le Prince, 75006 Paris<br>SIRET : 980 813 174 RCS Versailles · Président : Yoane ASTASIE · DG : Moncef Ahmed AKLIL<br>Email : <a href="mailto:contact@yonkobar.com" style="color:var(--orange-lt)">contact@yonkobar.com</a> · Tél. : 09 74 64 02 98</p>
+      <h3>Hébergement</h3>
+      <p>Cloudflare, Inc., 101 Townsend St, San Francisco, CA 94107, USA · <a href="https://www.cloudflare.com" target="_blank" rel="noopener" style="color:var(--orange-lt)">www.cloudflare.com</a></p>
+      <h3>Propriété intellectuelle</h3>
+      <p>Tous les contenus (textes, images, logo) sont la propriété exclusive de Kaizoku Corp. Toute reproduction sans autorisation est interdite.</p>
+      <h3>Données personnelles (RGPD)</h3>
+      <p>Les informations de réservation (nom, email, téléphone, messages) servent uniquement à gérer votre réservation. Elles ne sont pas transmises à des tiers, hors prestataires techniques (Cloudflare, Resend, Stripe). <a href="/mentions-legales#confidentialite" style="color:var(--orange-lt)">En savoir plus</a>. Droit d’accès : <a href="mailto:contact@yonkobar.com" style="color:var(--orange-lt)">contact@yonkobar.com</a></p>
+      <h3>Cookies</h3>
+      <p>Ce site n’utilise que des cookies techniques nécessaires (Google Maps). Aucun cookie publicitaire.</p>
     </div>
   </div>
 </section>
 </main>
 
-<footer class="pied">
-  <div class="wrap">
-    <a class="logo" href="/" style="display:flex;align-items:center;gap:10px;color:var(--parchemin);text-decoration:none"><img src="/icons/logo.svg" alt="" width="30" height="34"><span style="font:700 18px var(--display)">Yonko Bar</span></a>
-    <nav aria-label="Liens"><a href="https://www.instagram.com/yonko.bar" target="_blank" rel="noopener">Instagram</a><a href="https://www.facebook.com/p/Yonko-Bar-100092517527164/" target="_blank" rel="noopener">Facebook</a><a href="https://g.page/yonkobar" target="_blank" rel="noopener">Google</a><a href="/mentions-legales">Mentions légales</a></nav>
-    <p class="loi" style="margin:0">L’abus d’alcool est dangereux pour la santé, à consommer avec modération.</p>
+<footer>
+  <div class="flogo"><img src="/icons/logo.svg" alt="Yonko Bar" width="45" height="50"></div>
+  <p>Bar gaming · Univers manga · Paris 6e · Ouvert depuis janvier 2024</p>
+  <div class="flinks">
+    <a href="#taverne">La Taverne</a><a href="#cave">La Cave</a><a href="#galerie">Galerie</a>
+    <a href="#menu">Carte</a><a href="#events">Événements</a><a href="#faq">FAQ</a>
+    <a href="/reserver">Réserver</a><a href="#contact">Contact</a><a href="#mentions">Mentions légales</a>
   </div>
+  <p>© 2026 Yonko Bar · Kaizoku Corp · 15 rue Monsieur le Prince, 75006 Paris</p>
+  <p class="alcool">L’abus d’alcool est dangereux pour la santé, à consommer avec modération.</p>
 </footer>
-<div class="barre-mobile"><a class="btn tel" href="tel:+33750915905" aria-label="Appeler le bar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></a><a class="btn btn-feu" href="/reserver">Réserver une table</a></div>
 <script src="/assets/vendor/lenis-1.1.13.min.js" defer></script>
-<script src="/assets/v2.js?v=2" defer></script>
+<script src="/assets/home.js?v=1" defer></script>
 </body>
 </html>
