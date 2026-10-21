@@ -179,12 +179,12 @@
   // ===== Note Google en direct =====
   fetch('/api/google-rating', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
     var n = Number(d && d.count), note = Number(d && d.rating);
-    if (!Number.isInteger(n) || !Number.isFinite(note) || note < 0 || note > 5) throw new Error('note invalide');
+    if (!Number.isInteger(n) || n < 1 || !Number.isFinite(note) || note <= 0 || note > 5) throw new Error('note invalide');
     $('hero-avis-num').textContent = n.toLocaleString('fr-FR');
     $('g-count').textContent = note.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' · ' + n.toLocaleString('fr-FR') + ' avis';
     var r = Math.round(note); $('g-stars').textContent = '★'.repeat(r) + '☆'.repeat(5 - r);
   }).catch(function () {
-    $('hero-avis-num').textContent = '4,8★';
+    $('hero-avis-num').textContent = '—';
     $('g-count').textContent = 'Voir les avis';
   });
 
