@@ -139,3 +139,35 @@ test('Service worker montre un push et ouvre uniquement le dashboard local', asy
   assert.equal(notifications.length,1);assert.equal(notifications[0][1].data.url,'/dashboard');
   listeners.notificationclick({notification:{close(){}},waitUntil:p=>pending=p});await pending;assert.deepEqual(opened,['/dashboard']);
 });
+test('Message client : une notification par message, sans texte client, sans fausse « nouvelle réservation »', async () => {
+  const {sub,env}=await keys();const r=rig(env);
+  r.records.set('res:booking-1',JSON.stringify({id:'booking-1',createdAt:1}));
+  await r.obj.fetch(req('subscription',sub));r.obj.deliver=async()=>{};
+  const m1={id:'booking-1',createdAt:1,type:'message',at:1000},m2={...m1,at:2000};
+  await r.obj.fetch(req('event',m1));await r.obj.fetch(req('event',m1));await r.obj.fetch(req('event',m2));
+  const jobs=Object.values(r.state().jobs);
+  assert.equal(jobs.length,2);
+  for(const j of jobs){assert.equal(j.payload.title,'Yonko Bar · Nouveau message');assert.ok(j.payload.tag.startsWith('msg-'));assert.equal(j.payload.url,'/dashboard');}
+  assert.equal(new Set(jobs.map(j=>j.payload.tag)).size,2);
+  assert.equal((await r.obj.fetch(req('event',{...m1,at:'x'}))).status,400);
+  await r.obj.fetch(req('tick',{time:Date.parse('2026-07-20T10:00Z')}));
+  assert.equal(Object.values(r.state().jobs).filter(j=>j.payload.tag.startsWith('new-')).length,0);
+});
+test('Page client : un message envoie l’événement push (id + heure, jamais le texte)', async () => {
+  const {onRequestPost}=await import('../functions/api/my-reservation/[token].js');
+  const {ensureAccessToken}=await import('../functions/_access.js');
+  const store=new Map();const kv={get:async k=>store.get(k)??null,put:async(k,v)=>store.set(k,v),list:async()=>({keys:[],list_complete:true})};
+  const entry={id:'r-msg',name:'Test',email:'',date:'2099-01-01',time:'20:00',guests:'4',type:'Taverne',status:'accepted',createdAt:5};
+  const sent=[];
+  const env={RESERVATIONS:kv,DASHBOARD_KEY:'k',PUSH_SERVICE:{fetch:async(url,o)=>{sent.push({url,body:JSON.parse(o.body),headers:o.headers});return Response.json({ok:true});}}};
+  const token=await ensureAccessToken(entry,env);
+  await kv.put(`res:${entry.id}`,JSON.stringify(entry));
+  const pending=[];
+  const res=await onRequestPost({request:new Request(`https://yonkobar.com/api/my-reservation/${token}`,{method:'POST',body:JSON.stringify({action:'message',text:'Secret du client'})}),env,params:{token},waitUntil:p=>pending.push(p)});
+  assert.equal(res.status,200);await Promise.all(pending);
+  const ev=sent.find(s=>s.body.type==='message');
+  assert.ok(ev,'événement message envoyé');
+  assert.equal(ev.url,'https://push.internal/event');assert.equal(ev.body.id,'r-msg');assert.ok(Number.isFinite(ev.body.at));
+  assert.ok(!JSON.stringify(ev.body).includes('Secret'));
+  assert.equal(ev.headers['x-app-origin'],'https://yonkobar.com');
+});

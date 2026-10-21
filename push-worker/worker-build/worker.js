@@ -463,6 +463,18 @@ var PushState = class {
         return json({ error: "Invalid event" }, 400);
       }
       if (!/^[a-zA-Z0-9-]{1,100}$/.test(event.id || "") || !Number.isFinite(event.createdAt)) return json({ error: "Invalid event" }, 400);
+      if (event.type === "message") {
+        if (!Number.isFinite(event.at)) return json({ error: "Invalid event" }, 400);
+        const msgKey = `msg:${event.id}:${event.at}`;
+        if (!state.seen[msgKey]) {
+          const id = `msg-${await digest(msgKey)}`;
+          this.enqueue(state, id, { title: "Yonko Bar \xB7 Nouveau message", body: "Un client vous a \xE9crit. Ouvrez sa r\xE9servation pour lire et r\xE9pondre.", tag: id, url: "/dashboard" });
+          state.seen[msgKey] = true;
+          await this.save(state);
+          await this.deliver(state);
+        }
+        return json({ ok: true });
+      }
       const key = `res:${event.id}`;
       if (!state.seen[key]) {
         const id = `new-${await digest(key)}`;
@@ -527,28 +539,35 @@ var PushState = class {
     }
   }
   async tick(state, time) {
-    const keys = await reservationKeys(this.env.RESERVATIONS);
-    const isFirst = !state.initialized;
-    if (isFirst) {
-      for (const k of keys) state.seen[k] = true;
-      state.initialized = true;
-    } else {
-      const unseen = keys.filter((k) => !state.seen[k]);
-      for (const { key, entry } of await readReservations(this.env.RESERVATIONS, unseen)) {
-        if (Number(entry.createdAt) >= state.startedAt) {
-          const id = `new-${await digest(key)}`;
-          this.enqueue(state, id, {
-            title: "Yonko Bar \xB7 Nouvelle r\xE9servation",
-            body: "Une nouvelle demande est disponible dans votre tableau de bord.",
-            tag: id,
-            url: "/dashboard"
-          });
+    const now = Number(time);
+    const reconcileDue = !state.lastReconcileAt || now - state.lastReconcileAt >= 60 * 60 * 1e3;
+    let keys = null;
+    if (!state.initialized || reconcileDue) {
+      keys = await reservationKeys(this.env.RESERVATIONS);
+      const isFirst = !state.initialized;
+      if (isFirst) {
+        for (const k of keys) state.seen[k] = true;
+        state.initialized = true;
+      } else {
+        const unseen = keys.filter((k) => !state.seen[k]);
+        for (const { key, entry } of await readReservations(this.env.RESERVATIONS, unseen)) {
+          if (Number(entry.createdAt) >= state.startedAt) {
+            const id = `new-${await digest(key)}`;
+            this.enqueue(state, id, {
+              title: "Yonko Bar \xB7 Nouvelle r\xE9servation",
+              body: "Une nouvelle demande est disponible dans votre tableau de bord.",
+              tag: id,
+              url: "/dashboard"
+            });
+          }
+          state.seen[key] = true;
         }
-        state.seen[key] = true;
       }
+      state.lastReconcileAt = now;
     }
     const { date, hour } = parisClock(time);
     if (hour === 14 && state.lastDaily !== date) {
+      if (!keys) keys = await reservationKeys(this.env.RESERVATIONS);
       const records = await readReservations(this.env.RESERVATIONS, keys);
       this.enqueue(state, `daily-${date}`, summary(records.map((r) => r.entry), date));
       state.lastDaily = date;

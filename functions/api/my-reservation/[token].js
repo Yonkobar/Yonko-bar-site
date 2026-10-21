@@ -2,6 +2,7 @@
 // POST /api/my-reservation/:token  -> { action: "message", text } ou { action: "cancel" }
 import { loadByToken, publicView, addMessage, cancelDeadline, mailStaff, mailClientCancelled } from "../../_access.js";
 import { expireCheckoutSession, detachPaymentMethod } from "../../_stripe-guarantee.js";
+import { notifyNewMessage } from "../../_push.js";
 
 const headers = { "Content-Type": "application/json", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers });
@@ -31,6 +32,7 @@ export async function onRequestPost({ request, env, params, waitUntil }) {
     try { msg = addMessage(entry, "client", body.text); } catch (e) { return json({ error: e.message }, 400); }
     await env.RESERVATIONS.put(`res:${entry.id}`, JSON.stringify(entry));
     later(mailStaff(entry, env, origin, "Nouveau message d'un client", msg.text));
+    later(notifyNewMessage(env, request, entry, msg));
     return json(publicView(entry));
   }
 

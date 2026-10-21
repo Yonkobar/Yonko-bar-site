@@ -73,6 +73,18 @@ export class PushState {
       let event;
       try { event = await request.json(); } catch { return json({error: 'Invalid event'}, 400); }
       if (!/^[a-zA-Z0-9-]{1,100}$/.test(event.id || '') || !Number.isFinite(event.createdAt)) return json({error: 'Invalid event'}, 400);
+      if (event.type === 'message') {
+        if (!Number.isFinite(event.at)) return json({error: 'Invalid event'}, 400);
+        const msgKey = `msg:${event.id}:${event.at}`;
+        if (!state.seen[msgKey]) {
+          const id = `msg-${await digest(msgKey)}`;
+          this.enqueue(state, id, {title: 'Yonko Bar · Nouveau message', body: 'Un client vous a écrit. Ouvrez sa réservation pour lire et répondre.', tag: id, url: '/dashboard'});
+          state.seen[msgKey] = true;
+          await this.save(state);
+          await this.deliver(state);
+        }
+        return json({ok: true});
+      }
       const key = `res:${event.id}`;
       if (!state.seen[key]) {
         const id = `new-${await digest(key)}`;
