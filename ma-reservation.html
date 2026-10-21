@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ma réservation — Yonko Bar</title>
+<meta name="description" content="Suivi de votre réservation au Yonko Bar.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0d0a07">
+<link rel="icon" type="image/png" href="/icons/logo-192.png">
+<link rel="apple-touch-icon" href="/icons/logo-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css?v=20261021">
+</head>
+<body class="">
+<a class="skip" href="#contenu">Aller au contenu</a>
+<header class="header">
+  <div class="header-in">
+    <a class="brand" href="/" aria-label="Yonko Bar, accueil"><img src="/img/logo.svg" alt="" width="40" height="45"><span>YONKO BAR</span></a>
+    <nav class="nav" aria-label="Navigation principale">
+      <a href="/#espaces">Nos espaces</a>
+      <a href="/#carte">La carte</a>
+      <a href="/#animations">Animations</a>
+      <a href="/#privatiser">Privatiser</a>
+      <a href="/#infos">Infos pratiques</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="/reserver">Réserver</a>
+    <details class="burger">
+      <summary aria-label="Ouvrir le menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></summary>
+      <nav aria-label="Menu">
+        <a href="/reserver" style="color:var(--orange-lt);font-weight:700">Réserver une table</a>
+        <a href="/#espaces">Nos espaces</a>
+        <a href="/#carte">La carte</a>
+        <a href="/#animations">Animations</a>
+        <a href="/#privatiser">Privatiser</a>
+        <a href="/#infos">Infos pratiques</a>
+      </nav>
+    </details>
+  </div>
+</header>
+<main id="contenu" class="wrap" style="padding-top:36px;padding-bottom:80px">
+  <p id="loading" class="muted">Chargement de votre réservation…</p>
+  <div id="error" class="panel" hidden><h1 class="serif" style="margin:0 0 10px;font-size:28px">Réservation introuvable</h1><p style="margin:0 0 16px;color:var(--sand)" id="error-text">Ce lien ne correspond à aucune réservation. Vérifiez le lien reçu par email, ou contactez-nous.</p><a class="btn btn-ghost btn-sm" href="https://wa.me/33750915905" target="_blank" rel="noopener">Nous écrire sur WhatsApp</a></div>
+  <div id="app" hidden style="display:flex;flex-direction:column;gap:24px">
+    <section class="cover"><div>
+      <span class="badge" id="status-badge"></span>
+      <h1 class="serif" style="margin:0;font-size:clamp(28px,4.5vw,40px)" id="title"></h1>
+      <p style="margin:0;color:var(--cream-2);font-size:18px" id="subtitle"></p>
+    </div></section>
+    <div class="layout">
+      <div class="main" style="display:flex;flex-direction:column;gap:24px">
+        <section class="panel-hl" id="deposit" hidden></section>
+        <section class="panel">
+          <h2 style="margin:0 0 20px;font-size:20px">Suivi</h2>
+          <ol class="timeline" id="timeline"></ol>
+        </section>
+        <section class="panel" id="messages-panel" style="display:flex;flex-direction:column;gap:16px">
+          <h2 style="margin:0;font-size:20px">Messages avec l'équipe</h2>
+          <div class="thread" id="thread" aria-live="polite"></div>
+          <form id="msg-form" style="display:flex;flex-direction:column;gap:10px">
+            <div class="field"><label for="msg-text">Votre message</label><textarea id="msg-text" maxlength="2000" placeholder="Écrire à l'équipe…" required></textarea></div>
+            <p class="err" id="msg-err" role="alert" style="margin:0"></p>
+            <button type="submit" class="btn btn-primary" id="msg-send" style="align-self:flex-end">Envoyer</button>
+          </form>
+        </section>
+      </div>
+      <aside class="side" style="display:flex;flex-direction:column;gap:24px">
+        <section class="panel">
+          <h2 style="margin:0 0 16px;font-size:20px">Récapitulatif</h2>
+          <dl class="recap" id="recap"></dl>
+          <p id="conds" style="margin:16px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:14px;color:var(--sand)"></p>
+        </section>
+        <section class="panel actions-col" id="actions">
+          <button type="button" class="btn btn-ghost" id="a-cal">Ajouter à mon agenda</button>
+          <a class="btn btn-ghost" href="https://g.page/yonkobar" target="_blank" rel="noopener">Itinéraire · Métro Odéon</a>
+          <button type="button" class="btn btn-ghost" id="a-modify">Demander une modification</button>
+          <button type="button" class="link-danger" id="a-cancel">Annuler ma réservation</button>
+          <p class="muted" id="cancel-note" style="margin:0;text-align:center;font-size:13px"></p>
+          <p class="err" id="cancel-err" role="alert" style="margin:0;text-align:center"></p>
+        </section>
+        <p class="muted" style="margin:0;font-size:14px">15 rue Monsieur le Prince, 75006 Paris · 09 74 64 02 98</p>
+      </aside>
+    </div>
+  </div>
+</main>
+<footer class="footer">
+  <div class="wrap">
+    <span class="brand"><img src="/img/logo.svg" alt="" width="26" height="29" style="width:26px;height:29px"><span style="font-size:15px">YONKO BAR</span></span>
+    <nav aria-label="Liens utiles">
+      <a href="https://www.instagram.com/yonko.bar" rel="noopener" target="_blank">Instagram</a>
+      <a href="https://www.facebook.com/p/Yonko-Bar-100092517527164/" rel="noopener" target="_blank">Facebook</a>
+      <a href="https://g.page/yonkobar" rel="noopener" target="_blank">Google</a>
+      <a href="/mentions-legales">Mentions légales et confidentialité</a>
+    </nav>
+    <span>15 rue Monsieur le Prince, 75006 Paris</span>
+  </div>
+  <p class="legal">L'abus d'alcool est dangereux pour la santé, à consommer avec modération.</p>
+</footer>
+<script>
+(function(){
+  var token = new URLSearchParams(location.search).get('t') || '';
+  var api = '/api/my-reservation/' + encodeURIComponent(token);
+  var $ = function(id){ return document.getElementById(id); };
+  var data = null, busy = false;
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function dateLong(d){ var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? new Date(Date.UTC(+m[1], +m[2]-1, +m[3], 12)).toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC'}) : ''; }
+  function stamp(ms){ return ms ? new Date(ms).toLocaleString('fr-FR', {weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris'}) : ''; }
+  function hour(t){ return t ? t.replace(':', 'h') : ''; }
+  function space(t){ t = (t || '').toLowerCase(); return t.indexOf('privatisation') > -1 ? 'La Cave privatisée' : t.indexOf('bar entier') > -1 ? 'Le bar entier' : t.indexOf('taverne') > -1 ? 'La Taverne' : (data.type || '—'); }
+  function dow(d){ var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? new Date(Date.UTC(+m[1], +m[2]-1, +m[3])).getUTCDay() : -1; }
+  function render(){
+    var d = data, cancelled = d.status === 'declined', dep = d.deposit || {};
+    var badge = $('status-badge');
+    if (cancelled) { badge.className = 'badge off'; badge.textContent = 'Réservation annulée'; }
+    else if (d.status === 'accepted' && dep.state === 'pending') { badge.className = 'badge wait'; badge.textContent = 'Confirmée · caution à enregistrer'; }
+    else if (d.status === 'accepted') { badge.className = 'badge ok'; badge.textContent = 'Réservation confirmée'; }
+    else { badge.className = 'badge pending'; badge.textContent = 'Demande en attente de confirmation'; }
+    var day = dateLong(d.date);
+    $('title').textContent = cancelled ? 'Réservation annulée' : d.status === 'accepted' ? 'À ' + day.split(' ')[0] + ', ' + d.firstName + ' !' : 'Merci ' + d.firstName + ', demande bien reçue';
+    $('subtitle').textContent = [day, hour(d.time), d.guests ? d.guests + ' personne' + (Number(d.guests) > 1 ? 's' : '') : '', space(d.type)].filter(Boolean).join(' · ');
+    // Caution
+    var box = $('deposit');
+    if (dep.state === 'none' || cancelled && dep.state !== 'liberee') { box.hidden = true; }
+    else {
+      box.hidden = false;
+      if (dep.state === 'pending') box.innerHTML = '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><h2 style="margin:0;font-size:20px">Caution à enregistrer</h2><span class="badge wait">En attente</span></div><p style="margin:12px 0 16px;color:var(--sand)">Enregistrez une carte de garantie de <strong style="color:var(--cream)">' + esc(dep.amount) + ' €</strong>. Aucun montant n’est débité aujourd’hui, seulement en cas d’absence non annoncée.</p><a class="btn btn-primary" href="' + esc(dep.link) + '">Enregistrer ma carte · ' + esc(dep.amount) + ' €</a><p class="muted" style="margin:10px 0 0;font-size:13px">Paiement sécurisé par Stripe.</p>';
+      else if (dep.state === 'ok' || dep.state === 'deposee') box.innerHTML = '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><h2 style="margin:0;font-size:20px">Caution</h2><span class="badge ok">Validée</span></div><p style="margin:10px 0 0;color:var(--sand)">' + (dep.state === 'deposee' ? 'Caution déposée au bar' : 'Carte de garantie enregistrée') + (dep.amount ? ' · ' + esc(dep.amount) + ' €' : '') + '. Merci !</p>';
+      else if (dep.state === 'liberee') box.innerHTML = '<h2 style="margin:0;font-size:20px">Caution libérée</h2><p style="margin:10px 0 0;color:var(--sand)">Votre carte ne sera pas débitée.</p>';
+      else box.innerHTML = '<h2 style="margin:0;font-size:20px">Caution</h2><p style="margin:10px 0 0;color:var(--sand)">Pour toute question sur la caution, écrivez-nous ci-dessous.</p>';
+    }
+    // Suivi
+    var check = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+    var steps = [{done: true, t: 'Demande reçue', s: stamp(d.createdAt)}];
+    if (cancelled) steps.push({done: true, t: d.cancelledByClient ? 'Annulée à votre demande' : 'Réservation annulée', s: ''});
+    else {
+      steps.push(d.status === 'accepted' ? {done: true, t: 'Confirmée par l’équipe', s: d.confirmedAt ? stamp(d.confirmedAt) + ' · email envoyé' : ''} : {t: 'Confirmation par l’équipe', s: 'En général dans la journée'});
+      if (dep.state === 'pending') steps.push({wait: true, t: 'Caution à enregistrer', s: 'Avant le jour J'});
+      else if (dep.state === 'ok' || dep.state === 'deposee') steps.push({done: true, t: 'Caution validée', s: ''});
+      steps.push({t: day.charAt(0).toUpperCase() + day.slice(1) + (d.time ? ', ' + hour(d.time) : ''), s: 'On vous attend · ' + space(d.type)});
+    }
+    $('timeline').innerHTML = steps.map(function(x){ return '<li><span class="dot' + (x.done ? ' done' : x.wait ? ' wait' : '') + '">' + (x.done ? check : '') + '</span><span><strong>' + esc(x.t) + '</strong>' + (x.s ? '<br><span class="muted" style="font-size:14px">' + esc(x.s) + '</span>' : '') + '</span></li>'; }).join('');
+    // Messages
+    var thread = $('thread');
+    thread.innerHTML = (d.messages || []).length ? d.messages.map(function(m){ return '<div class="msg ' + (m.from === 'client' ? 'me' : 'bar') + '">' + esc(m.text) + '<small>' + (m.from === 'client' ? 'Vous' : 'Yonko Bar') + ' · ' + esc(stamp(m.at)) + '</small></div>'; }).join('') : '<p class="muted" style="margin:0;font-size:14px">Une question, un gâteau, un changement ? Écrivez-nous ici, l’équipe vous répond par email et sur cette page.</p>';
+    thread.scrollTop = thread.scrollHeight;
+    // Récapitulatif
+    $('recap').innerHTML = [['Nom', d.name], ['Date', day], ['Heure', hour(d.time) || '—'], ['Personnes', d.guests || '—'], ['Espace', space(d.type)]].map(function(r){ return '<dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('');
+    var w = dow(d.date), conds = [];
+    if (/taverne/i.test(d.type || '') && (w === 5 || w === 6) && Number(d.guests) > 6) conds.push('Minimum de consommation de 15 € / personne le vendredi et le samedi.');
+    if (/privatisation/i.test(d.type || '')) conds.push('Minimum de consommation de ' + (w === 5 ? '600' : w === 6 ? '700' : '500') + ' € pour la soirée.');
+    conds.push('Happy hour de 17h30 à 21h.');
+    $('conds').textContent = conds.join(' ');
+    // Actions
+    $('a-cal').hidden = cancelled; $('a-modify').hidden = cancelled;
+    $('a-cancel').hidden = !d.canCancel;
+    $('cancel-note').textContent = cancelled ? '' : d.canCancel ? 'Annulation gratuite jusqu’au ' + stamp(d.cancelDeadline) + ' (48 h avant).' : 'L’annulation en ligne n’est plus possible à moins de 48 h : écrivez-nous ci-contre.';
+  }
+  async function load(silent){
+    try {
+      var r = await fetch(api, {cache: 'no-store'});
+      var j = await r.json().catch(function(){ return {}; });
+      if (!r.ok) throw new Error(j.error || 'Réservation introuvable.');
+      data = j; $('loading').hidden = true; $('error').hidden = true; $('app').hidden = false; render();
+    } catch (e) {
+      if (silent) return;
+      $('loading').hidden = true; $('app').hidden = true; $('error').hidden = false;
+      if (token) $('error-text').textContent = e.message;
+    }
+  }
+  async function post(body){
+    var r = await fetch(api, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+    var j = await r.json().catch(function(){ return {}; });
+    if (!r.ok) throw new Error(j.error || 'Une erreur est survenue. Réessayez.');
+    data = j; render(); return j;
+  }
+  $('msg-form').addEventListener('submit', async function(ev){
+    ev.preventDefault(); if (busy) return;
+    var text = $('msg-text').value.trim(); if (!text) return;
+    busy = true; $('msg-send').disabled = true; $('msg-err').textContent = '';
+    try { await post({action: 'message', text: text}); $('msg-text').value = ''; }
+    catch (e) { $('msg-err').textContent = e.message; }
+    finally { busy = false; $('msg-send').disabled = false; }
+  });
+  $('a-modify').onclick = function(){ var t = $('msg-text'); if (!t.value) t.value = 'Bonjour, je souhaiterais modifier ma réservation : '; t.focus(); t.setSelectionRange(t.value.length, t.value.length); t.scrollIntoView({block: 'center', behavior: 'smooth'}); };
+  $('a-cancel').onclick = async function(){
+    if (!confirm('Annuler votre réservation du ' + dateLong(data.date) + ' ? Cette action est définitive.')) return;
+    $('cancel-err').textContent = '';
+    try { await post({action: 'cancel'}); } catch (e) { $('cancel-err').textContent = e.message; }
+  };
+  $('a-cal').onclick = function(){
+    var d = data, m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d.date); if (!m) return;
+    var t = (d.time || '19:00').replace(':', '') + '00';
+    var end = String(Math.min(23, Number((d.time || '19:00').slice(0, 2)) + 3)).padStart(2, '0') + (d.time || '19:00').slice(3, 5) + '00';
+    var ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Yonko Bar//Reservation//FR', 'BEGIN:VEVENT', 'UID:' + token.slice(0, 12) + '@yonkobar.com', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z', 'DTSTART;TZID=Europe/Paris:' + m[1] + m[2] + m[3] + 'T' + t, 'DTEND;TZID=Europe/Paris:' + m[1] + m[2] + m[3] + 'T' + end, 'SUMMARY:Yonko Bar · ' + (d.guests || '') + ' pers.', 'LOCATION:Yonko Bar\\, 15 rue Monsieur le Prince\\, 75006 Paris', 'URL:' + location.href, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], {type: 'text/calendar'})); a.download = 'yonko-bar.ics'; document.body.appendChild(a); a.click(); a.remove();
+  };
+  if (!token) { $('loading').hidden = true; $('error').hidden = false; return; }
+  load(false);
+  setInterval(function(){ if (!document.hidden && !busy) load(true); }, 30000);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) load(true); });
+})();
+</script>
+</body>
+</html>

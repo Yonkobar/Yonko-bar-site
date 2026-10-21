@@ -11,3 +11,13 @@
   Cache-Control: no-store
 /api/push/*
   Cache-Control: no-store
+/img/*
+  Cache-Control: public, max-age=604800
+/assets/*
+  Cache-Control: public, max-age=86400
+/ma-reservation*
+  X-Robots-Tag: noindex
+  Referrer-Policy: no-referrer
+  Cache-Control: no-store
+/api/my-reservation/*
+  Cache-Control: no-store

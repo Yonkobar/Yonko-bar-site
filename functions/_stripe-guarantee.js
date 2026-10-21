@@ -87,6 +87,17 @@ export async function expireCheckoutSession(sessionId, env) {
   }
 }
 
+// Retire la carte de garantie du client chez Stripe (plus aucun débit possible).
+export async function detachPaymentMethod(paymentMethodId, env) {
+  if (!paymentMethodId) return { detached: false, reason: "no_payment_method" };
+  try {
+    await stripeRequest(`payment_methods/${encodeURIComponent(paymentMethodId)}/detach`, env, new URLSearchParams());
+    return { detached: true };
+  } catch (e) {
+    return { detached: false, reason: String(e?.message || e).slice(0, 300) };
+  }
+}
+
 export async function retrieveSetupIntent(setupIntentId, env) {
   return stripeRequest(`setup_intents/${encodeURIComponent(setupIntentId)}`, env, null, "GET");
 }

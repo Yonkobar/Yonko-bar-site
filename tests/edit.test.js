@@ -127,7 +127,7 @@ test('Règle caution : Taverne uniquement vendredi/samedi, privatisation tous le
 
 async function confirm(entry) {
   const t = setup(entry);
-  const env = {DASHBOARD_KEY: 'k', RESEND_API_KEY: 're_x', RESERVATIONS: {get: async () => JSON.stringify(entry), put: async (k, v) => { t.saved = JSON.parse(v); }}};
+  const env = {DASHBOARD_KEY: 'k', RESEND_API_KEY: 're_x', RESERVATIONS: {get: async () => JSON.stringify(entry), put: async (k, v) => { if (k.startsWith('res:')) t.saved = JSON.parse(v); }}};
   const r = await sendConfirmation({request: new Request('https://yonkobar.com/x', {method: 'POST', headers: {'x-dashboard-key': 'k'}}), env, params: {id: entry.id}});
   return {r, body: await r.json(), calls: t.calls, t};
 }

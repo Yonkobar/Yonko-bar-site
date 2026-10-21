@@ -1,6 +1,7 @@
 // POST /api/reservations/:id/deposit-link
 // Crée un lien Stripe Checkout en mode SETUP pour enregistrer une carte de garantie.
 import { createStripeGuaranteeLink, sendGuaranteeEmail } from "../../../_stripe-guarantee.js";
+import { ensureAccessToken, manageUrl } from "../../../_access.js";
 
 function cors() {
   return {
@@ -40,11 +41,12 @@ export async function onRequestPost({ request, env, params }) {
   try {
     const origin = new URL(request.url).origin;
     const url = await createStripeGuaranteeLink(entry, amountEuros, origin, env);
+    await ensureAccessToken(entry, env);
 
     // sendEmail:false = l'email part plus tard avec la confirmation (évite un doublon).
     const emailResult = body.sendEmail === false
       ? { sent: false, reason: "deferred" }
-      : await sendGuaranteeEmail(entry, env);
+      : await sendGuaranteeEmail(entry, env, { manageUrl: manageUrl(entry, env, origin) });
     if (body.sendEmail !== false) entry.emailSent = !!emailResult.sent;
 
     await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(entry));

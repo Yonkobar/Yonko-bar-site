@@ -1,5 +1,5 @@
 (() => {
-  const VERSION='2026.10.20.2';
+  const VERSION='2026.10.21.1';
   let installPrompt, registration, busy=false, enabled=false, refreshing=false, lastRefresh=Date.now(), lastVersionCheck=0;
   const buttons=[...document.querySelectorAll('.install-app')], note=document.getElementById('connectionNote');
   const dialog=document.createElement('dialog');dialog.id='mobileSettings';

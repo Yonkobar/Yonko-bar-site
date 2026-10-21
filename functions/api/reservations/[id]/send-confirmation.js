@@ -3,6 +3,7 @@
 // Si une carte de garantie reste à enregistrer, l'email contient le lien de caution.
 import { sendDepositEmail } from "../../../_shared.js";
 import { sendGuaranteeEmail } from "../../../_stripe-guarantee.js";
+import { ensureAccessToken, manageUrl } from "../../../_access.js";
 
 function cors() {
   return {
@@ -34,11 +35,13 @@ export async function onRequestPost({ request, env, params }) {
   }
 
   let emailResult;
+  await ensureAccessToken(entry, env);
+  const mUrl = manageUrl(entry, env, new URL(request.url).origin);
   try {
     const pendingCard = entry.depositLink && !["autorisee", "debitee", "deposee"].includes(entry.depositStatus);
     emailResult = pendingCard
-      ? await sendGuaranteeEmail(entry, env, { subject: "Votre réservation au Yonko Bar est confirmée" })
-      : await sendDepositEmail({ ...entry, depositLink: "" }, env, { subject: "Votre réservation au Yonko Bar est confirmée" });
+      ? await sendGuaranteeEmail(entry, env, { subject: "Votre réservation au Yonko Bar est confirmée", manageUrl: mUrl })
+      : await sendDepositEmail({ ...entry, depositLink: "" }, env, { subject: "Votre réservation au Yonko Bar est confirmée", manageUrl: mUrl });
   } catch (e) {
     emailResult = { sent: false, reason: String(e?.message || e).slice(0, 500) };
   }

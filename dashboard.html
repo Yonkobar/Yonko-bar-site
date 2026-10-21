@@ -79,6 +79,7 @@
   <p class="edit-note full" id="e-deposit-note" style="grid-column:1/-1"></p>
   <div class="full" style="grid-column:1/-1" id="e-manual-box"></div>
   <label class="field full">À préparer · note interne (jamais envoyée au client)<textarea id="e-kitchen" rows="3" placeholder="Ex. 2 planches mixtes, 30 tapas, gâteau d’anniversaire…"></textarea></label>
+  <div class="full" style="grid-column:1/-1;border-top:1px solid var(--rule);padding-top:14px" id="e-msg-box"></div>
   <label class="field full edit-check"><input id="e-notify" type="checkbox" checked> Prévenir le client par email</label>
 </div><p class="err" id="e-err" role="alert"></p><div class="form-actions"><button class="btn-primary" id="e-save" onclick="saveEdit()">Enregistrer</button><button class="btn-ghost" onclick="closeEdit()">Annuler</button></div></dialog>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
@@ -594,7 +595,7 @@ async function copyMessage(entry) {
 
 
 function cardHTML(e) {
-  const status=e.status==='declined'&&e.cancelledOnPrivateaser?{label:'Annulée · Privateaser',color:'#ad4237'}:depositPending(e)?{label:e.status==='accepted'?'Acceptée · caution en attente':'En attente · caution',color:DEPOSIT_PENDING_COLOR}:(STATUS[e.status]||{label:'À vérifier',color:'#706e67'}), sc=status.color;
+  const status=e.status==='declined'&&e.cancelledByClient?{label:'Annulée par le client',color:'#ad4237'}:e.status==='declined'&&e.cancelledOnPrivateaser?{label:'Annulée · Privateaser',color:'#ad4237'}:depositPending(e)?{label:e.status==='accepted'?'Acceptée · caution en attente':'En attente · caution',color:DEPOSIT_PENDING_COLOR}:(STATUS[e.status]||{label:'À vérifier',color:'#706e67'}), sc=status.color;
   const data=escapeHTML(e.id), flags=[];
   if(e.status==='accepted'&&e.email){
     flags.push(`<span class="flag ${e.emailSent?'ok':'warn'}">${ICONS.mail} ${e.emailSent?'Confirmation envoyée':'Confirmation non envoyée'}</span>`);
@@ -607,7 +608,7 @@ function cardHTML(e) {
   const action=(name,label,icon,cls='')=>`<button class="action ${cls}" data-entry="${data}" data-action="${name}">${icon} ${label}</button>`;
   return `<article class="card"><div class="card-top"><div class="avatar" style="--sc:${sc}">${escapeHTML(initials(e.name))}</div><div class="card-info"><div class="card-toprow"><div><h3 class="name">${escapeHTML(e.name)}</h3><p class="meta">${escapeHTML(formatDate(e.date))}${e.time?' · '+escapeHTML(e.time):''}${e.guests?' · '+escapeHTML(e.guests)+' pers.':''}</p>${e.type?`<p class="meta">Espace · ${escapeHTML(e.type)}</p>`:''}${e.source?`<p class="meta">${escapeHTML(e.source)}</p>`:''}${e.contact?`<p class="meta">${escapeHTML(e.contact)}</p>`:''}${e.email&&e.email!==e.contact?`<p class="meta">${escapeHTML(e.email)}</p>`:''}</div><span class="badge" style="--sc:${sc}">${status.label}</span></div></div></div>
   ${e.notes?`<p class="notes">${escapeHTML(e.notes)}</p>`:''}${e.kitchenNote?`<div class="kitchen"><b>À préparer · note interne</b>${escapeHTML(e.kitchenNote)}</div>`:''}${flags.length?`<div class="flags">${flags.join('')}</div>`:''}
-  <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${e.email&&e.status!=='declined'?action('confirm-mail',e.emailSent?'Renvoyer la confirmation':'Envoyer la confirmation',ICONS.mail):''}${depositPending(e)?action('manual-deposit','Caution déposée',ICONS.check):''}${action('edit','Modifier',ICONS.edit)}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
+  <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${e.email&&e.status!=='declined'?action('confirm-mail',e.emailSent?'Renvoyer la confirmation':'Envoyer la confirmation',ICONS.mail):''}${depositPending(e)?action('manual-deposit','Caution déposée',ICONS.check):''}${(e.messages||[]).length?action('messages',(e.unreadForStaff?e.unreadForStaff+' nouveau'+(e.unreadForStaff>1?'x':'')+' message'+(e.unreadForStaff>1?'s':''):'Messages ('+e.messages.length+')'),ICONS.mail,e.unreadForStaff?'accept':''):''}${action('edit','Modifier',ICONS.edit)}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
   ${e.depositLink?`<div class="deposit">${e.depositAmount?escapeHTML(e.depositAmount)+' € · ':''}${escapeHTML(e.depositLink)}</div>`:''}</article>`;
 }
 
@@ -703,7 +704,7 @@ document.addEventListener('click',async event=>{
   const btn=event.target.closest('[data-action][data-entry]');if(!btn)return;
   const entry=entries.find(e=>String(e.id)===btn.dataset.entry);if(!entry)return;
   btn.disabled=true;
-  try{switch(btn.dataset.action){case 'accepted':case 'declined':case 'pending':await setStatus(entry.id,btn.dataset.action);break;case 'stripe':await makeStripeLink(entry.id,entry.name);break;case 'delete':await deleteEntry(entry.id,entry.name);break;case 'copy':await copyMessage(entry);break;case 'quote':openQuote(entry);break;case 'edit':openEdit(entry);break;case 'confirm-mail':await sendConfirmation(entry);break;case 'manual-deposit':await manualDeposit(entry);break;}}finally{btn.disabled=false;}
+  try{switch(btn.dataset.action){case 'accepted':case 'declined':case 'pending':await setStatus(entry.id,btn.dataset.action);break;case 'stripe':await makeStripeLink(entry.id,entry.name);break;case 'delete':await deleteEntry(entry.id,entry.name);break;case 'copy':await copyMessage(entry);break;case 'quote':openQuote(entry);break;case 'edit':openEdit(entry);break;case 'messages':openEdit(entry);setTimeout(()=>{const t=document.getElementById('e-msg-text');if(t){t.scrollIntoView({block:'center'});t.focus();}},50);break;case 'confirm-mail':await sendConfirmation(entry);break;case 'manual-deposit':await manualDeposit(entry);break;}}finally{btn.disabled=false;}
 });
 document.getElementById('quotePanel').addEventListener('keydown',event=>{
   if(event.key==='Escape'){closeQuote();return;}
@@ -741,7 +742,7 @@ function openEdit(entry){
   editEntry=entry;
   document.getElementById('editTitle').textContent=entry.name||'Réservation';
   document.getElementById('e-date').value=entry.date||'';document.getElementById('e-time').value=entry.time||'';
-  document.getElementById('e-guests').value=entry.guests||'';document.getElementById('e-type').value=entry.type||'';document.getElementById('e-email').value=entry.email||'';document.getElementById('e-kitchen').value=entry.kitchenNote||'';renderManualBox();
+  document.getElementById('e-guests').value=entry.guests||'';document.getElementById('e-type').value=entry.type||'';document.getElementById('e-email').value=entry.email||'';document.getElementById('e-kitchen').value=entry.kitchenNote||'';renderManualBox();renderMsgBox();if(entry.unreadForStaff)markMessagesRead(entry);
   document.getElementById('e-deposit').value=hasDeposit(entry)?'yes':'no';document.getElementById('e-deposit-amount').value=hasDeposit(entry)?(entry.depositAmount||''):'';
   const locked=['debitee','deposee'].includes(entry.depositStatus);document.getElementById('e-deposit').disabled=locked;document.getElementById('e-deposit-amount').disabled=locked;
   document.getElementById('e-notify').checked=true;
@@ -772,6 +773,35 @@ async function saveEdit(){
   }catch(e){err.textContent=e.message;}finally{btn.disabled=false;}
 }
 document.getElementById('editDialog').addEventListener('close',()=>{editEntry=null;});
+function renderMsgBox(){
+  const e=editEntry,box=document.getElementById('e-msg-box');if(!e){box.innerHTML='';return;}
+  const list=(e.messages||[]).map(m=>`<div style="align-self:${m.from==='client'?'flex-start':'flex-end'};max-width:85%;background:${m.from==='client'?'var(--paper-2)':'var(--brass-soft)'};border-radius:12px;padding:9px 12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px">${escapeHTML(m.text)}<div style="font-size:11px;color:var(--muted);margin-top:3px">${m.from==='client'?'Client':'Yonko Bar'} · ${new Date(m.at).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div>`).join('');
+  box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px"><strong style="font-size:13px">Messages avec le client</strong><button type="button" class="btn-ghost" style="min-height:34px;padding:6px 12px;font-size:12px" onclick="copyClientLink(editEntry)">Copier le lien « Ma réservation »</button></div>
+  <div style="display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto;margin-bottom:10px">${list||'<p class="edit-note" style="margin:0">Aucun message. Le client peut vous écrire depuis sa page « Ma réservation ».</p>'}</div>
+  <label class="field">Répondre au client<textarea id="e-msg-text" rows="2" placeholder="${e.email?'Le client sera prévenu par email':'Pas d’email : le client verra le message sur sa page'}"></textarea></label>
+  <div style="display:flex;justify-content:flex-end;margin-top:8px"><button type="button" class="btn-primary" id="e-msg-send" style="min-height:40px;padding:8px 16px" onclick="sendStaffMessage()">Envoyer le message</button></div>`;
+}
+async function sendStaffMessage(){
+  const t=document.getElementById('e-msg-text'),btn=document.getElementById('e-msg-send');
+  if(!editEntry||!t||!t.value.trim()||btn.disabled)return;
+  btn.disabled=true;
+  try{
+    const res=await api(`/${editEntry.id}/messages`,{method:'POST',body:JSON.stringify({text:t.value.trim()})});
+    editEntry=res.entry;renderMsgBox();entries=await api('');render();
+    toast(res.emailResult&&res.emailResult.sent?'Message envoyé · client prévenu par email.':'Message enregistré sur la page du client'+(editEntry.email?' (email non parti).':'.'),res.emailResult&&!res.emailResult.sent&&editEntry.email?'error':'success');
+  }catch(e){toast(e.message,'error');}finally{if(btn)btn.disabled=false;}
+}
+async function markMessagesRead(entry){
+  try{await api(`/${entry.id}/messages`,{method:'POST',body:JSON.stringify({markRead:true})});const x=entries.find(e=>e.id===entry.id);if(x){x.unreadForStaff=0;render();}}catch{}
+}
+async function copyClientLink(entry){
+  if(!entry)return;
+  try{
+    const res=await api(`/${entry.id}/access-link`,{method:'POST',body:'{}'});
+    try{await navigator.clipboard.writeText(res.url);toast('Lien « Ma réservation » copié.','success');}
+    catch{prompt('Lien « Ma réservation » du client :',res.url);}
+  }catch(e){toast(e.message,'error');}
+}
 function renderManualBox(){
   const e=editEntry,box=document.getElementById('e-manual-box');if(!e){box.innerHTML='';return;}
   if(e.depositStatus==='deposee'){

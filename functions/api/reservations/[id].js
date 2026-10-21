@@ -1,5 +1,6 @@
 // PATCH /api/reservations/:id
 import { computeDepositAmount, sendDepositEmail } from "../../_shared.js";
+import { ensureAccessToken, manageUrl } from "../../_access.js";
 import { createStripeGuaranteeLink, sendGuaranteeEmail, expireCheckoutSession } from "../../_stripe-guarantee.js";
 
 const EDIT_LABELS = { date: "Date", time: "Heure", guests: "Personnes", type: "Espace", email: "Email" };
@@ -130,7 +131,9 @@ async function handleEdit(entry, edit, request, env) {
   const notify = edit.notifyClient !== false;
   const shouldEmail = notify && entry.email && entry.status !== "declined" && (entry.status === "accepted" || newLink) && (changed.some((k) => !["email", "kitchenNote"].includes(k)) || newLink);
   if (shouldEmail) {
+    await ensureAccessToken(entry, env);
     const opts = {
+      manageUrl: manageUrl(entry, env, new URL(request.url).origin),
       title: "Réservation modifiée",
       intro: "Votre réservation au Yonko Bar a été modifiée. Voici le récapitulatif à jour :",
       subject: "Modification de votre réservation au Yonko Bar",
@@ -179,6 +182,9 @@ export async function onRequestDelete({ request, env, params }) {
   }
 
   const id = params.id;
+  const existing = await env.RESERVATIONS.get(`res:${id}`);
+  const token = existing ? JSON.parse(existing).accessToken : null;
+  if (token) await env.RESERVATIONS.delete(`tok:${token}`);
   await env.RESERVATIONS.delete(`res:${id}`);
 
   const raw = await env.RESERVATIONS.get("res:index");
@@ -247,9 +253,11 @@ export async function onRequestPatch({ request, env, params }) {
     // Si un lien Stripe existe, le mail contient la garantie.
     // Sinon, c'est une confirmation simple.
     try {
+      await ensureAccessToken(entry, env);
+      const mailOpts = { manageUrl: manageUrl(entry, env, new URL(request.url).origin) };
       emailResult = entry.depositLink
-        ? await sendGuaranteeEmail(entry, env)
-        : await sendDepositEmail(entry, env);
+        ? await sendGuaranteeEmail(entry, env, mailOpts)
+        : await sendDepositEmail(entry, env, mailOpts);
 
       entry.emailSent = !!emailResult?.sent;
 

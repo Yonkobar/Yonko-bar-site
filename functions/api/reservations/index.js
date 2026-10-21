@@ -1,4 +1,5 @@
 import {notifyNewReservation} from '../../_push.js';
+import { ensureAccessToken } from '../../_access.js';
 // GET  /api/reservations  -> liste des réservations (protégé par x-dashboard-key)
 // POST /api/reservations  -> créer une réservation (appelé par le formulaire du site, public)
 
@@ -81,6 +82,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     createdAt: Date.now(),
   };
 
+  // Lien privé « Ma réservation » (renvoyé au formulaire du site pour la page de confirmation).
+  await ensureAccessToken(entry, env);
   await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(entry));
   const ids = await getIndex(env.RESERVATIONS);
   ids.push(id);
@@ -89,7 +92,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   const notification = notifyNewReservation(env, request, entry);
   if (waitUntil) waitUntil(notification); else await notification;
 
-  return new Response(JSON.stringify({ ok: true, id }), {
+  return new Response(JSON.stringify({ ok: true, id, token: entry.accessToken }), {
     status: 201,
     headers: { "Content-Type": "application/json", ...cors() },
   });

@@ -95,6 +95,7 @@ export function buildEmailHtml(entry, opts = {}) {
               <a href="${entry.depositLink}" style="background:#ff6e00;color:#1c1c1c;font-weight:700;font-size:14px;padding:13px 26px;border-radius:8px;text-decoration:none;display:inline-block">Valider ma caution${entry.depositAmount ? " — " + entry.depositAmount + "€" : ""}</a>
             </td></tr></table>
           ` : ""}
+          ${opts.manageUrl ? `<p style="font-size:13px;color:#78726a;line-height:1.5;margin:22px 0 0">Suivez votre réservation, annulez-la jusqu'à 48 h avant ou écrivez-nous depuis votre espace :<br><a href="${opts.manageUrl}" style="color:#c25400;font-weight:600">Voir ma réservation</a></p>` : ""}
           <p style="font-size:13px;color:#78726a;margin:24px 0 0">À bientôt,<br>L'équipe du Yonko Bar</p>
         </td>
       </tr>
