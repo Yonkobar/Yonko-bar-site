@@ -1,0 +1,105 @@
+/* Réserver / Ma réservation : composants dans la DA du site (s'appuie sur yonko.css) */
+[hidden]{display:none!important}
+.bk{max-width:1080px;margin:0 auto;padding:8.5rem 2rem 5rem}
+.bk section{padding:0}
+.bk section.panel,.bk form.panel{padding:2.1rem}
+.bk section.panel-hl{padding:2rem}
+.bk a{color:var(--orange-lt)}
+.bk .stitle span{color:var(--orange-lt)}
+.muted{color:rgba(244,232,212,.46)}
+.serif{font-family:"Cinzel",serif}
+.eyebrow-s{font-family:"Cinzel",serif;font-size:.58rem;letter-spacing:.32em;text-transform:uppercase;color:var(--orange)}
+.lead{color:rgba(244,232,212,.6);font-size:.9rem;line-height:1.75;max-width:620px}
+
+/* Étapes */
+.stepper{list-style:none;margin:2rem 0 2.2rem;padding:0;display:flex;gap:1.6rem;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.stepper li{font-family:"Cinzel",serif;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,232,212,.3);padding:0 0 .9rem;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;gap:.55rem;align-items:center}
+.stepper li span{font-family:"Cinzel Decorative",serif;font-size:.85rem}
+.stepper li.done{color:var(--cream-dim)}
+.stepper li.cur{color:var(--orange-lt);border-bottom-color:var(--orange)}
+
+/* Mise en page */
+.layout{display:grid;grid-template-columns:1.55fr 1fr;gap:2.6rem;align-items:start}
+.layout .side{position:sticky;top:6.5rem}
+.panel{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:2.1rem}
+.panel-hl{background:linear-gradient(160deg,rgba(174,30,30,.12),rgba(224,112,16,.05));border:1px solid rgba(224,112,16,.3);border-radius:6px;padding:2rem}
+.bk h2:not(.stitle){font-family:"Cinzel",serif;font-size:.78rem!important;letter-spacing:.16em;text-transform:uppercase;color:var(--orange);font-weight:600;display:flex;align-items:center;gap:.65rem}
+.bk h2:not(.stitle)::before{content:"";width:17px;height:1px;background:var(--orange);flex:none}
+.bk h2.plain::before{display:none}
+.field{display:flex;flex-direction:column}
+.bk label.cgv{display:flex;gap:.8rem;align-items:flex-start;font-family:"DM Sans",sans-serif;font-size:.85rem;letter-spacing:0;text-transform:none;color:var(--cream-dim);cursor:pointer;line-height:1.6}
+.bk input[type=checkbox]{appearance:auto;-webkit-appearance:checkbox;width:20px;height:20px;padding:0;flex:none;margin-top:.15rem;accent-color:#ae1e1e}
+.bk input[type=date]{appearance:auto;-webkit-appearance:auto;color-scheme:dark;min-height:46px}
+.bk input,.bk select,.bk textarea{font-size:16px}
+.field textarea{min-height:96px;resize:vertical}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem 1rem}
+.err{color:var(--red-br);font-size:.8rem;margin:1rem 0 0;min-height:1em}
+.notice{border:1px solid rgba(174,30,30,.45);background:rgba(174,30,30,.1);border-radius:3px;padding:.8rem 1rem;font-size:.8rem;color:var(--cream-dim)}
+
+/* Boutons (variantes du site) */
+.btn-primary{background:var(--red);color:var(--cream)!important;box-shadow:0 4px 22px rgba(174,30,30,.34)}
+.btn-primary:hover{background:var(--red-br);transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--orange-lt)!important;border:1px solid rgba(224,112,16,.4)}
+.btn-ghost:hover{border-color:var(--orange);background:rgba(224,112,16,.06)}
+.btn-sm{padding:.7rem 1.3rem;font-size:.62rem}
+.btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
+.link-danger{background:none;border:0;color:rgba(224,48,48,.85);font-family:"Cinzel",serif;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;padding:.8rem;text-decoration:underline;text-underline-offset:4px}
+
+/* Choix (heures, espaces, personnes) */
+.chips{display:flex;gap:.55rem;flex-wrap:wrap}
+.chip{font-family:"Cinzel",serif;font-size:.68rem;letter-spacing:.1em;padding:.75rem 1rem;min-width:4.6rem;background:rgba(255,255,255,.02);border:1px solid rgba(224,112,16,.22);border-radius:2px;color:var(--cream-dim);cursor:pointer;transition:all .2s}
+.chip:hover{border-color:var(--orange);color:var(--cream)}
+.chip[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:var(--cream);box-shadow:0 4px 18px rgba(174,30,30,.35)}
+#spaces{grid-template-columns:repeat(3,1fr)!important}
+.space{text-align:left;padding:0;border:1px solid var(--border);border-radius:4px;background:rgba(255,255,255,.02);color:var(--cream);overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:all .25s}
+.space:hover{border-color:rgba(224,112,16,.5);transform:translateY(-2px)}
+.space[aria-pressed="true"]{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange),0 8px 28px rgba(224,112,16,.18)}
+.space img{width:100%;height:110px;object-fit:cover;filter:saturate(1.05)}
+.space span.t{padding:.9rem 1rem 1rem;display:flex;flex-direction:column;gap:.25rem}
+.space strong{font-family:"Cinzel",serif;font-size:.78rem;color:var(--orange-lt);letter-spacing:.05em}
+.space .muted{font-size:.72rem!important}
+.counter{display:flex;align-items:center;gap:1.2rem}
+.counter button{width:46px;height:46px;border-radius:2px;border:1px solid rgba(224,112,16,.35);background:transparent;color:var(--orange-lt);font-size:1.3rem;cursor:pointer}
+.counter button:hover{background:rgba(224,112,16,.08)}
+.counter output{font-family:"Cinzel Decorative",serif;font-size:2.2rem;min-width:4rem;text-align:center;color:var(--cream)}
+
+/* Récapitulatif */
+dl.recap{margin:0;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+dl.recap div{display:flex;justify-content:space-between;gap:1rem;padding:.62rem .9rem;border-bottom:1px solid rgba(255,255,255,.04);font-size:.8rem}
+dl.recap div:last-child{border-bottom:0}
+dl.recap dt{font-family:"Cinzel",serif;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-dim)}
+dl.recap dd{margin:0;color:var(--orange-lt);font-family:"Cinzel",serif;font-size:.74rem;text-align:right}
+#conditions li,#conds{font-size:.78rem;color:rgba(244,232,212,.62);line-height:1.6}
+#conditions li::marker{color:var(--orange)}
+
+/* Ma réservation */
+.cover{position:relative;border-radius:6px;overflow:hidden;min-height:260px;display:flex;align-items:flex-end;background:#100c08 url('/img/taverne-salle.jpg') center/cover;border:1px solid var(--border)}
+.cover::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,6,4,.25),rgba(8,6,4,.94))}
+.cover>div{position:relative;padding:2rem 2.2rem;display:flex;flex-direction:column;gap:.7rem}
+.cover h1{font-family:"Cinzel Decorative",serif!important;color:var(--cream);font-weight:700}
+.badge{align-self:flex-start;font-family:"Cinzel",serif;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;padding:.42rem .85rem;border-radius:2px;color:var(--cream)}
+.badge.ok{background:rgba(41,168,154,.85)}.badge.wait{background:#6b45b0}.badge.pending{background:rgba(224,112,16,.85);color:#140c05}.badge.off{background:var(--red)}
+.timeline{list-style:none;margin:0;padding:0 0 0 .2rem;display:flex;flex-direction:column;gap:1.1rem;position:relative}
+.timeline li{display:flex;gap:.9rem;align-items:flex-start;font-size:.85rem}
+.timeline li strong{font-family:"Cinzel",serif;font-size:.74rem;letter-spacing:.06em;color:var(--cream);font-weight:600}
+.timeline .dot{flex:none;width:24px;height:24px;border-radius:50%;border:1px solid rgba(224,112,16,.4);display:flex;align-items:center;justify-content:center;margin-top:.05rem}
+.timeline .dot.done{background:var(--teal);border-color:var(--teal);color:#08201d}
+.timeline .dot.wait{border-color:#8a63d2;box-shadow:0 0 0 3px rgba(138,99,210,.2)}
+.thread{display:flex;flex-direction:column;gap:.7rem;max-height:420px;overflow-y:auto;padding:2px}
+.msg{max-width:84%;padding:.8rem 1rem;border-radius:4px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.86rem;line-height:1.6}
+.msg.me{align-self:flex-end;background:rgba(224,112,16,.1);border:1px solid rgba(224,112,16,.25)}
+.msg.bar{align-self:flex-start;background:rgba(41,168,154,.08);border:1px solid rgba(41,168,154,.3)}
+.msg small{display:block;margin-top:.35rem;font-family:"Cinzel",serif;font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(244,232,212,.4)}
+.actions-col{display:flex;flex-direction:column;gap:.6rem}
+.actions-col .btn{width:100%;text-align:center}
+
+@media(max-width:900px){
+  .bk{padding:7rem 1.35rem 4rem}
+  .bk section.panel,.bk form.panel,.bk section.panel-hl{padding:1.4rem}
+  .layout{grid-template-columns:1fr}
+  .layout .side{position:static}
+  #spaces{grid-template-columns:1fr!important}
+  .grid-2{grid-template-columns:1fr}
+  .stepper{gap:1rem}
+  .stepper li{font-size:.55rem}
+}

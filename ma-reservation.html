@@ -7,43 +7,44 @@
 <meta name="description" content="Suivi de votre réservation au Yonko Bar.">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#0d0a07">
-<link rel="icon" type="image/png" href="/icons/logo-192.png">
-<link rel="apple-touch-icon" href="/icons/logo-192.png">
+<meta name="theme-color" content="#080604">
+<link rel="icon" type="image/jpeg" href="/img/logo-nav.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&amp;family=Cinzel:wght@500;600;700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/site.css?v=20261021b">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&amp;family=Cinzel:wght@400;600;700&amp;family=DM+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/yonko.css?v=20261021">
+<link rel="stylesheet" href="/assets/booking.css?v=20261021">
 </head>
 <body class="">
-<a class="skip" href="#contenu">Aller au contenu</a>
-<header class="header">
-  <div class="header-in">
-    <a class="brand" href="/" aria-label="Yonko Bar, accueil"><img src="/img/logo.svg" alt="" width="40" height="45"><span>YONKO BAR</span></a>
-    <nav class="nav" aria-label="Navigation principale">
-      <a href="/#taverne">La Taverne</a>
-      <a href="/#menu">La carte</a>
-      <a href="/#events">Événements</a>
-      <a href="/#cave">La Cave</a>
-      <a href="/#contact">Contact</a>
-    </nav>
-    <a class="btn btn-primary btn-sm" href="/reserver">Réserver</a>
-    <details class="burger">
-      <summary aria-label="Ouvrir le menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></summary>
-      <nav aria-label="Menu">
-        <a href="/reserver" style="color:var(--orange-lt);font-weight:700">Réserver une table</a>
-        <a href="/#taverne">La Taverne</a>
-        <a href="/#menu">La carte</a>
-        <a href="/#events">Événements</a>
-        <a href="/#cave">La Cave</a>
-        <a href="/#contact">Contact</a>
-      </nav>
-    </details>
-  </div>
-</header>
-<main id="contenu" class="wrap" style="padding-top:36px;padding-bottom:80px">
+<div class="topbar">Happy Hour 17h30-21h &middot; Mar-Sam &nbsp;|&nbsp; <a href="/reserver">Reserver maintenant &rarr;</a></div>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="/#taverne" onclick="closeMenu()">La Taverne</a>
+  <a href="/#cave" onclick="closeMenu()">La Cave</a>
+  <a href="/#galerie" onclick="closeMenu()">Galerie</a>
+  <a href="/#menu" onclick="closeMenu()">Carte</a>
+  <a href="/#events" onclick="closeMenu()">Evenements</a>
+  <a href="/#faq" onclick="closeMenu()">FAQ</a>
+  <a href="/reserver" class="mm-cta" onclick="closeMenu()">Reserver</a>
+</div>
+<nav>
+  <a href="/" class="nav-logo"><img src="/img/logo-nav.jpg" alt="Yonko Bar"></a>
+  <ul class="nav-links">
+    <li><a href="/#taverne">La Taverne</a></li>
+    <li><a href="/#cave">La Cave</a></li>
+    <li><a href="/#menu">Carte</a></li>
+    <li><a href="/#events">Evenements</a></li>
+    <li><a href="/#faq">FAQ</a></li>
+    <li><a href="/reserver" class="nav-cta">Reserver</a></li>
+  </ul>
+  <button class="burger" id="burgerBtn" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="floaters">
+  <a href="https://wa.me/33750915905" target="_blank" class="float-wa">WhatsApp</a>
+  <a href="tel:+33750915905" class="float-call">Appeler</a>
+</div>
+<main id="contenu" class="bk">
   <p id="loading" class="muted">Chargement de votre réservation…</p>
-  <div id="error" class="panel" hidden><h1 class="serif" style="margin:0 0 10px;font-size:28px">Réservation introuvable</h1><p style="margin:0 0 16px;color:var(--sand)" id="error-text">Ce lien ne correspond à aucune réservation. Vérifiez le lien reçu par email, ou contactez-nous.</p><a class="btn btn-ghost btn-sm" href="https://wa.me/33750915905" target="_blank" rel="noopener">Nous écrire sur WhatsApp</a></div>
+  <div id="error" class="panel" hidden><h1 class="stitle">Réservation <span>introuvable</span></h1><p style="margin:0 0 16px;color:var(--sand)" id="error-text">Ce lien ne correspond à aucune réservation. Vérifiez le lien reçu par email, ou contactez-nous.</p><a class="btn btn-ghost btn-sm" href="https://wa.me/33750915905" target="_blank" rel="noopener">Nous écrire sur WhatsApp</a></div>
   <div id="app" hidden style="display:flex;flex-direction:column;gap:24px">
     <section class="cover"><div>
       <span class="badge" id="status-badge"></span>
@@ -86,19 +87,23 @@
     </div>
   </div>
 </main>
-<footer class="footer">
-  <div class="wrap">
-    <span class="brand"><img src="/img/logo.svg" alt="" width="26" height="29" style="width:26px;height:29px"><span style="font-size:15px">YONKO BAR</span></span>
-    <nav aria-label="Liens utiles">
-      <a href="https://www.instagram.com/yonko.bar" rel="noopener" target="_blank">Instagram</a>
-      <a href="https://www.facebook.com/p/Yonko-Bar-100092517527164/" rel="noopener" target="_blank">Facebook</a>
-      <a href="https://g.page/yonkobar" rel="noopener" target="_blank">Google</a>
-      <a href="/mentions-legales">Mentions légales et confidentialité</a>
-    </nav>
-    <span>15 rue Monsieur le Prince, 75006 Paris</span>
+<footer>
+  <div class="flogo"><img src="/img/logo-footer.jpg" alt="Yonko Bar"></div>
+  <p>Bar Gaming - Univers Manga - Paris 6e - Ouvert depuis janvier 2024</p>
+  <div class="flinks">
+    <a href="/#taverne">La Taverne</a><a href="/#cave">La Cave</a><a href="/#galerie">Galerie</a>
+    <a href="/#menu">Carte</a><a href="/#events">Evenements</a><a href="/#faq">FAQ</a>
+    <a href="/reserver">Reserver</a><a href="/#contact">Contact</a><a href="/mentions-legales">Mentions legales</a>
   </div>
-  <p class="legal">L'abus d'alcool est dangereux pour la santé, à consommer avec modération.</p>
+  <p>2025 Yonko Bar - Kaizoku Corp - 15 rue Monsieur Le Prince, 75006 Paris</p>
+  <p>L'abus d'alcool est dangereux pour la santé, à consommer avec modération.</p>
 </footer>
+<script>
+function toggleMenu(){var m=document.getElementById('mobileMenu'),b=document.getElementById('burgerBtn');m.classList.toggle('open');b.classList.toggle('open');document.body.style.overflow=m.classList.contains('open')?'hidden':'';}
+function closeMenu(){document.getElementById('mobileMenu').classList.remove('open');document.getElementById('burgerBtn').classList.remove('open');document.body.style.overflow='';}
+var obs=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)x.target.classList.add('visible');});},{threshold:.08});
+document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(function(el){obs.observe(el);});
+</script>
 <script>
 (function(){
   var token = new URLSearchParams(location.search).get('t') || '';
@@ -147,7 +152,7 @@
     thread.innerHTML = (d.messages || []).length ? d.messages.map(function(m){ return '<div class="msg ' + (m.from === 'client' ? 'me' : 'bar') + '">' + esc(m.text) + '<small>' + (m.from === 'client' ? 'Vous' : 'Yonko Bar') + ' · ' + esc(stamp(m.at)) + '</small></div>'; }).join('') : '<p class="muted" style="margin:0;font-size:14px">Une question, un gâteau, un changement ? Écrivez-nous ici, l’équipe vous répond par email et sur cette page.</p>';
     thread.scrollTop = thread.scrollHeight;
     // Récapitulatif
-    $('recap').innerHTML = [['Nom', d.name], ['Date', day], ['Heure', hour(d.time) || '—'], ['Personnes', d.guests || '—'], ['Espace', space(d.type)]].map(function(r){ return '<dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('');
+    $('recap').innerHTML = [['Nom', d.name], ['Date', day], ['Heure', hour(d.time) || '—'], ['Personnes', d.guests || '—'], ['Espace', space(d.type)]].map(function(r){ return '<div><dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('');
     var w = dow(d.date), conds = [];
     if (/taverne/i.test(d.type || '') && (w === 5 || w === 6) && Number(d.guests) > 6) conds.push('Minimum de consommation de 15 € / personne le vendredi et le samedi.');
     if (/privatisation/i.test(d.type || '')) conds.push('Minimum de consommation de ' + (w === 5 ? '600' : w === 6 ? '700' : '500') + ' € pour la soirée.');
