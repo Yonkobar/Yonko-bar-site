@@ -3,6 +3,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var html = document.documentElement;
   var reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  html.classList.add('home-ok'); // le script tourne : la sécurité de l'intro (dans <head>) ne se déclenche pas
 
   // ===== Défilement fluide =====
   var lenis = null;
