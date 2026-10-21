@@ -107,6 +107,19 @@
   lb.addEventListener('click', fermerLB);
   addEventListener('keydown', function (e) { if (e.key === 'Escape') { fermerLB(); fermerMenu(); } });
 
+  // ===== Galerie : charger toutes les photos avant que la piste ne passe =====
+  // En « lazy », une vignette qui entre à l'écran restait vide le temps de son chargement.
+  var galerie = document.getElementById('galerie');
+  if (galerie) {
+    var chargerGalerie = function () {
+      galerie.querySelectorAll('.gal-item img[loading="lazy"]').forEach(function (im) { im.loading = 'eager'; });
+    };
+    if ('IntersectionObserver' in window) {
+      var og = new IntersectionObserver(function (e) { if (e[0].isIntersecting) { chargerGalerie(); og.disconnect(); } }, { rootMargin: '1500px 0px' });
+      og.observe(galerie);
+    } else chargerGalerie();
+  }
+
   // ===== Carte : onglets (flèches gauche / droite au clavier) =====
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.mtabs [role="tab"]'));
   function choisir(tab, focus) {
