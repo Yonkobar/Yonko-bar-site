@@ -194,3 +194,99 @@ a{color:var(--lanterne-2)}
   .pano .colle{position:relative;height:auto;min-height:80svh}
   .pano .bande{position:absolute;transform:none!important}
 }
+
+/* ===== Intro manga : le logo arrive, coup de sabre, les deux moitiés foncent vers l'écran ===== */
+#intro{display:none}
+.avec-intro #intro{display:block;position:fixed;inset:0;z-index:100;overflow:hidden}
+.intro-en-cours,.intro-en-cours body{overflow:hidden}
+/* Rien ne démarre avant que le logo soit chargé */
+.avec-intro:not(.go) #intro *,.avec-intro:not(.go) #intro,.avec-intro:not(.go) .hero *,.avec-intro:not(.go) .nav{animation-play-state:paused!important}
+.moitie{position:absolute;inset:0;display:grid;place-items:center;
+  background:radial-gradient(circle,rgba(243,230,207,.075) 1.1px,transparent 1.7px) 0 0/8px 8px,radial-gradient(62% 58% at 50% 50%,#2d1420 0,var(--nuit) 72%);
+  transition:transform 1.15s cubic-bezier(.7,0,.2,1),filter 1.15s;will-change:transform}
+.moitie.g{clip-path:polygon(0 0,63.2% 0,37.2% 100%,0 100%)}
+.moitie.d{clip-path:polygon(62.8% 0,100% 0,100% 100%,36.8% 100%)}
+.moitie img{width:min(50vh,62vw);height:auto;animation:logo-arrive 1.05s cubic-bezier(.2,.9,.25,1) .05s both,secousse .26s linear .62s}
+@keyframes logo-arrive{
+  0%{opacity:0;transform:scale(.08) rotate(-18deg);filter:blur(6px) brightness(2)}
+  45%{opacity:1;filter:blur(0) brightness(1.3) drop-shadow(0 0 50px rgba(255,110,0,.7))}
+  60%{transform:scale(1.09) rotate(1deg)}
+  100%{opacity:1;transform:none;filter:drop-shadow(0 0 22px rgba(255,110,0,.3))}}
+@keyframes secousse{0%,100%{translate:0 0}20%{translate:-7px 4px}40%{translate:6px -5px}60%{translate:-4px -3px}80%{translate:3px 3px}}
+.vitesse{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;animation:fondu .25s .45s forwards;transition:opacity .2s}
+.sabre{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;transition:opacity .3s}
+.sabre line{stroke:#fff8ec;stroke-width:3;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;
+  filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 16px #ff8a1f);animation:coupe .2s cubic-bezier(.8,0,.2,1) 1.12s forwards}
+@keyframes coupe{to{stroke-dashoffset:0}}
+.impact{position:absolute;inset:0;background:#fff;mix-blend-mode:difference;opacity:0;pointer-events:none;animation:impact .2s steps(1,end) 1.3s}
+@keyframes impact{0%{opacity:1}50%{opacity:0}75%{opacity:1}100%{opacity:0}}
+.sfx{position:absolute;right:8vw;top:13vh;font:400 clamp(64px,11vw,170px)/1 "Dela Gothic One",var(--display);color:#fff6e8;letter-spacing:-.04em;
+  -webkit-text-stroke:3px var(--pavillon);paint-order:stroke fill;text-shadow:7px 7px 0 var(--pavillon);
+  transform:rotate(-11deg) skewX(-8deg);opacity:0;pointer-events:none;animation:sfx .45s cubic-bezier(.2,1.6,.4,1) 1.3s forwards}
+@keyframes sfx{from{opacity:0;transform:rotate(-11deg) skewX(-8deg) scale(2.2)}to{opacity:1;transform:rotate(-11deg) skewX(-8deg) scale(1)}}
+.passer{position:absolute;right:20px;bottom:20px;z-index:2;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(243,230,207,.22);background:rgba(20,13,20,.6);color:var(--sable);font:500 14px var(--texte);cursor:pointer;opacity:0;animation:fondu .5s .6s forwards}
+.passer:hover{color:var(--parchemin);border-color:var(--sable)}
+@keyframes fondu{to{opacity:1}}
+.ouvre .moitie.g{transform:translate3d(-105vw,-22vh,0) rotate(-9deg) scale(1.45);filter:brightness(1.4)}
+.ouvre .moitie.d{transform:translate3d(105vw,22vh,0) rotate(9deg) scale(1.45);filter:brightness(1.4)}
+.ouvre .sabre,.ouvre .passer,.ouvre .vitesse{opacity:0!important;transition:opacity .2s}
+.ouvre .sfx{animation:sfx-part .6s cubic-bezier(.5,0,.2,1) forwards}
+@keyframes sfx-part{from{opacity:1;transform:rotate(-11deg) skewX(-8deg) scale(1);filter:none}to{opacity:0;transform:rotate(-11deg) skewX(-8deg) scale(1.7);filter:blur(6px)}}
+
+/* La cave s'allume pendant que les deux moitiés s'écartent */
+@keyframes recul{from{transform:scale(1.18)}to{transform:none}}
+.avec-intro .hero .photo{animation:allumage-photo 1.9s steps(1,end) 1.75s both,recul 2.6s cubic-bezier(.2,.7,.2,1) 1.55s both}
+.avec-intro .hero h1{animation-delay:1.95s}
+.avec-intro .hero .accroche{animation-delay:3.05s}.avec-intro .hero .actions{animation-delay:3.2s}.avec-intro .ce-soir{animation-delay:3.35s}
+.avec-intro .nav{animation:fondu-in .9s ease 2.6s both}
+@keyframes fondu-in{from{opacity:0}to{opacity:1}}
+
+/* Braises qui montent dans le hero, trame manga en bas */
+.braises{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;mix-blend-mode:screen}
+.hero .wrap{position:relative;z-index:1}
+.hero::before{content:"";position:absolute;inset:auto 0 0;height:45%;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle,rgba(20,13,20,.9) 1.3px,transparent 1.9px) 0 0/7px 7px;
+  -webkit-mask-image:linear-gradient(to top,#000,transparent);mask-image:linear-gradient(to top,#000,transparent)}
+
+/* ===== Cases de manga ===== */
+.salle{border-radius:6px;border:3px solid var(--parchemin);box-shadow:8px 8px 0 var(--pavillon)}
+.salle.cave{box-shadow:-8px 8px 0 var(--neon)}
+.salle::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle,rgba(20,13,20,.75) 1.2px,transparent 1.8px) 0 0/6px 6px;
+  -webkit-mask-image:linear-gradient(to top,#000 10%,transparent 60%);mask-image:linear-gradient(to top,#000 10%,transparent 60%)}
+.jeux .photos img{border-radius:6px;border:3px solid var(--parchemin)}
+
+/* ===== Avis en bulles ===== */
+.citations figure{position:relative;border-top:0;padding:26px 26px 0}
+.citations blockquote{position:relative;margin:0 0 30px;padding:24px 26px;background:var(--parchemin);color:var(--nuit);border:3px solid var(--nuit);border-radius:30px;box-shadow:6px 6px 0 var(--lanterne);font-weight:500}
+.citations blockquote::after{content:"";position:absolute;left:38px;bottom:-22px;width:30px;height:24px;background:var(--parchemin);clip-path:polygon(0 0,100% 0,8% 100%)}
+.citations figcaption{padding-left:26px}
+
+/* ===== Apparitions au défilement ===== */
+.js .anim-l .l{display:block;overflow:hidden;padding:0 .2em .14em 0;margin:0 -.2em -.14em 0}
+.js .anim-l .l>span{display:block;transform:translate3d(-8%,108%,0) skewX(-14deg);transform-origin:0 100%;transition:transform .85s cubic-bezier(.2,1.25,.35,1)}
+.js .anim-l.vu .l>span{transform:none}
+.js .anim-f{opacity:0;transform:translate3d(0,26px,0);transition:opacity .9s ease var(--d,0s),transform 1s cubic-bezier(.16,1,.3,1) var(--d,0s)}
+.js .anim-f.vu{opacity:1;transform:none}
+/* Case qui se découpe en diagonale, comme un coup de lame */
+.js .anim-i{clip-path:polygon(-24px -24px,-24px -24px,-24px calc(100% + 24px),-24px calc(100% + 24px));transition:clip-path .95s cubic-bezier(.75,0,.2,1) var(--d,0s)}
+.js .anim-i.vu{clip-path:polygon(-24px -24px,calc(140% + 24px) -24px,calc(100% + 24px) calc(100% + 24px),-24px calc(100% + 24px))}
+.js .anim-i img,.js img.anim-i{scale:1.25;transition:scale 1.6s cubic-bezier(.16,1,.3,1) var(--d,0s),transform .8s cubic-bezier(.2,.7,.2,1)}
+.js .anim-i.vu img,.js img.anim-i.vu{scale:1}
+/* Bulles qui « pop » */
+.js .citations figure.anim-f{transform:scale(.6) rotate(-4deg);transform-origin:20% 100%;transition:opacity .3s ease var(--d,0s),transform .6s cubic-bezier(.3,1.7,.5,1) var(--d,0s)}
+.js .citations figure.anim-f.vu{transform:none}
+
+/* Défilement fluide (Lenis) */
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+.lenis.lenis-stopped{overflow:hidden}
+
+@media (max-width:700px){
+  .sfx{right:5vw;top:16vh}
+  .salle{box-shadow:5px 5px 0 var(--pavillon)}.salle.cave{box-shadow:-5px 5px 0 var(--neon)}
+}
+@media (prefers-reduced-motion:reduce){
+  #intro,.braises{display:none!important}
+  .avec-intro .hero .photo{animation:none}
+}

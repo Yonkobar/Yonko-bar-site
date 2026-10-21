@@ -11,10 +11,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&amp;family=Cinzel+Decorative:wght@700;900&amp;display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/img/v2/cave-rouge.jpg">
-<link rel="stylesheet" href="/assets/v2.css?v=1">
-<script>document.documentElement.classList.add('js')</script>
+<link rel="preload" as="image" href="/icons/logo.svg">
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&amp;text=%E3%82%BA%E3%83%90%E3%83%83%EF%BC%81&amp;display=block" rel="stylesheet">
+<link rel="stylesheet" href="/assets/v2.css?v=2">
+<script>(function(d){d.classList.add('js');try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('avec-intro','intro-en-cours');window.yonkoGo=function(){if(d.classList.contains('go'))return;window.yonkoT0=performance.now();d.classList.add('go');dispatchEvent(new Event('yonko-go'))};setTimeout(window.yonkoGo,1800)}}catch(e){}})(document.documentElement)</script>
 </head>
 <body>
+<div id="intro">
+  <div class="moitie g" aria-hidden="true"><img src="/icons/logo.svg" alt="" onload="window.yonkoGo&&yonkoGo()"></div>
+  <div class="moitie d" aria-hidden="true"><img src="/icons/logo.svg" alt=""></div>
+  <canvas class="vitesse" id="vitesse" aria-hidden="true"></canvas>
+  <svg class="sabre" id="sabre" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="63" y1="-4" x2="37" y2="104" pathLength="1"/></svg>
+  <div class="sfx" aria-hidden="true">ズバッ！</div>
+  <div class="impact" aria-hidden="true"></div>
+  <button class="passer" type="button" id="passer">Passer l’intro</button>
+</div>
 <a class="skip" href="#contenu">Aller au contenu</a>
 <header class="nav" id="nav">
   <div class="wrap">
@@ -38,6 +49,7 @@
 
 <main id="contenu">
 <section class="hero">
+  <canvas class="braises" id="braises" aria-hidden="true"></canvas>
   <div class="photo" role="img" aria-label="La cave du Yonko éclairée en rouge, consoles branchées"></div>
   <div class="wrap">
     <h1>Le repaire gaming du Quartier Latin</h1>
@@ -183,6 +195,7 @@
   </div>
 </footer>
 <div class="barre-mobile"><a class="btn tel" href="tel:+33750915905" aria-label="Appeler le bar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></a><a class="btn btn-feu" href="/reserver">Réserver une table</a></div>
-<script src="/assets/v2.js?v=1" defer></script>
+<script src="/assets/vendor/lenis-1.1.13.min.js" defer></script>
+<script src="/assets/v2.js?v=2" defer></script>
 </body>
 </html>
