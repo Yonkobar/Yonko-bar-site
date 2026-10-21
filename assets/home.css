@@ -55,7 +55,7 @@ img{max-width:100%}
 
 /* ===== Hero : le logo « atterrit » au centre quand les deux moitiés s'écartent ===== */
 #hero{padding-top:10rem;isolation:isolate}
-.hero-bg{background-image:url("/img/v2/cave-rouge.jpg");filter:brightness(.3) saturate(.9);will-change:transform}
+.hero-bg{background-image:url("/img/v2/cave-rouge.jpg?v=2");filter:brightness(.3) saturate(.9);will-change:transform}
 .hero-trame{position:absolute;inset:0;z-index:1;pointer-events:none;
   background:radial-gradient(circle,rgba(8,6,4,.85) 1.3px,transparent 1.9px) 0 0/7px 7px;
   -webkit-mask-image:linear-gradient(to top,#000 0,transparent 55%);mask-image:linear-gradient(to top,#000 0,transparent 55%)}
@@ -75,7 +75,6 @@ img{max-width:100%}
 .etat .hh{color:var(--teal-lt)}
 @keyframes pouls{70%{box-shadow:0 0 0 9px rgba(78,207,197,0)}100%{box-shadow:0 0 0 0 rgba(78,207,197,0)}}
 .hero-desc{color:rgba(244,232,212,.72);max-width:600px}
-.hero-stats{gap:2.4rem}
 /* Séquence après l'intro (décalée sur le coup de sabre) */
 @keyframes atterrit{0%{opacity:0;transform:scale(1.9);filter:blur(10px) brightness(1.8)}55%{opacity:1;transform:scale(.94);filter:blur(0) brightness(1.2)}75%{transform:scale(1.03)}100%{opacity:1;transform:none;filter:drop-shadow(0 0 45px rgba(224,112,16,.55))}}
 @keyframes recul{from{transform:scale(1.2)}to{transform:none}}
@@ -89,7 +88,6 @@ img{max-width:100%}
 .avec-intro .hero-desc{animation-delay:2.1s}
 .avec-intro .etat{animation-delay:2.2s}
 .avec-intro .hero-btns{animation-delay:2.3s}
-.avec-intro .hero-stats{animation-delay:2.4s}
 .avec-intro .hero-bar{animation-delay:2.5s}
 
 @keyframes fondu-in{from{opacity:0}to{opacity:1}}
@@ -234,7 +232,6 @@ html.lenis,.lenis.lenis-smooth{scroll-behavior:auto!important}
   .case{box-shadow:5px 5px 0 var(--red)}.case.o{box-shadow:5px 5px 0 var(--orange)}
   .gal-item{width:240px;height:170px}
   .rv{width:260px}
-  .hero-stats{gap:1.2rem 2rem}
 }
 @media(max-width:600px){
   nav{top:0}

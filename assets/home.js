@@ -178,23 +178,10 @@
   }
   etat(); setInterval(etat, 60000);
 
-  // ===== Compteurs du hero =====
-  function compte(el) {
-    var cible = parseInt(el.getAttribute('data-target'), 10), debut = null, d = 1500, suffixe = el.getAttribute('data-suffix') || '';
-    if (reduit) { el.textContent = cible + suffixe; return; }
-    (function pas(t) {
-      if (!debut) debut = t; var p = Math.min(1, (t - debut) / d), e = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(cible * e) + suffixe; if (p < 1) requestAnimationFrame(pas);
-    })(performance.now());
-  }
-  var cObs = new IntersectionObserver(function (e) { e.forEach(function (x) { if (x.isIntersecting) { setTimeout(function () { compte(x.target); }, html.classList.contains('avec-intro') ? 2600 - Math.min(2600, performance.now() - (window.yonkoT0 || 0)) : 0); cObs.unobserve(x.target); } }); }, { threshold: .5 });
-  document.querySelectorAll('.stat-num[data-target]').forEach(function (el) { cObs.observe(el); });
-
   // ===== Note Google en direct =====
   fetch('/api/google-rating', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
     var n = Number(d && d.count), note = Number(d && d.rating);
     if (!Number.isInteger(n) || n < 1 || !Number.isFinite(note) || note <= 0 || note > 5) throw new Error('note invalide');
-    $('hero-avis-num').textContent = n.toLocaleString('fr-FR');
     $('g-count').textContent = note.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' · ' + n.toLocaleString('fr-FR') + ' avis';
     var r = Math.round(note); $('g-stars').textContent = '★'.repeat(r) + '☆'.repeat(5 - r);
   }).catch(function () { /* on garde la dernière note connue affichée dans la page */ });
