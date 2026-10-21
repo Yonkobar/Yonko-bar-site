@@ -2,6 +2,7 @@
 
 export async function onRequestGet({ env }) {
   const cacheKey = "google_rating_cache";
+  let stale = null;
   try {
     const cached = await env.RESERVATIONS.get(cacheKey);
     if (cached) {
@@ -9,13 +10,14 @@ export async function onRequestGet({ env }) {
       if (Date.now() - data.fetchedAt < 24 * 60 * 60 * 1000) {
         return jsonResponse(data);
       }
+      if (data && data.rating && data.count) stale = data; // ancienne valeur gardée en secours
     }
   } catch (e) {
     // pas de cache, on continue
   }
 
   if (!env.GOOGLE_PLACES_API_KEY || !env.GOOGLE_PLACE_ID) {
-    return jsonResponse({ rating: null, count: null, error: "not_configured" });
+    return jsonResponse(stale ? { ...stale, stale: true } : { rating: null, count: null, error: "not_configured" });
   }
 
   try {
@@ -31,10 +33,12 @@ export async function onRequestGet({ env }) {
       count: data.userRatingCount || null,
       fetchedAt: Date.now(),
     };
+    if (!result.rating || !result.count) throw new Error("empty_rating");
     await env.RESERVATIONS.put(cacheKey, JSON.stringify(result));
     return jsonResponse(result);
   } catch (e) {
-    return jsonResponse({ rating: null, count: null, error: e.message });
+    if (stale) return jsonResponse({ ...stale, stale: true });
+    return jsonResponse({ rating: null, count: null, error: String(e.message || e).slice(0, 200) });
   }
 }
 

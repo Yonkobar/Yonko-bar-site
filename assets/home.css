@@ -269,3 +269,4 @@ html.lenis,.lenis.lenis-smooth{scroll-behavior:auto!important}
 .stitle .l,.stitle .l>span{color:var(--cream)}
 .stitle .l>span span{color:var(--orange)}
 .hero-logo img{height:clamp(130px,21vh,210px)}
+main{overflow-x:clip}

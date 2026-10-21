@@ -183,10 +183,7 @@
     $('hero-avis-num').textContent = n.toLocaleString('fr-FR');
     $('g-count').textContent = note.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' · ' + n.toLocaleString('fr-FR') + ' avis';
     var r = Math.round(note); $('g-stars').textContent = '★'.repeat(r) + '☆'.repeat(5 - r);
-  }).catch(function () {
-    $('hero-avis-num').textContent = '—';
-    $('g-count').textContent = 'Voir les avis';
-  });
+  }).catch(function () { /* on garde la dernière note connue affichée dans la page */ });
 
   // ===== Hero : la photo glisse, le contenu s'efface en douceur =====
   var hero = $('hero'), fond = hero.querySelector('.hero-bg'), contenu = hero.querySelector('.hero-c');

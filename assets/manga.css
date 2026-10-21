@@ -1,0 +1,52 @@
+/* Couche manga des pages Réserver, Ma réservation, Mentions légales (s'ajoute à yonko.css + booking.css) */
+:root{--line:rgba(244,232,212,.1);--sand:var(--cream-dim);--sfx-font:"Dela Gothic One","Cinzel Decorative",serif}
+html{scroll-padding-top:96px}
+:focus-visible{outline:2px solid var(--orange-lt);outline-offset:3px}
+.topbar{position:fixed;top:0;left:0;right:0}
+nav{top:31px}
+.nav-logo img{height:52px;width:auto}
+body{position:relative}
+/* Bandeau du haut : trame de points et lignes de vitesse */
+body::before{content:"";position:absolute;left:0;right:0;top:0;height:560px;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle,rgba(244,232,212,.06) 1.1px,transparent 1.7px) 0 0/8px 8px,
+    radial-gradient(60% 80% at 70% 0,rgba(174,30,30,.18),transparent 70%);
+  -webkit-mask-image:linear-gradient(to bottom,#000,transparent);mask-image:linear-gradient(to bottom,#000,transparent)}
+body::after{content:"";position:absolute;left:0;right:0;top:0;height:720px;z-index:-1;pointer-events:none;opacity:.55;
+  background:repeating-conic-gradient(from 0deg at 50% 0,rgba(244,232,212,.05) 0deg .6deg,transparent .6deg 4.5deg,rgba(224,112,16,.05) 4.5deg 5deg,transparent 5deg 9deg);
+  -webkit-mask-image:radial-gradient(70% 100% at 50% 0,transparent 25%,#000 45%,transparent 90%);mask-image:radial-gradient(70% 100% at 50% 0,transparent 25%,#000 45%,transparent 90%)}
+.bk{position:relative}
+.bk h1.stitle{font-size:clamp(1.7rem,4vw,2.8rem)}
+/* Onomatopée près du titre */
+.sfx-tag{position:absolute;z-index:3;pointer-events:none;font:400 clamp(30px,4.6vw,62px)/1 var(--sfx-font);color:var(--cream);letter-spacing:-.03em;
+  -webkit-text-stroke:2px var(--red);paint-order:stroke fill;text-shadow:4px 4px 0 var(--red);transform:rotate(-9deg)}
+.bk>.sfx-tag{right:2rem;top:7.2rem}
+/* Cases de manga */
+.bk .panel,.bk .panel-hl{background:#0f0a07;border:3px solid var(--cream);border-radius:3px;box-shadow:9px 9px 0 var(--red)}
+.bk .panel-hl{box-shadow:9px 9px 0 var(--orange);background:linear-gradient(160deg,rgba(174,30,30,.12),rgba(224,112,16,.05)),#0f0a07}
+.cover{border:3px solid var(--cream);border-radius:3px;box-shadow:10px 10px 0 var(--red)}
+.cover::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle,rgba(8,6,4,.7) 1.2px,transparent 1.8px) 0 0/6px 6px;
+  -webkit-mask-image:linear-gradient(to top,#000 0,transparent 45%);mask-image:linear-gradient(to top,#000 0,transparent 45%)}
+.cover .sfx-tag{right:1.2rem;top:1rem;font-size:clamp(28px,4vw,48px)}
+.space{border:2px solid rgba(244,232,212,.2);border-radius:3px}
+.space[aria-pressed="true"]{border-color:var(--cream);box-shadow:6px 6px 0 var(--red);transform:translate(-2px,-2px)}
+.chip[aria-pressed="true"]{box-shadow:4px 4px 0 var(--orange);transform:translate(-1px,-1px)}
+.stepper li.cur span{color:var(--cream);background:var(--red);padding:0 .45rem;clip-path:polygon(50% 0,61% 20%,84% 10%,78% 34%,100% 42%,80% 56%,92% 78%,68% 76%,58% 100%,46% 80%,24% 94%,26% 70%,2% 62%,20% 46%,6% 24%,30% 26%)}
+/* Étapes : nouvelle case qui entre */
+.bk form section[data-step]:not([hidden]){animation:case-entre .45s cubic-bezier(.2,1,.3,1)}
+@keyframes case-entre{from{opacity:0;transform:translateX(-18px) skewX(-5deg)}to{opacity:1;transform:none}}
+.msg.me{border-radius:18px 18px 4px 18px}
+.msg.bar{border-radius:18px 18px 18px 4px}
+/* Titre qui arrive penché, onomatopée qui claque (si animations autorisées) */
+.anim .bk h1.stitle .l{display:block;overflow:hidden;padding:0 .2em .14em 0;margin:0 -.2em -.14em 0}
+.anim .bk h1.stitle .l>span{display:block;color:var(--cream);transform:translate3d(-8%,110%,0) skewX(-14deg);transform-origin:0 100%;animation:titre-entre .85s cubic-bezier(.2,1.25,.35,1) .1s forwards}
+.anim .bk h1.stitle .l>span span{color:var(--orange)}
+@keyframes titre-entre{to{transform:none}}
+.anim .sfx-tag{opacity:0;scale:2.2;animation:sfx-claque .45s cubic-bezier(.2,1.6,.4,1) .5s forwards}
+@keyframes sfx-claque{to{opacity:1;scale:1}}
+.alcool{margin-top:.9rem;font-size:.68rem;color:rgba(244,232,212,.3)}
+@media(max-width:900px){.bk>.sfx-tag{right:1rem;top:6.2rem;font-size:34px}}
+@media(max-width:600px){nav{top:0}.topbar{display:none}}
+@media (prefers-reduced-motion:reduce){.bk form section[data-step]:not([hidden]){animation:none}}
+@media(max-width:900px){body:has(.bk) .floaters{display:none}}
+main{overflow-x:clip}

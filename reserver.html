@@ -7,43 +7,48 @@
 <meta name="description" content="Réservez votre table à la Taverne, privatisez la cave voûtée ou tout le Yonko Bar. Conditions affichées avant l’envoi, confirmation par email.">
 <link rel="canonical" href="https://www.yonkobar.com/reserver">
 <meta name="theme-color" content="#080604">
-<link rel="icon" type="image/jpeg" href="/img/logo-nav.jpg">
+<link rel="icon" href="/icons/logo-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&amp;family=Cinzel:wght@400;600;700&amp;family=DM+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/yonko.css?v=20261021">
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&amp;text=%E3%82%A4%E3%82%AF%E3%82%B4%E3%82%BA%E3%83%83%E3%83%89%E3%83%90%E3%83%AF%E3%83%B3%E3%83%A8%E3%82%B7%EF%BC%81&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/booking.css?v=20261021">
+<link rel="stylesheet" href="/assets/manga.css?v=3">
+<script>(function(d){d.classList.add('js');try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)d.classList.add('anim')}catch(e){}})(document.documentElement)</script>
 </head>
 <body class="">
-<div class="topbar">Happy Hour 17h30-21h &middot; Mar-Sam &nbsp;|&nbsp; <a href="/reserver">Reserver maintenant &rarr;</a></div>
+<a class="skip" href="#contenu" style="position:absolute;left:-9999px">Aller au contenu</a>
+<div class="topbar">Happy hour du mardi au samedi, 17h30 – 21h &nbsp;|&nbsp; <a href="/reserver">Réserver maintenant</a></div>
 <div class="mobile-menu" id="mobileMenu">
   <a href="/#taverne" onclick="closeMenu()">La Taverne</a>
   <a href="/#cave" onclick="closeMenu()">La Cave</a>
   <a href="/#galerie" onclick="closeMenu()">Galerie</a>
   <a href="/#menu" onclick="closeMenu()">Carte</a>
-  <a href="/#events" onclick="closeMenu()">Evenements</a>
+  <a href="/#events" onclick="closeMenu()">Événements</a>
   <a href="/#faq" onclick="closeMenu()">FAQ</a>
-  <a href="/reserver" class="mm-cta" onclick="closeMenu()">Reserver</a>
+  <a href="/reserver" class="mm-cta" onclick="closeMenu()">Réserver</a>
 </div>
-<nav>
-  <a href="/" class="nav-logo"><img src="/img/logo-nav.jpg" alt="Yonko Bar"></a>
+<nav aria-label="Navigation principale">
+  <a href="/" class="nav-logo"><img src="/icons/logo.svg" alt="Yonko Bar, accueil" width="47" height="52"></a>
   <ul class="nav-links">
     <li><a href="/#taverne">La Taverne</a></li>
     <li><a href="/#cave">La Cave</a></li>
     <li><a href="/#menu">Carte</a></li>
-    <li><a href="/#events">Evenements</a></li>
+    <li><a href="/#events">Événements</a></li>
     <li><a href="/#faq">FAQ</a></li>
-    <li><a href="/reserver" class="nav-cta">Reserver</a></li>
+    <li><a href="/reserver" class="nav-cta">Réserver</a></li>
   </ul>
-  <button class="burger" id="burgerBtn" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <button class="burger" id="burgerBtn" type="button" onclick="toggleMenu()" aria-label="Ouvrir le menu" aria-controls="mobileMenu"><span></span><span></span><span></span></button>
 </nav>
 <div class="floaters">
-  <a href="https://wa.me/33750915905" target="_blank" class="float-wa">WhatsApp</a>
+  <a href="https://wa.me/33750915905" target="_blank" rel="noopener" class="float-wa">WhatsApp</a>
   <a href="tel:+33750915905" class="float-call">Appeler</a>
 </div>
 <main id="contenu" class="bk">
   <span class="stag">Réserver</span>
   <h1 class="stitle">Rejoignez <span>l'équipage</span></h1>
+  <span class="sfx-tag" aria-hidden="true">ワクワク</span>
   <div class="sdiv"></div>
   <p class="lead">Deux minutes : choisissez votre date, votre groupe et votre espace. La caution et le minimum de consommation s'affichent avant l'envoi.</p>
   <ol class="stepper" id="stepper" aria-label="Étapes">
@@ -120,21 +125,22 @@
   </div>
 </main>
 <footer>
-  <div class="flogo"><img src="/img/logo-footer.jpg" alt="Yonko Bar"></div>
-  <p>Bar Gaming - Univers Manga - Paris 6e - Ouvert depuis janvier 2024</p>
+  <div class="flogo"><img src="/icons/logo.svg" alt="Yonko Bar" width="45" height="50"></div>
+  <p>Bar gaming · Univers manga · Paris 6e · Ouvert depuis janvier 2024</p>
   <div class="flinks">
     <a href="/#taverne">La Taverne</a><a href="/#cave">La Cave</a><a href="/#galerie">Galerie</a>
-    <a href="/#menu">Carte</a><a href="/#events">Evenements</a><a href="/#faq">FAQ</a>
-    <a href="/reserver">Reserver</a><a href="/#contact">Contact</a><a href="/mentions-legales">Mentions legales</a>
+    <a href="/#menu">Carte</a><a href="/#events">Événements</a><a href="/#faq">FAQ</a>
+    <a href="/reserver">Réserver</a><a href="/#contact">Contact</a><a href="/mentions-legales">Mentions légales</a>
   </div>
-  <p>2025 Yonko Bar - Kaizoku Corp - 15 rue Monsieur Le Prince, 75006 Paris</p>
-  <p>L'abus d'alcool est dangereux pour la santé, à consommer avec modération.</p>
+  <p>© 2026 Yonko Bar · Kaizoku Corp · 15 rue Monsieur le Prince, 75006 Paris</p>
+  <p class="alcool">L’abus d’alcool est dangereux pour la santé, à consommer avec modération.</p>
 </footer>
 <script>
-function toggleMenu(){var m=document.getElementById('mobileMenu'),b=document.getElementById('burgerBtn');m.classList.toggle('open');b.classList.toggle('open');document.body.style.overflow=m.classList.contains('open')?'hidden':'';}
+function toggleMenu(){var m=document.getElementById('mobileMenu'),b=document.getElementById('burgerBtn');m.classList.toggle('open');b.classList.toggle('open');b.setAttribute('aria-expanded',String(m.classList.contains('open')));document.body.style.overflow=m.classList.contains('open')?'hidden':'';}
 function closeMenu(){document.getElementById('mobileMenu').classList.remove('open');document.getElementById('burgerBtn').classList.remove('open');document.body.style.overflow='';}
 var obs=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)x.target.classList.add('visible');});},{threshold:.08});
 document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(function(el){obs.observe(el);});
+if(document.documentElement.classList.contains('anim'))document.querySelectorAll('.bk > h1.stitle').forEach(function(t){t.innerHTML='<span class="l"><span>'+t.innerHTML+'</span></span>';});
 </script>
 <script>
 (function(){
