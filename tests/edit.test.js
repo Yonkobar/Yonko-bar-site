@@ -197,7 +197,12 @@ test('Note interne cuisine : enregistrée, sans email au client', async () => {
 test('Note interne : acceptée à la création depuis le dashboard, ignorée depuis le site public', async () => {
   const data = new Map();
   const env = {DASHBOARD_KEY: 'k', RESERVATIONS: {get: async k => data.get(k), put: async (k, v) => data.set(k, v)}};
-  const mk = async body => { const r = await createReservation({request: new Request('https://yonkobar.com/api/reservations', {method: 'POST', body: JSON.stringify(body)}), env}); return JSON.parse(data.get('res:' + (await r.json()).id)); };
-  assert.equal((await mk({name: 'A', date: '2026-10-22', manual: true, kitchenNote: 'gâteau'})).kitchenNote, 'gâteau');
+  const mk = async (body, headers = {}) => { const r = await createReservation({request: new Request('https://yonkobar.com/api/reservations', {method: 'POST', headers, body: JSON.stringify(body)}), env}); return JSON.parse(data.get('res:' + (await r.json()).id)); };
+  const dash = {'x-dashboard-key': 'k'};
+  const a = await mk({name: 'A', date: '2026-10-22', manual: true, kitchenNote: 'gâteau'}, dash);
+  assert.equal(a.kitchenNote, 'gâteau'); assert.equal(a.skipAutoDeposit, true);
   assert.equal((await mk({name: 'B', date: '2026-10-22', kitchenNote: 'hack'})).kitchenNote, undefined);
+  // Le site public ne peut pas se faire passer pour le dashboard avec manual:true.
+  const c = await mk({name: 'C', date: '2026-10-22', manual: true, kitchenNote: 'hack'});
+  assert.equal(c.kitchenNote, undefined); assert.equal(c.skipAutoDeposit, false);
 });

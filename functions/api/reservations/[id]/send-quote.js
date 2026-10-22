@@ -1,4 +1,5 @@
 // POST /api/reservations/:id/send-quote  { pdfBase64, total, lines }  -> envoie le devis par email (protégé)
+import { escHtml } from "../../../_shared.js";
 
 function cors() {
   return {
@@ -69,8 +70,8 @@ export async function onRequestPost({ request, env, params }) {
   const html = `
     <div style="font-family:-apple-system,Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto">
       <h2 style="color:#ff6e00">Devis — Yonko Bar</h2>
-      <p>Bonjour ${entry.name || ""},</p>
-      <p>Voici le devis pour votre réservation du ${entry.date}${entry.time ? " à " + entry.time : ""}. Le détail est aussi disponible en pièce jointe (PDF).</p>
+      <p>Bonjour ${escHtml(entry.name || "")},</p>
+      <p>Voici le devis pour votre réservation du ${escHtml(entry.date)}${entry.time ? " à " + escHtml(entry.time) : ""}. Le détail est aussi disponible en pièce jointe (PDF).</p>
       <table role="presentation" width="100%" style="border-top:1px solid #e6e1d8;border-bottom:1px solid #e6e1d8;padding:8px 0;margin:16px 0">${rows}</table>
       <p style="font-weight:700;font-size:15px">Total : ${Number(body.total).toFixed(2)} €</p>
       <p>N'hésitez pas à nous contacter pour toute question.</p>
@@ -89,7 +90,7 @@ export async function onRequestPost({ request, env, params }) {
       to: [entry.email],
       subject: `Votre devis Yonko Bar — ${entry.name}`,
       html,
-      attachments: [{ filename: `devis-${entry.name}.pdf`, content: body.pdfBase64 }],
+      attachments: [{ filename: `devis-${String(entry.name || "client").replace(/[^\p{L}\p{N} _-]/gu, "").trim().slice(0, 60) || "client"}.pdf`, content: body.pdfBase64 }],
     }),
   });
 

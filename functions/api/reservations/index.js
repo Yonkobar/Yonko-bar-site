@@ -55,11 +55,34 @@ export async function onRequestPost({ request, env, waitUntil }) {
     });
   }
 
-  if (!body.name || !body.date) {
-    return new Response(JSON.stringify({ error: "name and date are required" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json", ...cors() },
-    });
+  const fail = (error, status = 400) => new Response(JSON.stringify({ error }), {
+    status,
+    headers: { "Content-Type": "application/json", ...cors() },
+  });
+
+  if (!body || typeof body !== "object" || !body.name || !body.date) {
+    return fail("name and date are required");
+  }
+
+  // Création depuis le dashboard (clé valide) : seuls ces appels peuvent poser
+  // les options internes (pas de caution auto, note cuisine).
+  const fromDashboard = !!env.DASHBOARD_KEY && request.headers.get("x-dashboard-key") === env.DASHBOARD_KEY;
+
+  if (!fromDashboard) {
+    // Formulaire public : formats stricts pour éviter les données piégées.
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(body.date))) return fail("Date invalide.");
+    if (body.time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(String(body.time))) return fail("Heure invalide.");
+    if (body.guests && !/^[1-9]\d{0,3}$/.test(String(body.guests))) return fail("Nombre de personnes invalide.");
+    if (body.email && !/^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(String(body.email).trim())) return fail("Email invalide.");
+
+    // Anti-spam : 5 demandes max par heure et par adresse IP.
+    const ip = request.headers.get("CF-Connecting-IP");
+    if (ip) {
+      const rlKey = `rl:res:${ip}`;
+      const count = parseInt(await env.RESERVATIONS.get(rlKey), 10) || 0;
+      if (count >= 5) return fail("Trop de demandes envoyées. Réessayez plus tard ou contactez-nous sur WhatsApp.", 429);
+      await env.RESERVATIONS.put(rlKey, String(count + 1), { expirationTtl: 3600 });
+    }
   }
 
   const id = crypto.randomUUID();
@@ -67,16 +90,16 @@ export async function onRequestPost({ request, env, waitUntil }) {
     id,
     name: String(body.name).slice(0, 200),
     contact: String(body.contact || "").slice(0, 200),
-    email: String(body.email || "").slice(0, 200),
+    email: String(body.email || "").trim().slice(0, 200),
     type: String(body.type || "").slice(0, 200),
     date: String(body.date).slice(0, 10),
     time: String(body.time || "").slice(0, 5),
     guests: String(body.guests || "").slice(0, 20),
     notes: String(body.notes || "").slice(0, 1000),
     source: String(body.source || "Manuel").slice(0, 50),
-    skipAutoDeposit: !!body.manual,
+    skipAutoDeposit: fromDashboard && !!body.manual,
     // Note interne (nourriture à préparer…) : uniquement depuis le dashboard.
-    ...(body.manual && body.kitchenNote ? { kitchenNote: String(body.kitchenNote).slice(0, 2000) } : {}),
+    ...(fromDashboard && body.manual && body.kitchenNote ? { kitchenNote: String(body.kitchenNote).slice(0, 2000) } : {}),
     status: "pending",
     depositLink: "",
     createdAt: Date.now(),

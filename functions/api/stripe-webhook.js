@@ -1,15 +1,30 @@
 // POST /api/stripe-webhook
 // Gère notamment la validation d'une carte de garantie via Checkout mode=setup.
 
-async function verifyStripeSignature(payload, sigHeader, secret) {
-  if (!sigHeader) return false;
+const TOLERANCE_SECONDS = 300; // Stripe recommande 5 min : bloque le rejeu d'anciens événements.
 
-  const fields = {};
+function safeEqual(a, b) {
+  if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+export async function verifyStripeSignature(payload, sigHeader, secret, now = Date.now()) {
+  if (!sigHeader || !secret) return false;
+
+  const fields = { v1: [] };
   for (const part of sigHeader.split(",")) {
     const i = part.indexOf("=");
-    if (i > 0) fields[part.slice(0, i)] = part.slice(i + 1);
+    if (i <= 0) continue;
+    const k = part.slice(0, i).trim();
+    const v = part.slice(i + 1).trim();
+    if (k === "v1") fields.v1.push(v);
+    else fields[k] = v;
   }
-  if (!fields.t || !fields.v1) return false;
+  if (!fields.t || !fields.v1.length) return false;
+  const ts = Number(fields.t);
+  if (!Number.isFinite(ts) || Math.abs(now / 1000 - ts) > TOLERANCE_SECONDS) return false;
 
   const signedPayload = `${fields.t}.${payload}`;
   const key = await crypto.subtle.importKey(
@@ -30,7 +45,8 @@ async function verifyStripeSignature(payload, sigHeader, secret) {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  return expected === fields.v1;
+  // Stripe peut envoyer plusieurs signatures v1 (rotation du secret).
+  return fields.v1.some((sig) => safeEqual(sig, expected));
 }
 
 async function stripeGet(path, env) {
@@ -47,10 +63,14 @@ export async function onRequestPost({ request, env }) {
   const payload = await request.text();
   const sig = request.headers.get("stripe-signature");
 
-  if (env.STRIPE_WEBHOOK_SECRET) {
-    const valid = await verifyStripeSignature(payload, sig, env.STRIPE_WEBHOOK_SECRET);
-    if (!valid) return new Response("Invalid signature", { status: 400 });
+  // Signature obligatoire : sans elle, n'importe qui pourrait marquer une caution comme validée.
+  if (!env.STRIPE_WEBHOOK_SECRET) {
+    // 500 -> Stripe réessaie pendant 3 jours : aucun événement perdu le temps de configurer le secret.
+    console.error("STRIPE_WEBHOOK_SECRET manquant : webhook refusé.");
+    return new Response("Webhook not configured", { status: 500 });
   }
+  const valid = await verifyStripeSignature(payload, sig, env.STRIPE_WEBHOOK_SECRET);
+  if (!valid) return new Response("Invalid signature", { status: 400 });
 
   let event;
   try {

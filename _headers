@@ -1,5 +1,19 @@
 /*
-  Content-Security-Policy: frame-src 'self' https://www.google.com https://maps.googleapis.com https://maps.gstatic.com;
+  Content-Security-Policy: frame-src 'self' https://www.google.com https://maps.googleapis.com https://maps.gstatic.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://checkout.stripe.com
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+/dashboard*
+  X-Robots-Tag: noindex, nofollow
+  Referrer-Policy: no-referrer
+
+/tests/*
+  X-Robots-Tag: noindex
+/push-worker/*
+  X-Robots-Tag: noindex
 
 /sw.js
   Cache-Control: no-cache
