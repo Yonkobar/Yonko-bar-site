@@ -1,3 +1,4 @@
+import { rawKv, bumpRev, loadAllReservations } from "./../_kv.js";
 // POST /api/sync-privateaser
 // Synchronise le flux iCal Privateaser avec les réservations du dashboard.
 // Répare automatiquement res:index pour les réservations Privateaser déjà présentes.
@@ -210,7 +211,20 @@ export async function onRequestPost({ request, env }) {
     }
   }
 
-  let indexRaw = await env.RESERVATIONS.get("res:index");
+  // Écritures en direct (sans changer res:rev à chaque fois) puis une seule invalidation à la fin.
+  const kv = rawKv(env);
+  let wrote = false;
+  const known = new Map();
+  const deleted = new Set();
+  for (const e of (await loadAllReservations(env)).entries) if (e && e.id) known.set(e.id, e);
+  const getEntry = async (id) => {
+    if (deleted.has(id)) return null;
+    if (known.has(id)) return known.get(id);
+    const raw = await kv.get(`res:${id}`);
+    return raw ? JSON.parse(raw) : null;
+  };
+
+  let indexRaw = await kv.get("res:index");
   const originalIds = indexRaw ? [...new Set(JSON.parse(indexRaw))] : [];
   let ids = [...originalIds];
 
@@ -225,10 +239,13 @@ export async function onRequestPost({ request, env }) {
     const survivors = [];
 
     for (const id of ids) {
-      const raw = await env.RESERVATIONS.get(`res:${id}`);
+      const found = await getEntry(id);
 
-      if (raw && JSON.parse(raw).source === "Privateaser") {
-        await env.RESERVATIONS.delete(`res:${id}`);
+      if (found && found.source === "Privateaser") {
+        await kv.delete(`res:${id}`);
+        known.delete(id);
+        deleted.add(id);
+        wrote = true;
         removed++;
       } else {
         survivors.push(id);
@@ -260,8 +277,7 @@ export async function onRequestPost({ request, env }) {
     // Dans ce cas le synchroniseur la voit, mais le dashboard ne l'affiche pas.
     if (!ids.includes(id)) ids.push(id);
 
-    const existingRaw = await env.RESERVATIONS.get(`res:${id}`);
-    const existing = existingRaw ? JSON.parse(existingRaw) : null;
+    const existing = await getEntry(id);
 
     const nameMatch = ev.summary.match(/^(.*)\s-\s(\d+)$/);
     const name = nameMatch ? nameMatch[1].trim() : (ev.summary || "Réservation Privateaser");
@@ -336,13 +352,15 @@ export async function onRequestPost({ request, env }) {
       });
 
       if (JSON.stringify(existing) !== JSON.stringify(merged)) {
-        await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(merged));
+        await kv.put(`res:${id}`, JSON.stringify(merged));
+        wrote = true;
         updated++;
       } else {
         skipped++;
       }
     } else {
-      await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(entry));
+      await kv.put(`res:${id}`, JSON.stringify(entry));
+      wrote = true;
       ids.push(id);
       created++;
     }
@@ -357,15 +375,16 @@ export async function onRequestPost({ request, env }) {
     const today = partsInParis(new Date()).date;
     for (const id of [...new Set(ids)]) {
       if (!String(id).startsWith("priv-") || seenInFeed.has(id)) continue;
-      const raw = await env.RESERVATIONS.get(`res:${id}`);
-      if (!raw) continue;
-      const entry = JSON.parse(raw);
+      const found = await getEntry(id);
+      if (!found) continue;
+      const entry = { ...found };
       if (entry.source !== "Privateaser" || entry.status === "declined") continue;
       if (!entry.date || entry.date <= today || entry.date > maxFeedDate) continue;
       entry.status = "declined";
       entry.cancelledOnPrivateaser = true;
       entry.cancelledAt = Date.now();
-      await env.RESERVATIONS.put(`res:${id}`, JSON.stringify(entry));
+      await kv.put(`res:${id}`, JSON.stringify(entry));
+      wrote = true;
       cancelled++;
       cancelledList.push({ id, name: entry.name || "", date: entry.date });
     }
@@ -374,8 +393,10 @@ export async function onRequestPost({ request, env }) {
   const nextIds = [...new Set(ids)];
   const indexChanged = JSON.stringify(nextIds) !== JSON.stringify(originalIds);
   if (indexChanged) {
-    await env.RESERVATIONS.put("res:index", JSON.stringify(nextIds));
+    await kv.put("res:index", JSON.stringify(nextIds));
+    wrote = true;
   }
+  if (wrote) await bumpRev(kv);
 
   const diagPieces = Object.entries(diagnosticByDate).map(([date, list]) => {
     if (!list.length) return `${date}: ABSENTE DU FLUX`;

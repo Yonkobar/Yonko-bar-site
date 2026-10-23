@@ -1,5 +1,6 @@
 import {notifyNewReservation} from '../../_push.js';
 import { ensureAccessToken } from '../../_access.js';
+import { loadAllReservations } from '../../_kv.js';
 // GET  /api/reservations  -> liste des réservations (protégé par x-dashboard-key)
 // POST /api/reservations  -> créer une réservation (appelé par le formulaire du site, public)
 
@@ -28,15 +29,9 @@ export async function onRequestGet({ request, env }) {
       headers: { "Content-Type": "application/json", ...cors() },
     });
   }
-  const ids = await getIndex(env.RESERVATIONS);
-  const uniqueIds = [...new Set(ids)];
-  if (uniqueIds.length !== ids.length) {
+  const { entries, ids, uniqueIds } = await loadAllReservations(env);
+  if (ids && uniqueIds.length !== ids.length) {
     await env.RESERVATIONS.put("res:index", JSON.stringify(uniqueIds));
-  }
-  const entries = [];
-  for (const id of uniqueIds) {
-    const raw = await env.RESERVATIONS.get(`res:${id}`);
-    if (raw) entries.push(JSON.parse(raw));
   }
   entries.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   return new Response(JSON.stringify(entries), {
