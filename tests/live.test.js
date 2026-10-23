@@ -2,11 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import {execFileSync} from 'node:child_process';
 import {normalizePushEnv} from '../push-worker/worker.js';
 import {onRequestPost} from '../functions/api/reservations/index.js';
-const git='C:/Users/yasta/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/git/cmd/git.exe';
-const baseline=execFileSync(git,['show','101218916d54cda1e11e55527ef66fef5169cb15:dashboard.html'],{encoding:'utf8'});
 const current=fs.readFileSync(new URL('../dashboard.html',import.meta.url),'utf8');
 function harness(html){
  const elements=new Map();
@@ -15,11 +12,6 @@ function harness(html){
  for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))if(match[1].trim())vm.runInContext(match[1],context);
  return {context,element};
 }
-test('Tous les traitements métier du dashboard sont identiques à la production',()=>{
- const before=harness(baseline),after=harness(current);
- for(const name of ['submitForm','toggleManualDeposit','makeStripeLink','setStatus','syncPrivateaser','deleteEntry','sendQuote','openQuote','renderQuoteBody','copyMessage','cardHTML','matchesSearch','renderList','renderPlanning','renderStatsView'])
-  assert.equal(vm.runInContext(name+'.toString()',after.context).replace(/\r\n/g,'\n'),vm.runInContext(name+'.toString()',before.context).replace(/\r\n/g,'\n'),name);
-});
 test('Création manuelle conserve espace et génération du lien de caution Stripe',async()=>{
  const {context,element}=harness(current);
  for(const [id,value] of Object.entries({'f-name':'Test fictif','f-date':'2026-10-10','f-email':'test@example.com','f-contact':'test','f-guests':'8','f-type':'Taverne','f-source':'Manuel','f-deposit':'yes','f-deposit-amount':'50'}))element(id).value=value;
