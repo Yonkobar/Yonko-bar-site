@@ -2,17 +2,20 @@
 //
 // Avant : chaque actualisation du dashboard (toutes les minutes, sur chaque appareil)
 // relisait res:index + CHAQUE réservation (1 + N lectures).
-// Maintenant : une copie de la liste complète (res:snapshot) est gardée en KV avec un
-// numéro de version (res:rev). Toute écriture sur une clé res:* change res:rev, ce qui
+// Maintenant : une copie de la liste complète (meta:res-snapshot) est gardée en KV avec un
+// numéro de version (meta:res-rev). Toute écriture sur une clé res:* change res:rev, ce qui
 // invalide la copie. Une actualisation sans changement coûte 2 lectures.
 
 const RAW = Symbol.for("yonko.kv.raw");
-const REV_KEY = "res:rev";
-const SNAPSHOT_KEY = "res:snapshot";
+// Hors du préfixe « res: » : le Worker de notifications parcourt toutes les clés res:* et
+// les lit comme des réservations (une valeur non-JSON y faisait planter chaque passage).
+const REV_KEY = "meta:res-rev";
+const SNAPSHOT_KEY = "meta:res-snapshot";
+const LEGACY_KEYS = ["res:rev", "res:snapshot"];
+const legacyCleaned = new WeakSet(); // une fois par instance
 
 function tracked(key) {
-  const k = String(key || "");
-  return k.startsWith("res:") && k !== REV_KEY && k !== SNAPSHOT_KEY;
+  return String(key || "").startsWith("res:");
 }
 
 export function rawKv(env) {
@@ -88,6 +91,10 @@ export async function loadAllReservations(env) {
   if (!current) {
     await bumpRev(kv);
     current = await kv.get(REV_KEY);
+  }
+  if (!legacyCleaned.has(kv)) {
+    legacyCleaned.add(kv);
+    await Promise.all(LEGACY_KEYS.map((k) => kv.delete(k).catch(() => {})));
   }
   const all = await readAll(kv);
   try {

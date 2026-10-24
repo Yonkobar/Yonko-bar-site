@@ -56,10 +56,10 @@ test('Les clés hors réservations ne changent pas la version', async () => {
   const env = {DASHBOARD_KEY: 'k', RESERVATIONS: kv};
   installTracking(env);
   await list(env);
-  const rev = data.get('res:rev');
+  const rev = data.get('meta:res-rev');
   await env.RESERVATIONS.put('google_rating_cache', '{}');
   await env.RESERVATIONS.put('tok:abc', 'r0');
-  assert.equal(data.get('res:rev'), rev);
+  assert.equal(data.get('meta:res-rev'), rev);
 });
 
 test('Synchro Privateaser : une seule invalidation, la liste suit', async () => {
@@ -73,7 +73,7 @@ test('Synchro Privateaser : une seule invalidation, la liste suit', async () => 
   installTracking(env);
   await list(env);
   let bumps = 0; const put = kv.put;
-  kv.put = async (k, v) => { if (k === 'res:rev') bumps++; return put(k, v); };
+  kv.put = async (k, v) => { if (k === 'meta:res-rev') bumps++; return put(k, v); };
   const res = await sync({request: new Request('https://yonkobar.com/api/sync-privateaser', {method: 'POST', headers: {'x-dashboard-key': 'k'}, body: '{}'}), env}).then(r => r.json());
   assert.equal(res.created, 2);
   assert.equal(bumps, 1);
@@ -84,4 +84,15 @@ test('Synchro Privateaser : une seule invalidation, la liste suit', async () => 
   const res2 = await sync({request: new Request('https://yonkobar.com/api/sync-privateaser', {method: 'POST', headers: {'x-dashboard-key': 'k'}, body: '{}'}), env}).then(r => r.json());
   assert.equal(res2.created, 0); assert.equal(bumps, 0);
   assert.ok(data.get('res:priv-A1'));
+});
+
+test('Aucune clé technique sous res: (le Worker de notifications les lirait comme des réservations)', async () => {
+  const {kv, data} = fakeKv({...seedN(2), 'res:rev': '123-abc', 'res:snapshot': '{}'});
+  const env = {DASHBOARD_KEY: 'k', RESERVATIONS: kv};
+  installTracking(env);
+  await list(env);
+  await env.RESERVATIONS.put('res:r0', JSON.stringify({id: 'r0', createdAt: 0}));
+  await list(env);
+  for (const k of data.keys()) if (k.startsWith('res:') && k !== 'res:index') assert.doesNotThrow(() => JSON.parse(data.get(k)).id, k);
+  assert.ok(!data.has('res:rev') && !data.has('res:snapshot'));
 });
