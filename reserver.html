@@ -74,7 +74,7 @@
         <div class="grid-2" id="spaces" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
           <button type="button" class="space" data-space="taverne"><img src="/img/taverne-salle-sm.jpg" alt=""><span class="t"><strong>La Taverne</strong><span class="muted" style="font-size:13px">Tables · jusqu'à 35 pers.</span></span></button>
           <button type="button" class="space" data-space="cave"><img src="/img/cave-tables-sm.jpg" alt=""><span class="t"><strong>La Cave privatisée</strong><span class="muted" style="font-size:13px">30 à 60 pers.</span></span></button>
-          <button type="button" class="space" data-space="bar"><img src="/img/taverne-bar-sm.jpg" alt=""><span class="t"><strong>Le bar entier</strong><span class="muted" style="font-size:13px">60 à 100 pers. · sur devis</span></span></button>
+          <button type="button" class="space" data-space="bar"><img src="/img/taverne-bar-sm.jpg" alt=""><span class="t"><strong>Le bar entier</strong><span class="muted" style="font-size:13px">60 à 80 pers. · sur devis</span></span></button>
         </div>
       </section>
       <section data-step="3" hidden>
@@ -259,7 +259,7 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
   }
   dateEl.addEventListener('change', function(){ st.date = dateEl.value; if (closedDay(st.date)) st.space = 'bar'; renderTimes(); render(); });
   $('g-minus').onclick = function(){ st.guests = Math.max(1, st.guests - 1); render(); };
-  $('g-plus').onclick = function(){ st.guests = Math.min(100, st.guests + 1); render(); };
+  $('g-plus').onclick = function(){ st.guests = Math.min(80, st.guests + 1); render(); };
   document.querySelectorAll('.space').forEach(function(b){ b.onclick = function(){ st.space = b.dataset.space; if (st.space === 'cave' && st.guests < 30) st.guests = 30; if (st.space === 'bar' && st.guests < 60) st.guests = 60; render(); }; });
   $('back').onclick = function(){ $('err').textContent = ''; go(Math.max(1, st.step - 1)); };
   $('form').addEventListener('submit', function(ev){ ev.preventDefault(); if (st.sending || !validate()) return; if (st.step === 4) send(); else go(st.step + 1); });
