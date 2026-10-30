@@ -69,6 +69,8 @@ function minConsoText(entry) {
   return "";
 }
 
+const KARAOKE_NOTE = "Karaoké disponible uniquement en privatisation de la cave et lors des soirées organisées par l'établissement.";
+
 export function buildEmailHtml(entry, opts = {}) {
   const title = opts.title || "Réservation confirmée";
   const intro = opts.intro || "Votre réservation au Yonko Bar est confirmée. Voici le récapitulatif :";
@@ -94,6 +96,7 @@ export function buildEmailHtml(entry, opts = {}) {
             ${entry.type ? row("Espace", escHtml(entry.type)) : ""}
           </table>
           ${minConso ? `<p style="font-size:13px;color:#1a1a1a;background:#fff1e6;border:1px solid #ffd9b8;border-radius:8px;padding:10px 14px;margin:0 0 18px">${minConso}</p>` : ""}
+          <p style="font-size:13px;color:#78726a;line-height:1.5;margin:0 0 18px">${KARAOKE_NOTE}</p>
           ${entry.depositLink ? `
             <p style="font-size:13.5px;color:#78726a;line-height:1.5;margin:0 0 16px">Pour finaliser, merci de valider votre caution ci-dessous. Le montant est simplement <b>autorisé</b> sur votre carte — il ne sera prélevé qu'en cas d'absence non annoncée.</p>
             <table role="presentation" width="100%"><tr><td align="center">

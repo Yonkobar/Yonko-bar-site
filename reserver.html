@@ -85,7 +85,7 @@
           <div class="field"><label for="f-email">Email * <span class="muted" style="font-weight:400">(confirmation et suivi)</span></label><input id="f-email" type="email" autocomplete="email" required></div>
           <div class="field"><label for="f-tel">Téléphone *</label><input id="f-tel" type="tel" autocomplete="tel" required></div>
           <div class="field"><label for="f-occ">Occasion</label><select id="f-occ"><option value="">Sélectionner…</option><option>Verre entre amis</option><option>Anniversaire</option><option>Afterwork / pot de départ</option><option>EVJF / EVG</option><option>Événement d'entreprise</option><option>Autre</option></select></div>
-          <div class="field" style="grid-column:1/-1"><label for="f-msg">Un message pour l'équipe (facultatif)</label><textarea id="f-msg" maxlength="900" placeholder="Gâteau d'anniversaire, karaoké, besoin particulier…"></textarea></div>
+          <div class="field" style="grid-column:1/-1"><label for="f-msg">Un message pour l'équipe (facultatif)</label><textarea id="f-msg" maxlength="900" placeholder="Gâteau d'anniversaire, besoin particulier…"></textarea></div>
         </div>
         <p class="muted" style="margin:16px 0 0;font-size:13px">Vos coordonnées servent uniquement à gérer votre réservation et ne sont jamais revendues. <a href="/mentions-legales#confidentialite">Confidentialité</a></p>
       </section>
@@ -181,6 +181,7 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
       out.push('Caution de 250 € : carte enregistrée, rien n’est débité sauf absence non annoncée.');
       if (g < 30) out.push('La cave est prévue pour 30 à 60 personnes.');
     } else out.push('Privatisation sur devis : l’équipe vous recontacte sous 24 h.');
+    out.push('Karaoké disponible uniquement en privatisation de la cave et lors des soirées organisées par l’établissement.');
     out.push('Annulation gratuite jusqu’à 48 h avant.');
     return out;
   }

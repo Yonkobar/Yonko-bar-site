@@ -161,6 +161,7 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     var w = dow(d.date), conds = [];
     if (/taverne/i.test(d.type || '') && (w === 5 || w === 6) && Number(d.guests) > 6) conds.push('Minimum de consommation de 15 € / personne le vendredi et le samedi.');
     if (/privatisation/i.test(d.type || '')) conds.push('Minimum de consommation de ' + (w === 5 ? '600' : w === 6 ? '700' : '500') + ' € pour la soirée.');
+    conds.push('Karaoké disponible uniquement en privatisation de la cave et lors des soirées organisées par l’établissement.');
     conds.push('Happy hour de 17h30 à 21h.');
     $('conds').textContent = conds.join(' ');
     // Actions
