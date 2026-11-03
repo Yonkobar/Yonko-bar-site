@@ -608,7 +608,7 @@ function cardHTML(e) {
   const action=(name,label,icon,cls='')=>`<button class="action ${cls}" data-entry="${data}" data-action="${name}">${icon} ${label}</button>`;
   return `<article class="card"><div class="card-top"><div class="avatar" style="--sc:${sc}">${escapeHTML(initials(e.name))}</div><div class="card-info"><div class="card-toprow"><div><h3 class="name">${escapeHTML(e.name)}</h3><p class="meta">${escapeHTML(formatDate(e.date))}${e.time?' · '+escapeHTML(e.time):''}${e.guests?' · '+escapeHTML(e.guests)+' pers.':''}</p>${e.type?`<p class="meta">Espace · ${escapeHTML(e.type)}</p>`:''}${e.source?`<p class="meta">${escapeHTML(e.source)}</p>`:''}${e.contact?`<p class="meta">${escapeHTML(e.contact)}</p>`:''}${e.email&&e.email!==e.contact?`<p class="meta">${escapeHTML(e.email)}</p>`:''}</div><span class="badge" style="--sc:${sc}">${status.label}</span></div></div></div>
   ${e.notes?`<p class="notes">${escapeHTML(e.notes)}</p>`:''}${e.kitchenNote?`<div class="kitchen"><b>À préparer · note interne</b>${escapeHTML(e.kitchenNote)}</div>`:''}${flags.length?`<div class="flags">${flags.join('')}</div>`:''}
-  <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${e.email&&e.status!=='declined'?action('confirm-mail',e.emailSent?'Renvoyer la confirmation':'Envoyer la confirmation',ICONS.mail):''}${depositPending(e)?action('manual-deposit','Caution déposée',ICONS.check):''}${(e.messages||[]).length?action('messages',(e.unreadForStaff?e.unreadForStaff+' nouveau'+(e.unreadForStaff>1?'x':'')+' message'+(e.unreadForStaff>1?'s':''):'Messages ('+e.messages.length+')'),ICONS.mail,e.unreadForStaff?'accept':''):''}${action('edit','Modifier',ICONS.edit)}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
+  <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${e.email&&e.status!=='declined'?action('confirm-mail',e.emailSent?'Renvoyer la confirmation':'Envoyer la confirmation',ICONS.mail):''}${depositPending(e)?action('manual-deposit','Caution déposée',ICONS.check):''}${action('messages',(e.unreadForStaff?e.unreadForStaff+' nouveau'+(e.unreadForStaff>1?'x':'')+' message'+(e.unreadForStaff>1?'s':''):(e.messages||[]).length?'Messages ('+e.messages.length+')':'Écrire au client'),ICONS.mail,e.unreadForStaff?'accept':'')}${e.status!=='declined'?action('propose','Autre date',ICONS.edit):''}${action('edit','Modifier',ICONS.edit)}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
   ${e.depositLink?`<div class="deposit">${e.depositAmount?escapeHTML(e.depositAmount)+' € · ':''}${escapeHTML(e.depositLink)}</div>`:''}</article>`;
 }
 
@@ -704,7 +704,7 @@ document.addEventListener('click',async event=>{
   const btn=event.target.closest('[data-action][data-entry]');if(!btn)return;
   const entry=entries.find(e=>String(e.id)===btn.dataset.entry);if(!entry)return;
   btn.disabled=true;
-  try{switch(btn.dataset.action){case 'accepted':case 'declined':case 'pending':await setStatus(entry.id,btn.dataset.action);break;case 'stripe':await makeStripeLink(entry.id,entry.name);break;case 'delete':await deleteEntry(entry.id,entry.name);break;case 'copy':await copyMessage(entry);break;case 'quote':openQuote(entry);break;case 'edit':openEdit(entry);break;case 'messages':openEdit(entry);setTimeout(()=>{const t=document.getElementById('e-msg-text');if(t){t.scrollIntoView({block:'center'});t.focus();}},50);break;case 'confirm-mail':await sendConfirmation(entry);break;case 'manual-deposit':await manualDeposit(entry);break;}}finally{btn.disabled=false;}
+  try{switch(btn.dataset.action){case 'accepted':case 'declined':case 'pending':await setStatus(entry.id,btn.dataset.action);break;case 'stripe':await makeStripeLink(entry.id,entry.name);break;case 'delete':await deleteEntry(entry.id,entry.name);break;case 'copy':await copyMessage(entry);break;case 'quote':openQuote(entry);break;case 'edit':openEdit(entry);break;case 'messages':openEdit(entry);setTimeout(()=>{const t=document.getElementById('e-msg-text');if(t){t.scrollIntoView({block:'center'});t.focus();}},50);break;case 'propose':openEdit(entry);setTimeout(()=>{const t=document.getElementById('e-prop-date');if(t){t.scrollIntoView({block:'center'});t.focus();}},50);break;case 'confirm-mail':await sendConfirmation(entry);break;case 'manual-deposit':await manualDeposit(entry);break;}}finally{btn.disabled=false;}
 });
 document.getElementById('quotePanel').addEventListener('keydown',event=>{
   if(event.key==='Escape'){closeQuote();return;}
@@ -775,11 +775,27 @@ async function saveEdit(){
 document.getElementById('editDialog').addEventListener('close',()=>{editEntry=null;});
 function renderMsgBox(){
   const e=editEntry,box=document.getElementById('e-msg-box');if(!e){box.innerHTML='';return;}
-  const list=(e.messages||[]).map(m=>`<div style="align-self:${m.from==='client'?'flex-start':'flex-end'};max-width:85%;background:${m.from==='client'?'var(--paper-2)':'var(--brass-soft)'};border-radius:12px;padding:9px 12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px">${escapeHTML(m.text)}<div style="font-size:11px;color:var(--muted);margin-top:3px">${m.from==='client'?'Client':'Yonko Bar'} · ${new Date(m.at).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div>`).join('');
+  const list=(e.messages||[]).map(m=>`<div style="align-self:${m.from==='client'?'flex-start':'flex-end'};max-width:85%;background:${m.from==='client'?'var(--paper-2)':'var(--brass-soft)'};border-radius:12px;padding:9px 12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px">${escapeHTML(m.text)}${m.proposal?`<div style="font-size:12px;margin-top:5px"><b>Créneau proposé : ${escapeHTML(formatDate(m.proposal.date))}${m.proposal.time?' à '+escapeHTML(m.proposal.time):''}</b> · ${({open:'en attente de réponse',accepted:'accepté par le client',declined:'refusé par le client',replaced:'remplacé'})[m.proposal.status]||''}</div>`:''}<div style="font-size:11px;color:var(--muted);margin-top:3px">${m.from==='client'?'Client':'Yonko Bar'} · ${new Date(m.at).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div>`).join('');
   box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px"><strong style="font-size:13px">Messages avec le client</strong><button type="button" class="btn-ghost" style="min-height:34px;padding:6px 12px;font-size:12px" onclick="copyClientLink(editEntry)">Copier le lien « Ma réservation »</button></div>
   <div style="display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto;margin-bottom:10px">${list||'<p class="edit-note" style="margin:0">Aucun message. Le client peut vous écrire depuis sa page « Ma réservation ».</p>'}</div>
   <label class="field">Répondre au client<textarea id="e-msg-text" rows="2" placeholder="${e.email?'Le client sera prévenu par email':'Pas d’email : le client verra le message sur sa page'}"></textarea></label>
-  <div style="display:flex;justify-content:flex-end;margin-top:8px"><button type="button" class="btn-primary" id="e-msg-send" style="min-height:40px;padding:8px 16px" onclick="sendStaffMessage()">Envoyer le message</button></div>`;
+  <div style="display:flex;justify-content:flex-end;margin-top:8px"><button type="button" class="btn-primary" id="e-msg-send" style="min-height:40px;padding:8px 16px" onclick="sendStaffMessage()">Envoyer le message</button></div>
+  <div style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--rule)"><strong style="font-size:13px">Proposer un autre créneau</strong>
+  <p class="edit-note" style="margin:4px 0 10px">Le client reçoit un email et peut accepter ou refuser depuis sa page. S’il accepte, la réservation est déplacée automatiquement.</p>
+  <div class="form-grid" style="margin:0"><label class="field">Date proposée<input id="e-prop-date" type="date" min="${isoDate(new Date())}"></label><label class="field">Heure<input id="e-prop-time" type="time" value="${escapeHTML(e.time||'')}"></label>
+  <label class="field full" style="grid-column:1/-1">Mot d’accompagnement (facultatif)<input id="e-prop-note" placeholder="Ex. Désolé, nous sommes complets ce soir-là."></label></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:8px"><button type="button" class="btn-ghost" id="e-prop-send" style="min-height:40px;padding:8px 16px" onclick="sendProposal()">Proposer ce créneau</button></div></div>`;
+}
+async function sendProposal(){
+  const d=document.getElementById('e-prop-date'),tm=document.getElementById('e-prop-time'),n=document.getElementById('e-prop-note'),btn=document.getElementById('e-prop-send');
+  if(!editEntry||!d||btn.disabled)return;
+  if(!d.value){toast('Choisissez la date proposée.','error');d.focus();return;}
+  btn.disabled=true;
+  try{
+    const res=await api(`/${editEntry.id}/messages`,{method:'POST',body:JSON.stringify({proposal:{date:d.value,time:tm.value},text:n.value.trim()})});
+    editEntry=res.entry;renderMsgBox();entries=await api('');render();
+    toast(res.emailResult&&res.emailResult.sent?'Créneau proposé · client prévenu par email.':'Créneau proposé sur la page du client'+(editEntry.email?' (email non parti).':' (pas d’email : copiez-lui le lien « Ma réservation »).'),res.emailResult&&!res.emailResult.sent&&editEntry.email?'error':'success');
+  }catch(e){toast(e.message,'error');}finally{if(btn)btn.disabled=false;}
 }
 async function sendStaffMessage(){
   const t=document.getElementById('e-msg-text'),btn=document.getElementById('e-msg-send');
@@ -842,4 +858,4 @@ init();
 </script>
 <script src="/mobile-app.js" defer></script>
 </body>
-</html>
+</html>

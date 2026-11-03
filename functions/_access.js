@@ -64,6 +64,23 @@ export function depositState(entry) {
   return entry.depositLink ? "pending" : "none";
 }
 
+// Libellé lisible d'un créneau : « samedi 14 novembre à 19h00 ».
+export function slotLabel(date, time) {
+  const d = dateFr(date);
+  return time ? `${d} à ${String(time).replace(":", "h")}` : d;
+}
+
+// Vérifie un créneau proposé par l'équipe. Sans heure, on garde celle de la réservation.
+export function buildProposal(entry, raw) {
+  const date = String(raw?.date || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date + "T12:00:00Z"))) throw new Error("Date proposée invalide.");
+  const time = String(raw?.time || "").trim().slice(0, 5);
+  if (time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new Error("Heure proposée invalide.");
+  const start = parisToUtc(date, time || entry.time);
+  if (start === null || start <= Date.now()) throw new Error("Le créneau proposé est déjà passé.");
+  return { date, time };
+}
+
 // Ce que le client peut voir : jamais l'email, le téléphone, les notes internes ni les identifiants Stripe.
 export function publicView(entry, now = Date.now()) {
   const deadline = cancelDeadline(entry);
@@ -89,16 +106,19 @@ export function publicView(entry, now = Date.now()) {
     },
     cancelDeadline: deadline,
     canCancel: !cancelled && deadline !== null && now < deadline,
-    messages: (entry.messages || []).map((m) => ({ from: m.from, text: m.text, at: m.at })),
+    messages: (entry.messages || []).map((m) => ({
+      from: m.from, text: m.text, at: m.at,
+      ...(m.proposal ? { proposal: { date: m.proposal.date, time: m.proposal.time || "", status: m.proposal.status } } : {}),
+    })),
   };
 }
 
-export function addMessage(entry, from, text) {
+export function addMessage(entry, from, text, extra = {}) {
   const clean = String(text || "").replace(/\r\n/g, "\n").trim().slice(0, MAX_TEXT);
   if (!clean) throw new Error("Message vide.");
   const list = entry.messages || [];
   if (list.length >= MAX_MESSAGES) throw new Error("Trop de messages sur cette réservation : appelez-nous.");
-  const msg = { from, text: clean, at: Date.now() };
+  const msg = { from, text: clean, at: Date.now(), ...extra };
   entry.messages = [...list, msg];
   if (from === "client") entry.unreadForStaff = (entry.unreadForStaff || 0) + 1;
   return msg;
@@ -142,11 +162,15 @@ function dateFr(date) {
 }
 
 // Message de l'équipe -> email au client avec le lien vers sa page.
-export function mailClientNewMessage(entry, env, origin, text) {
+export function mailClientNewMessage(entry, env, origin, text, isProposal = false) {
   const body = `<p style="margin:0 0 12px">Bonjour ${esc(entry.name || "")},</p>
   <p style="margin:0 0 12px">Vous avez un nouveau message au sujet de votre réservation du ${esc(dateFr(entry.date))} :</p>
   <blockquote style="margin:0;padding:12px 14px;background:#fff4e5;border-radius:8px;white-space:pre-wrap">${esc(text)}</blockquote>`;
-  return sendMail(env, entry.email, "Nouveau message du Yonko Bar", simpleMail("Nouveau message", body, manageUrl(entry, env, origin), "Répondre depuis ma réservation"));
+  return sendMail(
+    env, entry.email,
+    isProposal ? "Une autre date vous est proposée au Yonko Bar" : "Nouveau message du Yonko Bar",
+    simpleMail(isProposal ? "Autre créneau proposé" : "Nouveau message", body, manageUrl(entry, env, origin), isProposal ? "Répondre à la proposition" : "Répondre depuis ma réservation"),
+  );
 }
 
 // Message ou annulation du client -> email à l'équipe (NOTIFY_EMAIL, sinon contact@yonkobar.com).
