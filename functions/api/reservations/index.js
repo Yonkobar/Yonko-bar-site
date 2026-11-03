@@ -1,7 +1,6 @@
 import {notifyNewReservation} from '../../_push.js';
 import { ensureAccessToken } from '../../_access.js';
 import { loadAllReservations } from '../../_kv.js';
-import { notifyNewReservationWhatsApp } from '../../_whatsapp.js';
 // GET  /api/reservations  -> liste des réservations (protégé par x-dashboard-key)
 // POST /api/reservations  -> créer une réservation (appelé par le formulaire du site, public)
 
@@ -110,12 +109,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   const notification = notifyNewReservation(env, request, entry);
   if (waitUntil) waitUntil(notification); else await notification;
-
-  // WhatsApp automatique pour l'équipe : uniquement pour les demandes du site (pas celles saisies dans l'appli).
-  if (!fromDashboard) {
-    const whatsapp = notifyNewReservationWhatsApp(env, entry);
-    if (waitUntil) waitUntil(whatsapp); else await whatsapp;
-  }
 
   return new Response(JSON.stringify({ ok: true, id, token: entry.accessToken }), {
     status: 201,
