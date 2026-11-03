@@ -115,6 +115,9 @@
     try{const r=await fetch('/app-version.json',{cache:'no-store'});if(!r.ok)return;const v=await r.json();if(typeof v.version==='string'&&v.version!==VERSION){byId('appUpdate').hidden=false;}}
     catch{}if(registration)registration.update().catch(()=>{});
   }
+  // Bouton « Mettre à jour » : sans boîte de dialogue du navigateur (elle peut être bloquée dans l'appli installée).
+  // Saisies en cours : un second appui est demandé. Ensuite rechargement, avec un second essai si le premier n'a rien fait.
+  byId('appUpdateBtn').onclick=async()=>{const b=byId('appUpdateBtn');if(unsaved()&&b.dataset.armed!=='1'){b.dataset.armed='1';b.textContent='Saisies en cours perdues : appuyez encore pour mettre à jour';return;}b.disabled=true;b.textContent='Mise à jour…';try{await Promise.race([registration?registration.update():Promise.resolve(),new Promise(r=>setTimeout(r,2000))]);}catch{}location.reload();setTimeout(()=>location.replace(location.pathname+'?maj='+Date.now()),2500);};
   addEventListener('focus',()=>{refreshReservations();checkVersion();});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){refreshReservations();checkVersion();}});
   setInterval(()=>{refreshReservations();checkVersion();},60000);
