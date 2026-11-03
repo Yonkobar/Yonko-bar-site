@@ -1,8 +1,7 @@
 // POST /api/reservations/:id/messages (dashboard, protégé par x-dashboard-key)
 //   { text }          -> message de l'équipe au client (+ email au client avec le lien de sa page)
-//   { proposal: { date, time }, text? } -> propose un autre créneau (le client peut l'accepter depuis sa page)
 //   { markRead: true } -> marque les messages du client comme lus
-import { addMessage, buildProposal, slotLabel, ensureAccessToken, mailClientNewMessage } from "../../../_access.js";
+import { addMessage, ensureAccessToken, mailClientNewMessage } from "../../../_access.js";
 
 function cors() {
   return {
@@ -36,24 +35,14 @@ export async function onRequestPost({ request, env, params }) {
   }
 
   let msg;
-  try {
-    if (body.proposal && typeof body.proposal === "object") {
-      const slot = buildProposal(entry, body.proposal);
-      const note = String(body.text || "").trim();
-      const text = `${note ? note + "\n\n" : ""}Nous vous proposons un autre créneau : ${slotLabel(slot.date, slot.time || entry.time)}. Vous pouvez l'accepter ou le refuser directement depuis votre page « Ma réservation ».`;
-      // Une seule proposition ouverte à la fois : la nouvelle remplace les précédentes.
-      for (const m of entry.messages || []) if (m.proposal?.status === "open") m.proposal.status = "replaced";
-      msg = addMessage(entry, "bar", text, { proposal: { ...slot, status: "open" } });
-    } else {
-      msg = addMessage(entry, "bar", body.text);
-    }
-  } catch (e) { return Response.json({ error: e.message }, { status: 400, headers: cors() }); }
+  try { msg = addMessage(entry, "bar", body.text); }
+  catch (e) { return Response.json({ error: e.message }, { status: 400, headers: cors() }); }
   entry.unreadForStaff = 0;
   await ensureAccessToken(entry, env);
   await env.RESERVATIONS.put(`res:${entry.id}`, JSON.stringify(entry));
 
   const emailResult = entry.email
-    ? await mailClientNewMessage(entry, env, new URL(request.url).origin, msg.text, !!msg.proposal)
+    ? await mailClientNewMessage(entry, env, new URL(request.url).origin, msg.text)
     : { sent: false, reason: "no_email" };
   return Response.json({ ok: true, entry, emailResult }, { headers: cors() });
 }

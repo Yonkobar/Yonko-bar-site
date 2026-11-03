@@ -244,23 +244,16 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     var notes = [$('f-occ').value, $('f-msg').value.trim()].filter(Boolean).join(' — ');
     var src = params.get('source');
     var payload = {name: name, email: $('f-email').value.trim(), contact: $('f-tel').value.trim(), type: SPACES[st.space].type, date: st.date, time: st.time, guests: String(st.guests), notes: notes, source: src === 'google' ? 'Google' : 'Site internet'};
-    var wa = ['Nouvelle demande - Yonko Bar', 'Nom: ' + name, 'Email: ' + payload.email, 'Tel: ' + payload.contact, 'Date: ' + st.date + ' à ' + st.time, 'Personnes: ' + st.guests, 'Espace: ' + payload.type, notes ? 'Message: ' + notes : '', 'Via yonkobar.com'].filter(Boolean).join('\n');
-    var waUrl = 'https://wa.me/33750915905?text=' + encodeURIComponent(wa);
-    // Comme avant : WhatsApp s'ouvre avec le message pré-rempli pour l'équipe. L'onglet doit être ouvert
-    // tout de suite (pendant le clic, sinon le navigateur le bloque), puis dirigé vers WhatsApp une fois la demande enregistrée.
-    var waTab = null;
-    try { waTab = window.open('', '_blank'); } catch (e) { waTab = null; }
     try {
       var r = await fetch('/api/reservations', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
       var d = await r.json().catch(function(){ return {}; });
       if (!r.ok || !d.ok) throw new Error(d.error || ('HTTP ' + r.status));
       if (d.token) $('done-link').href = '/ma-reservation?t=' + encodeURIComponent(d.token);
       else $('done-link').hidden = true;
-      $('done-wa').href = waUrl;
-      if (waTab && !waTab.closed) { try { waTab.location.href = waUrl; } catch (e) {} }
+      var wa = ['Nouvelle demande - Yonko Bar', 'Nom: ' + name, 'Email: ' + payload.email, 'Tel: ' + payload.contact, 'Date: ' + st.date + ' à ' + st.time, 'Personnes: ' + st.guests, 'Espace: ' + payload.type, notes ? 'Message: ' + notes : '', 'Via yonkobar.com'].filter(Boolean).join('\n');
+      $('done-wa').href = 'https://wa.me/33750915905?text=' + encodeURIComponent(wa);
       st.sending = false; go(5); $('done-title').focus();
     } catch (e) {
-      if (waTab && !waTab.closed) { try { waTab.close(); } catch (x) {} }
       st.sending = false; render();
       fail('L’envoi n’a pas abouti. Réessayez, ou contactez-nous sur WhatsApp ou au 09 74 64 02 98.');
     }

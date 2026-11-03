@@ -121,18 +121,6 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
   function hour(t){ return t ? t.replace(':', 'h') : ''; }
   function space(t){ t = (t || '').toLowerCase(); return t.indexOf('privatisation') > -1 ? 'La Cave privatisée' : t.indexOf('bar entier') > -1 ? 'Le bar entier' : t.indexOf('taverne') > -1 ? 'La Taverne' : (data.type || '—'); }
   function dow(d){ var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? new Date(Date.UTC(+m[1], +m[2]-1, +m[3])).getUTCDay() : -1; }
-  var PROP_DONE = {accepted: 'Vous avez accepté ce créneau.', declined: 'Vous avez refusé ce créneau.', replaced: 'Remplacé par une autre proposition.'};
-  function proposalHtml(m, cancelled){
-    var p = m.proposal; if (!p) return '';
-    var label = dateLong(p.date) + (p.time ? ' à ' + hour(p.time) : '');
-    var out = '<div style="margin-top:.7rem;padding-top:.7rem;border-top:1px solid rgba(244,232,212,.18)"><strong>Créneau proposé : ' + esc(label) + '</strong>';
-    if (p.status === 'open' && !cancelled) {
-      out += '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem"><button type="button" class="btn btn-primary btn-sm" data-prop="accept" data-at="' + esc(m.at) + '">Accepter ce créneau</button><button type="button" class="btn btn-ghost btn-sm" data-prop="decline" data-at="' + esc(m.at) + '">Ce créneau ne me convient pas</button></div>';
-    } else if (PROP_DONE[p.status]) {
-      out += '<div class="muted" style="margin-top:.35rem;font-size:.82rem">' + PROP_DONE[p.status] + '</div>';
-    }
-    return out + '</div>';
-  }
   function render(){
     var d = data, cancelled = d.status === 'declined', dep = d.deposit || {};
     var badge = $('status-badge');
@@ -166,7 +154,7 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     $('timeline').innerHTML = steps.map(function(x){ return '<li><span class="dot' + (x.done ? ' done' : x.wait ? ' wait' : '') + '">' + (x.done ? check : '') + '</span><span><strong>' + esc(x.t) + '</strong>' + (x.s ? '<br><span class="muted" style="font-size:14px">' + esc(x.s) + '</span>' : '') + '</span></li>'; }).join('');
     // Messages
     var thread = $('thread');
-    thread.innerHTML = (d.messages || []).length ? d.messages.map(function(m){ return '<div class="msg ' + (m.from === 'client' ? 'me' : 'bar') + '">' + esc(m.text) + proposalHtml(m, cancelled) + '<small>' + (m.from === 'client' ? 'Vous' : 'Yonko Bar') + ' · ' + esc(stamp(m.at)) + '</small></div>'; }).join('') : '<p class="muted" style="margin:0;font-size:14px">Une question, un gâteau, un changement ? Écrivez-nous ici, l’équipe vous répond par email et sur cette page.</p>';
+    thread.innerHTML = (d.messages || []).length ? d.messages.map(function(m){ return '<div class="msg ' + (m.from === 'client' ? 'me' : 'bar') + '">' + esc(m.text) + '<small>' + (m.from === 'client' ? 'Vous' : 'Yonko Bar') + ' · ' + esc(stamp(m.at)) + '</small></div>'; }).join('') : '<p class="muted" style="margin:0;font-size:14px">Une question, un gâteau, un changement ? Écrivez-nous ici, l’équipe vous répond par email et sur cette page.</p>';
     thread.scrollTop = thread.scrollHeight;
     // Récapitulatif
     $('recap').innerHTML = [['Nom', d.name], ['Date', day], ['Heure', hour(d.time) || '—'], ['Personnes', d.guests || '—'], ['Espace', space(d.type)]].map(function(r){ return '<div><dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('');
@@ -206,15 +194,6 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     try { await post({action: 'message', text: text}); $('msg-text').value = ''; }
     catch (e) { $('msg-err').textContent = e.message; }
     finally { busy = false; $('msg-send').disabled = false; }
-  });
-  $('thread').addEventListener('click', async function(ev){
-    var b = ev.target.closest('[data-prop]'); if (!b || busy) return;
-    if (b.dataset.prop === 'accept' && !confirm('Confirmer ce nouveau créneau pour votre réservation ?')) return;
-    busy = true; $('msg-err').textContent = '';
-    document.querySelectorAll('[data-prop]').forEach(function(x){ x.disabled = true; });
-    try { await post({action: 'proposal', at: Number(b.dataset.at), decision: b.dataset.prop}); }
-    catch (e) { $('msg-err').textContent = e.message; document.querySelectorAll('[data-prop]').forEach(function(x){ x.disabled = false; }); }
-    finally { busy = false; }
   });
   $('a-modify').onclick = function(){ var t = $('msg-text'); if (!t.value) t.value = 'Bonjour, je souhaiterais modifier ma réservation : '; t.focus(); t.setSelectionRange(t.value.length, t.value.length); t.scrollIntoView({block: 'center', behavior: 'smooth'}); };
   $('a-cancel').onclick = async function(){

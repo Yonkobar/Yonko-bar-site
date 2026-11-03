@@ -1,6 +1,6 @@
 // GET  /api/my-reservation/:token  -> vue client de la réservation (lien privé reçu par email)
-// POST /api/my-reservation/:token  -> { action: "message", text } | { action: "cancel" } | { action: "proposal", at, decision: "accept"|"decline" }
-import { loadByToken, publicView, addMessage, cancelDeadline, parisToUtc, slotLabel, mailStaff, mailClientCancelled } from "../../_access.js";
+// POST /api/my-reservation/:token  -> { action: "message", text } ou { action: "cancel" }
+import { loadByToken, publicView, addMessage, cancelDeadline, mailStaff, mailClientCancelled } from "../../_access.js";
 import { expireCheckoutSession, detachPaymentMethod } from "../../_stripe-guarantee.js";
 import { notifyNewMessage } from "../../_push.js";
 
@@ -32,50 +32,6 @@ export async function onRequestPost({ request, env, params, waitUntil }) {
     try { msg = addMessage(entry, "client", body.text); } catch (e) { return json({ error: e.message }, 400); }
     await env.RESERVATIONS.put(`res:${entry.id}`, JSON.stringify(entry));
     later(mailStaff(entry, env, origin, "Nouveau message d'un client", msg.text));
-    later(notifyNewMessage(env, request, entry, msg));
-    return json(publicView(entry));
-  }
-
-  // Réponse du client à un créneau proposé par l'équipe.
-  if (body.action === "proposal") {
-    const target = (entry.messages || []).find((m) => m.proposal && m.at === Number(body.at));
-    if (!target) return json({ error: "Proposition introuvable." }, 404);
-    if (entry.status === "declined") return json({ error: "Cette réservation est annulée : écrivez-nous via la messagerie." }, 409);
-    if (target.proposal.status !== "open") return json({ error: "Cette proposition n'est plus d'actualité." }, 409);
-    if (body.decision !== "accept" && body.decision !== "decline") return json({ error: "Réponse inconnue." }, 400);
-    const slot = target.proposal;
-    const label = slotLabel(slot.date, slot.time || entry.time);
-
-    let replyText, staffSubject, staffText;
-    if (body.decision === "accept") {
-      const start = parisToUtc(slot.date, slot.time || entry.time);
-      if (start === null || start <= Date.now()) return json({ error: "Ce créneau est déjà passé : écrivez-nous via la messagerie." }, 409);
-      const before = { date: entry.date || "", time: entry.time || "" };
-      entry.date = slot.date;
-      if (slot.time) entry.time = slot.time;
-      const changed = ["date", ...(slot.time ? ["time"] : [])].filter((k) => before[k] !== entry[k]);
-      if (changed.length) {
-        // Empêche la synchronisation Privateaser d'écraser le nouveau créneau.
-        entry.lockedFields = [...new Set([...(entry.lockedFields || []), ...changed])];
-        entry.modifiedAt = Date.now();
-        entry.modifications = [...(entry.modifications || []).slice(-9), { at: entry.modifiedAt, before, after: { date: entry.date, time: entry.time || "" }, by: "client" }];
-      }
-      target.proposal.status = "accepted";
-      replyText = `J'accepte le créneau proposé : ${label}.`;
-      staffSubject = "Nouveau créneau accepté par le client";
-      staffText = `${replyText}\n\nLa réservation a été déplacée automatiquement.`
-        + (entry.status === "accepted" ? "\nElle était déjà confirmée : le client a vu la nouvelle date à l'écran, renvoyez-lui la confirmation si besoin." : "\nElle reste en attente : acceptez-la quand vous êtes prêts.")
-        + (entry.depositLink ? "\nUne caution existe pour cette réservation : vérifiez que son montant est toujours adapté (bouton Modifier)." : "");
-    } else {
-      target.proposal.status = "declined";
-      replyText = `Ce créneau ne me convient pas (${label}).`;
-      staffSubject = "Créneau refusé par le client";
-      staffText = `${replyText}\n\nLa réservation n'a pas changé : proposez un autre créneau ou écrivez au client.`;
-    }
-    let msg;
-    try { msg = addMessage(entry, "client", replyText); } catch (e) { return json({ error: e.message }, 400); }
-    await env.RESERVATIONS.put(`res:${entry.id}`, JSON.stringify(entry));
-    later(mailStaff(entry, env, origin, staffSubject, staffText));
     later(notifyNewMessage(env, request, entry, msg));
     return json(publicView(entry));
   }
