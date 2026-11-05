@@ -48,6 +48,13 @@
 /* Jours bloqués */
 .cell.blocked{background:repeating-linear-gradient(135deg,#f1ede4 0 6px,#e9e4d9 6px 12px)}.chip-block{background:#5b5f66}
 .block-box{display:flex;flex-direction:column;gap:8px;margin:0 0 16px}.block-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#eef0f2;border:1px solid #d5d9de;border-radius:9px;padding:8px 10px;font-size:12px}.block-form{border:1px dashed var(--rule);border-radius:9px;padding:10px 12px;font-size:12px}.block-form summary{cursor:pointer;font-weight:600;color:var(--muted)}.block-help{color:var(--muted);font-size:11px;margin:8px 0}.block-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.block-fields label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:600}.block-fields select{border:1px solid var(--rule);border-radius:7px;background:var(--paper);padding:9px;min-height:42px;font-size:14px}
+/* Fiche client */
+.name-link{all:unset;cursor:pointer;border-bottom:1px dashed #c3af94}.name-link:focus-visible{outline:3px solid #ba5109;outline-offset:2px}
+#clientDialog{border:1px solid var(--rule);border-radius:16px;background:var(--paper);color:var(--text);width:min(520px,calc(100% - 24px));max-height:90dvh;overflow:auto;padding:22px}#clientDialog::backdrop{background:#171b2099;backdrop-filter:blur(3px)}#clientDialog .panel-title{margin-bottom:6px}
+.cs-head{display:flex;gap:12px;align-items:center;margin-bottom:16px}.cs-head h2{font:500 22px Fraunces,Georgia,serif;margin:0}.cs-muted{color:var(--muted);font-size:11px;margin:2px 0 0}
+.cs-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:14px}.cs-stat{background:white;border:1px solid var(--rule);border-radius:9px;padding:9px 6px;text-align:center}.cs-stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.cs-stat span{font-size:10px;color:var(--muted)}
+.cs-contacts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}.cs-contacts .action{text-decoration:none;overflow-wrap:anywhere}.cs-next{font-size:12px;background:var(--brass-soft);border-radius:8px;padding:9px 11px;margin:0 0 12px}
+.cs-title{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:16px 0 8px}.cs-list{display:flex;flex-direction:column;gap:6px}.cs-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:white;border:1px solid var(--rule);border-radius:9px;padding:9px 11px;font-size:12px}.cs-row.current{border-color:#e38a43}
 </style>
 </head>
 <body>
@@ -88,6 +95,7 @@
     <footer class="footer-note"><span>YONKO BAR · RÉSERVATIONS</span><span id="updateTime">Chargement des données…</span></footer>
   </div></main>
 </div>
+<dialog id="clientDialog" aria-label="Fiche client"><div class="panel-title"><div><div class="eyebrow">Fiche client</div></div><button class="btn-ghost" onclick="document.getElementById('clientDialog').close()" aria-label="Fermer">×</button></div><div id="csBody"></div><div class="form-actions"><button class="btn-ghost" onclick="const e=sheetClient;document.getElementById('clientDialog').close();if(e)showClient(String(e.email||'').includes('@')?e.email:(e.contact||e.name))">Voir ses réservations dans la liste</button></div></dialog>
 <dialog id="editDialog" aria-labelledby="editTitle"><div class="panel-title"><div><div class="eyebrow">Modifier la réservation</div><h2 id="editTitle">Réservation</h2></div><button class="btn-ghost" onclick="closeEdit()" aria-label="Fermer">×</button></div><div class="form-grid">
   <label class="field">Date *<input id="e-date" type="date" required oninput="editSuggest()"></label><label class="field">Heure<input id="e-time" type="time"></label>
   <label class="field">Nombre de personnes<input id="e-guests" type="number" min="1" step="1" oninput="editSuggest()"></label>
@@ -637,7 +645,7 @@ function cardHTML(e) {
   if(e.reviewRequestedAt) flags.push(`<span class="flag ok">★ Avis Google demandé</span>`);
   flags.unshift(...clientFlags(e));
   const action=(name,label,icon,cls='')=>`<button class="action ${cls}" data-entry="${data}" data-action="${name}">${icon} ${label}</button>`;
-  return `<article class="card"><div class="card-top"><div class="avatar" style="--sc:${sc}">${escapeHTML(initials(e.name))}</div><div class="card-info"><div class="card-toprow"><div><h3 class="name">${escapeHTML(e.name)}</h3><p class="meta">${escapeHTML(formatDate(e.date))}${e.time?' · '+escapeHTML(e.time):''}${e.guests?' · '+escapeHTML(e.guests)+' pers.':''}</p>${e.type?`<p class="meta">Espace · ${escapeHTML(SPACE_LABELS[spaceOf(e.type)]||e.type)}</p>`:''}${e.source?`<p class="meta">${escapeHTML(e.source)}</p>`:''}${e.contact?`<p class="meta">${escapeHTML(e.contact)}</p>`:''}${e.email&&e.email!==e.contact?`<p class="meta">${escapeHTML(e.email)}</p>`:''}</div><span class="badge" style="--sc:${sc}">${status.label}</span></div></div></div>
+  return `<article class="card"><div class="card-top"><div class="avatar" style="--sc:${sc}">${escapeHTML(initials(e.name))}</div><div class="card-info"><div class="card-toprow"><div><h3 class="name"><button type="button" class="name-link" data-client-sheet="${data}" title="Ouvrir la fiche client">${escapeHTML(e.name)}</button></h3><p class="meta">${escapeHTML(formatDate(e.date))}${e.time?' · '+escapeHTML(e.time):''}${e.guests?' · '+escapeHTML(e.guests)+' pers.':''}</p>${e.type?`<p class="meta">Espace · ${escapeHTML(SPACE_LABELS[spaceOf(e.type)]||e.type)}</p>`:''}${e.source?`<p class="meta">${escapeHTML(e.source)}</p>`:''}${e.contact?`<p class="meta">${escapeHTML(e.contact)}</p>`:''}${e.email&&e.email!==e.contact?`<p class="meta">${escapeHTML(e.email)}</p>`:''}</div><span class="badge" style="--sc:${sc}">${status.label}</span></div></div></div>
   ${e.notes?`<p class="notes${e.notes.length>160?' clamp':''}" ${e.notes.length>160?'onclick="this.classList.toggle(\'open\')" title="Afficher tout le message"':''}>${escapeHTML(e.notes)}</p>`:''}${e.kitchenNote?`<div class="kitchen"><b>À préparer · note interne</b>${escapeHTML(e.kitchenNote)}</div>`:''}${flags.length?`<div class="flags">${flags.join('')}</div>`:''}
   <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${e.email&&e.status!=='declined'?action('confirm-mail',e.emailSent?'Renvoyer la confirmation':'Envoyer la confirmation',ICONS.mail):''}${depositPending(e)?action('manual-deposit','Caution déposée',ICONS.check):''}${action('messages',(e.unreadForStaff?e.unreadForStaff+' nouveau'+(e.unreadForStaff>1?'x':'')+' message'+(e.unreadForStaff>1?'s':''):(e.messages||[]).length?'Messages ('+e.messages.length+')':'Écrire au client'),ICONS.mail,e.unreadForStaff?'accept':'')}${action('edit','Modifier',ICONS.edit)}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
   ${e.depositLink?`<div class="deposit">${e.depositAmount?escapeHTML(e.depositAmount)+' € · ':''}${escapeHTML(e.depositLink)}</div>`:''}</article>`;
@@ -912,17 +920,46 @@ function clientHistory(e){
 }
 function isNoShow(e){return e.depositStatus==='debitee'||e.depositGuaranteeStatus==='debitee';}
 function clientFlags(e){
-  const others=clientHistory(e);if(!others.length)return [];
+  const others=clientHistory(e),id=escapeHTML(e.id);
+  if(!others.length)return [`<button type="button" class="flag client-flag" data-client-sheet="${id}">✦ Nouveau client</button>`];
   const today=isoDate(new Date());
   const visits=others.filter(x=>x.status==='accepted'&&x.date&&x.date<today&&!isNoShow(x)).length;
   const noShows=others.filter(isNoShow).length;
-  const term=escapeHTML(String(e.email||'').includes('@')?e.email:(e.contact||''));
   const out=[];
-  if(noShows)out.push(`<button type="button" class="flag danger client-flag" data-client="${term}">⚠ No-show passé${noShows>1?' ×'+noShows:''}</button>`);
-  if(visits)out.push(`<button type="button" class="flag ok client-flag" data-client="${term}">♥ ${visits>=2?'Habitué · ':''}${visits} visite${visits>1?'s':''}</button>`);
-  else if(!noShows)out.push(`<button type="button" class="flag client-flag" data-client="${term}">${others.length} autre${others.length>1?'s':''} demande${others.length>1?'s':''}</button>`);
+  if(noShows)out.push(`<button type="button" class="flag danger client-flag" data-client-sheet="${id}">⚠ No-show passé${noShows>1?' ×'+noShows:''}</button>`);
+  if(visits)out.push(`<button type="button" class="flag ok client-flag" data-client-sheet="${id}">♥ ${visits>=2?'Habitué · ':''}${visits} visite${visits>1?'s':''}</button>`);
+  else if(!noShows)out.push(`<button type="button" class="flag client-flag" data-client-sheet="${id}">${others.length} autre${others.length>1?'s':''} demande${others.length>1?'s':''}</button>`);
   return out;
 }
+
+// ---- Fiche client (toucher le nom ou un badge) ----
+let sheetClient=null;
+function openClientSheet(e){
+  const all=[e,...clientHistory(e)].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.time||'').localeCompare(a.time||''));
+  const today=isoDate(new Date());
+  const came=all.filter(x=>x.status==='accepted'&&x.date&&x.date<today&&!isNoShow(x));
+  const noShows=all.filter(isNoShow),cancelled=all.filter(x=>x.status==='declined');
+  const next=all.filter(x=>x.status!=='declined'&&x.date&&x.date>=today).sort((a,b)=>a.date.localeCompare(b.date))[0];
+  const people=came.reduce((n,x)=>n+(Number(x.guests)||0),0);
+  const uniq=v=>[...new Set(v.map(x=>String(x||'').trim()).filter(Boolean))];
+  const emails=uniq(all.flatMap(x=>[x.email,String(x.contact||'').includes('@')?x.contact:''])),phones=uniq(all.map(x=>String(x.contact||'').includes('@')?'':x.contact));
+  const names=uniq(all.map(x=>x.name));
+  const tag=noShows.length?'<span class="flag danger">⚠ No-show passé</span>':came.length>=2?'<span class="flag ok">♥ Habitué</span>':came.length?'<span class="flag ok">Déjà venu</span>':'<span class="flag">✦ Nouveau client</span>';
+  const stat=(n,l)=>`<div class="cs-stat"><b>${n}</b><span>${l}</span></div>`;
+  const label=x=>x.status==='declined'?(x.cancelledByClient?'Annulée par le client':x.cancelledOnPrivateaser?'Annulée Privateaser':'Refusée'):isNoShow(x)?'No-show':x.status==='accepted'?(x.date<today?'Venu':'Acceptée'):'En attente';
+  sheetClient=e;
+  document.getElementById('csBody').innerHTML=`<div class="cs-head"><div class="avatar">${escapeHTML(initials(e.name))}</div><div><h2>${escapeHTML(e.name)}</h2>${names.length>1?`<p class="cs-muted">Aussi : ${names.filter(n=>n!==e.name).map(escapeHTML).join(', ')}</p>`:''}<div class="flags" style="margin-top:6px">${tag}</div></div></div>
+  <div class="cs-stats">${stat(came.length,'visite'+(came.length>1?'s':''))}${stat(people,'pers. venues')}${stat(noShows.length,'no-show')}${stat(cancelled.length,'annul. / refus')}</div>
+  <div class="cs-contacts">${phones.map(t=>`<a class="action" href="tel:${escapeHTML(t.replace(/[^\d+]/g,''))}">📞 ${escapeHTML(t)}</a>`).join('')}${emails.map(m=>`<a class="action" href="mailto:${escapeHTML(m)}">✉ ${escapeHTML(m)}</a>`).join('')}</div>
+  ${next?`<p class="cs-next">Prochaine réservation : <b>${escapeHTML(formatDate(next.date))}${next.time?' · '+escapeHTML(next.time):''}</b></p>`:''}
+  <h3 class="cs-title">Historique (${all.length})</h3>
+  <div class="cs-list">${all.map(x=>`<div class="cs-row${x===e?' current':''}"><div><b>${escapeHTML(formatDate(x.date))}</b>${x.time?' · '+escapeHTML(x.time):''}<br><span class="cs-muted">${escapeHTML(x.guests||'?')} pers.${x.type?' · '+escapeHTML(SPACE_LABELS[spaceOf(x.type)]||x.type):''}${x.source?' · '+escapeHTML(x.source):''}</span></div><span class="badge" style="--sc:${isNoShow(x)||x.status==='declined'?'#ad4237':x.status==='accepted'?'#24785d':'#99701e'}">${label(x)}</span></div>`).join('')}</div>`;
+  const d=document.getElementById('clientDialog');if(!d.open)d.showModal();
+}
+document.addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-client-sheet]');if(!b)return;
+  const e=entries.find(x=>String(x.id)===b.dataset.clientSheet);if(e)openClientSheet(e);
+});
 // Délégation : la valeur reste une donnée (jamais insérée dans du code), quel que soit ce qu'a saisi le client.
 document.addEventListener('click',ev=>{const b=ev.target.closest('[data-client]');if(b)showClient(b.dataset.client);});
 let clientFilter=null;
@@ -999,6 +1036,6 @@ document.addEventListener('click',async ev=>{
   }catch(e){toast(e.message,'error');btn.disabled=false;}
 });
 </script>
-<script src="/mobile-app.js?v=2026.11.06.2" defer></script>
+<script src="/mobile-app.js?v=2026.11.06.3" defer></script>
 </body>
 </html>
