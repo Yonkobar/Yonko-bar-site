@@ -63,6 +63,7 @@
         <h2 style="margin:0 0 16px;font-size:22px">Quel jour ?</h2>
         <div class="field" style="max-width:320px"><label for="f-date">Date</label><input id="f-date" type="date" required></div>
         <p class="muted" style="margin:12px 0 26px;font-size:14px">Mardi – mercredi 17h30 – minuit · jeudi – vendredi 17h30 – 2h · samedi 15h – 2h. Fermé le dimanche et le lundi (privatisation du bar entier sur devis).</p>
+        <p class="notice" id="blocked-note" role="status" hidden></p>
         <p class="notice" id="closed-note" hidden>Le dimanche et le lundi, le bar est fermé au public : seule la privatisation du bar entier est possible, sur devis.</p>
         <h2 style="margin:22px 0 16px;font-size:22px">À quelle heure ?</h2>
         <div class="chips" id="times" role="group" aria-label="Heure d'arrivée"><p class="muted" style="margin:0">Choisissez d'abord une date.</p></div>
@@ -71,6 +72,7 @@
         <h2 style="margin:0 0 16px;font-size:22px">Combien de personnes ?</h2>
         <div class="counter"><button type="button" id="g-minus" aria-label="Une personne de moins">−</button><output id="g-out" aria-live="polite">4</output><button type="button" id="g-plus" aria-label="Une personne de plus">+</button></div>
         <h2 style="margin:28px 0 16px;font-size:22px">Quel espace ?</h2>
+        <p class="notice" id="space-blocked-note" role="status" hidden></p>
         <div class="grid-2" id="spaces" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
           <button type="button" class="space" data-space="taverne"><img src="/img/taverne-salle-sm.jpg" alt=""><span class="t"><strong>La Taverne</strong><span class="muted" style="font-size:13px">Tables · jusqu'à 35 pers.</span></span></button>
           <button type="button" class="space" data-space="cave"><img src="/img/cave-tables-sm.jpg" alt=""><span class="t"><strong>La Cave privatisée</strong><span class="muted" style="font-size:13px">30 à 60 pers.</span></span></button>
@@ -166,6 +168,28 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     for (var t = start; t <= end; t += 30) out.push(String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'));
     return out;
   }
+  // Jours bloqués par l'équipe (complet, privatisé, fermé). Mêmes règles que le serveur.
+  var BLOCK_KEY = {taverne: 'table', cave: 'cave', bar: 'bar'};
+  var blocks = [];
+  fetch('/api/blocked-days').then(function(r){ return r.ok ? r.json() : []; }).then(function(list){ blocks = Array.isArray(list) ? list : []; if (st.date) { pickFreeSpace(); render(); } }).catch(function(){});
+  function blockFor(date, space){
+    var day = blocks.filter(function(b){ return b.date === date; }), key = BLOCK_KEY[space];
+    return day.filter(function(b){ return b.space === 'all'; })[0] || day.filter(function(b){ return b.space === key; })[0] || (key === 'bar' ? day[0] : null) || null;
+  }
+  function dayBlocked(date){ return blocks.some(function(b){ return b.date === date && b.space === 'all'; }); }
+  function blockText(b){
+    if (!b) return '';
+    var r = b.reason === 'ferme' ? 'fermé' : b.reason === 'privatise' ? 'privatisé' : 'complet';
+    if (b.space === 'all') return 'Le Yonko Bar est ' + r + ' ce jour-là. Choisissez une autre date.';
+    var w = {table: {complet: 'Les tables sont complètes', privatise: 'Les tables sont réservées', ferme: 'Les tables sont fermées'}, cave: {complet: 'La cave est complète', privatise: 'La cave est privatisée', ferme: 'La cave est fermée'}, bar: {complet: 'Le bar est complet', privatise: 'Le bar est privatisé', ferme: 'Le bar est fermé'}}[b.space] || {};
+    return (w[b.reason] || w.complet || 'Cet espace n’est pas disponible') + ' ce jour-là. Choisissez un autre espace ou une autre date.';
+  }
+  function spaceAllowed(space){ return !(closedDay(st.date) && space !== 'bar') && !blockFor(st.date, space); }
+  function pickFreeSpace(){
+    if (!st.date || spaceAllowed(st.space)) return;
+    var free = ['taverne', 'cave', 'bar'].filter(spaceAllowed)[0];
+    if (free) { st.space = free; if (free === 'cave' && st.guests < 30) st.guests = 30; if (free === 'bar' && st.guests < 60) st.guests = 60; }
+  }
   function fmtDate(d){ if (!d) return '—'; var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d); return new Date(Date.UTC(+m[1], +m[2]-1, +m[3], 12)).toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC'}); }
   function conditions(){
     var w = dow(st.date), g = st.guests, out = [];
@@ -205,9 +229,15 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     $('next').textContent = st.step === 4 ? (st.sending ? 'Envoi…' : 'Envoyer ma demande') : 'Continuer';
     $('next').disabled = st.sending;
     $('closed-note').hidden = !closedDay(st.date);
+    var dayB = st.date && dayBlocked(st.date) ? blockFor(st.date, st.space) : null;
+    $('blocked-note').hidden = !dayB; $('blocked-note').textContent = blockText(dayB);
+    var spaceB = st.date && !dayB ? blockFor(st.date, st.space) : null;
+    var noneFree = st.date && !['taverne', 'cave', 'bar'].some(spaceAllowed);
+    $('space-blocked-note').hidden = !spaceB && !noneFree;
+    $('space-blocked-note').textContent = noneFree ? 'Aucun espace n’est disponible ce jour-là. Choisissez une autre date.' : blockText(spaceB);
     $('g-out').textContent = st.guests;
     document.querySelectorAll('.space').forEach(function(b){
-      var off = closedDay(st.date) && b.dataset.space !== 'bar';
+      var off = !!st.date && !spaceAllowed(b.dataset.space);
       b.disabled = off; b.style.opacity = off ? '.45' : '1';
       b.setAttribute('aria-pressed', String(b.dataset.space === st.space));
     });
@@ -224,9 +254,11 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     if (st.step === 1) {
       if (!st.date || st.date < dateEl.min) return fail('Choisissez une date à partir d’aujourd’hui.');
       if (!st.time) return fail('Choisissez une heure d’arrivée.');
+      if (dayBlocked(st.date)) return fail(blockText(blockFor(st.date, st.space)));
     }
     if (st.step === 2) {
       if (closedDay(st.date) && st.space !== 'bar') return fail('Le dimanche et le lundi, seule la privatisation du bar entier est possible.');
+      if (blockFor(st.date, st.space)) return fail(blockText(blockFor(st.date, st.space)));
       if (st.space === 'taverne' && st.guests > 35) return fail('Au-delà de 35 personnes, choisissez la cave ou le bar entier.');
     }
     if (st.step === 3) {
@@ -247,6 +279,7 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     try {
       var r = await fetch('/api/reservations', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
       var d = await r.json().catch(function(){ return {}; });
+      if (r.status === 409 && d.error) { st.sending = false; render(); return fail(d.error); }
       if (!r.ok || !d.ok) throw new Error(d.error || ('HTTP ' + r.status));
       if (d.token) $('done-link').href = '/ma-reservation?t=' + encodeURIComponent(d.token);
       else $('done-link').hidden = true;
@@ -258,7 +291,7 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
       fail('L’envoi n’a pas abouti. Réessayez, ou contactez-nous sur WhatsApp ou au 09 74 64 02 98.');
     }
   }
-  dateEl.addEventListener('change', function(){ st.date = dateEl.value; if (closedDay(st.date)) st.space = 'bar'; renderTimes(); render(); });
+  dateEl.addEventListener('change', function(){ st.date = dateEl.value; if (closedDay(st.date)) st.space = 'bar'; pickFreeSpace(); renderTimes(); render(); });
   $('g-minus').onclick = function(){ st.guests = Math.max(1, st.guests - 1); render(); };
   $('g-plus').onclick = function(){ st.guests = Math.min(80, st.guests + 1); render(); };
   document.querySelectorAll('.space').forEach(function(b){ b.onclick = function(){ st.space = b.dataset.space; if (st.space === 'cave' && st.guests < 30) st.guests = 30; if (st.space === 'bar' && st.guests < 60) st.guests = 60; render(); }; });

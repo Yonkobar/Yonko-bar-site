@@ -45,6 +45,9 @@
 #listView .panel-title p{display:none}
 .card .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.action.delete{margin-left:0}
 }
+/* Jours bloqués */
+.cell.blocked{background:repeating-linear-gradient(135deg,#f1ede4 0 6px,#e9e4d9 6px 12px)}.chip-block{background:#5b5f66}
+.block-box{display:flex;flex-direction:column;gap:8px;margin:0 0 16px}.block-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#eef0f2;border:1px solid #d5d9de;border-radius:9px;padding:8px 10px;font-size:12px}.block-form{border:1px dashed var(--rule);border-radius:9px;padding:10px 12px;font-size:12px}.block-form summary{cursor:pointer;font-weight:600;color:var(--muted)}.block-help{color:var(--muted);font-size:11px;margin:8px 0}.block-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.block-fields label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:600}.block-fields select{border:1px solid var(--rule);border-radius:7px;background:var(--paper);padding:9px;min-height:42px;font-size:14px}
 </style>
 </head>
 <body>
@@ -73,7 +76,7 @@
       <label class="field">Provenance<select id="f-source"><option value="Manuel">Manuel (téléphone, etc.)</option><option value="Privateaser">Privateaser</option><option value="Google">Google</option><option value="Site internet">Site internet</option></select></label>
       <label class="field">Date *<input id="f-date" type="date" required></label><label class="field">Heure<input id="f-time" type="time"></label>
       <label class="field">Nombre de personnes<input id="f-guests" type="number" min="1" step="1" placeholder="Ex. 12"></label>
-      <label class="field">Espace<input id="f-type" list="spaceSuggestions" placeholder="Ex. Taverne, mezzanine, bar entier…"><datalist id="spaceSuggestions"><option value="Taverne"><option value="Privatisation"><option value="Bar entier"></datalist></label>
+      <label class="field">Espace<input id="f-type" list="spaceSuggestions" placeholder="Table, Cave ou Bar"><datalist id="spaceSuggestions"><option value="Table"><option value="Cave"><option value="Bar"></datalist></label>
       <label class="field">Caution<select id="f-deposit" onchange="toggleManualDeposit()"><option value="no">Aucune caution</option><option value="yes">Demander une caution</option></select></label>
       <label class="field" id="depositAmountField" hidden>Montant de la caution (€)<input id="f-deposit-amount" type="number" min="1" step="1" inputmode="decimal" placeholder="Ex. 50"></label>
       <label class="field full" style="flex-direction:row;align-items:center;gap:8px;font-weight:500;font-size:12px"><input id="f-confirm" type="checkbox" style="width:auto;min-height:0"> Réservation confirmée : envoyer l’email de confirmation au client</label>
@@ -88,7 +91,7 @@
 <dialog id="editDialog" aria-labelledby="editTitle"><div class="panel-title"><div><div class="eyebrow">Modifier la réservation</div><h2 id="editTitle">Réservation</h2></div><button class="btn-ghost" onclick="closeEdit()" aria-label="Fermer">×</button></div><div class="form-grid">
   <label class="field">Date *<input id="e-date" type="date" required oninput="editSuggest()"></label><label class="field">Heure<input id="e-time" type="time"></label>
   <label class="field">Nombre de personnes<input id="e-guests" type="number" min="1" step="1" oninput="editSuggest()"></label>
-  <label class="field">Espace<input id="e-type" list="spaceSuggestions" oninput="editSuggest()" placeholder="Ex. Taverne, Privatisation…"></label>
+  <label class="field">Espace<input id="e-type" list="spaceSuggestions" oninput="editSuggest()" placeholder="Table, Cave ou Bar"></label>
   <label class="field full">Email client<input id="e-email" type="email" placeholder="client@exemple.fr" oninput="editSuggest()"></label>
   <label class="field">Caution<select id="e-deposit" onchange="editDepositToggle()"><option value="no">Aucune caution</option><option value="yes">Demander une caution</option></select></label>
   <label class="field" id="e-amount-field" hidden>Montant de la caution (€)<input id="e-deposit-amount" type="number" min="1" step="1" inputmode="decimal"></label>
@@ -202,6 +205,9 @@ let quoteQty = {};
 
 
 const API = "/api/reservations";
+// Espaces : Table, Cave, Bar. Anciens noms (Taverne, Privatisation de la Cave, Bar entier) toujours reconnus.
+const SPACE_LABELS = { table:"Table", cave:"Cave", bar:"Bar" };
+function spaceOf(type){const t=String(type||'').toLowerCase();if(!t.trim())return null;if(t.includes('cave'))return 'cave';if(t.includes('bar entier')||/(^|[^a-zà-ÿ])bar([^a-zà-ÿ]|$)/.test(t))return 'bar';if(t.includes('privatisation'))return 'cave';if(t.includes('taverne')||t.includes('table'))return 'table';return null;}
 const STATUS = { pending:{label:"En attente",color:"#99701e"}, accepted:{label:"Acceptée",color:"#24785d"}, declined:{label:"Refusée",color:"#ad4237"} };
 const DEPOSIT_PENDING_COLOR = "#7a4fc4";
 function depositPending(e){return !!(e&&e.depositLink)&&e.status!=='declined'&&!['autorisee','debitee','deposee'].includes(e.depositStatus);}
@@ -219,6 +225,9 @@ const ICONS = {
   trash: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>',
 };
 let entries = [];
+let blocks = []; // jours bloqués à venir : {date, space: all|table|cave|bar, reason: complet|privatise|ferme}
+const BLOCK_SPACES = { all:"Tout le bar", table:"Table", cave:"Cave", bar:"Bar" };
+const BLOCK_REASONS = { complet:"Complet", privatise:"Privatisé", ferme:"Fermé" };
 let loaded = false;
 let view = "planning";
 let filter = "pending";
@@ -274,6 +283,7 @@ async function init() {
   loaded=false; loadFailed=false; document.getElementById('loadError').hidden=true; render();
   try {
     entries=await api('');
+    blocks=await api('',{endpoint:'/api/blocked-days',cache:'no-store'}).catch(()=>blocks);
     loaded=true;
     dispatchEvent(new Event('yonko-auth'));
     document.getElementById('updateTime').textContent='Actualisé à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
@@ -330,6 +340,8 @@ async function submitForm() {
   const date = document.getElementById("f-date").value;
   if (!name) { document.getElementById("f-err").textContent = "Le nom du client est obligatoire."; return; }
   if (!date) { document.getElementById("f-err").textContent = "La date est obligatoire."; return; }
+  const blk = findBlock(date, spaceOf(document.getElementById("f-type").value) || "table");
+  if (blk && !confirm(`Ce jour est bloqué (${BLOCK_SPACES[blk.space]} · ${BLOCK_REASONS[blk.reason]}). Ajouter la réservation quand même ?`)) return;
 
 
   const email = document.getElementById("f-email");
@@ -625,7 +637,7 @@ function cardHTML(e) {
   if(e.reviewRequestedAt) flags.push(`<span class="flag ok">★ Avis Google demandé</span>`);
   flags.unshift(...clientFlags(e));
   const action=(name,label,icon,cls='')=>`<button class="action ${cls}" data-entry="${data}" data-action="${name}">${icon} ${label}</button>`;
-  return `<article class="card"><div class="card-top"><div class="avatar" style="--sc:${sc}">${escapeHTML(initials(e.name))}</div><div class="card-info"><div class="card-toprow"><div><h3 class="name">${escapeHTML(e.name)}</h3><p class="meta">${escapeHTML(formatDate(e.date))}${e.time?' · '+escapeHTML(e.time):''}${e.guests?' · '+escapeHTML(e.guests)+' pers.':''}</p>${e.type?`<p class="meta">Espace · ${escapeHTML(e.type)}</p>`:''}${e.source?`<p class="meta">${escapeHTML(e.source)}</p>`:''}${e.contact?`<p class="meta">${escapeHTML(e.contact)}</p>`:''}${e.email&&e.email!==e.contact?`<p class="meta">${escapeHTML(e.email)}</p>`:''}</div><span class="badge" style="--sc:${sc}">${status.label}</span></div></div></div>
+  return `<article class="card"><div class="card-top"><div class="avatar" style="--sc:${sc}">${escapeHTML(initials(e.name))}</div><div class="card-info"><div class="card-toprow"><div><h3 class="name">${escapeHTML(e.name)}</h3><p class="meta">${escapeHTML(formatDate(e.date))}${e.time?' · '+escapeHTML(e.time):''}${e.guests?' · '+escapeHTML(e.guests)+' pers.':''}</p>${e.type?`<p class="meta">Espace · ${escapeHTML(SPACE_LABELS[spaceOf(e.type)]||e.type)}</p>`:''}${e.source?`<p class="meta">${escapeHTML(e.source)}</p>`:''}${e.contact?`<p class="meta">${escapeHTML(e.contact)}</p>`:''}${e.email&&e.email!==e.contact?`<p class="meta">${escapeHTML(e.email)}</p>`:''}</div><span class="badge" style="--sc:${sc}">${status.label}</span></div></div></div>
   ${e.notes?`<p class="notes${e.notes.length>160?' clamp':''}" ${e.notes.length>160?'onclick="this.classList.toggle(\'open\')" title="Afficher tout le message"':''}>${escapeHTML(e.notes)}</p>`:''}${e.kitchenNote?`<div class="kitchen"><b>À préparer · note interne</b>${escapeHTML(e.kitchenNote)}</div>`:''}${flags.length?`<div class="flags">${flags.join('')}</div>`:''}
   <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${e.email&&e.status!=='declined'?action('confirm-mail',e.emailSent?'Renvoyer la confirmation':'Envoyer la confirmation',ICONS.mail):''}${depositPending(e)?action('manual-deposit','Caution déposée',ICONS.check):''}${action('messages',(e.unreadForStaff?e.unreadForStaff+' nouveau'+(e.unreadForStaff>1?'x':'')+' message'+(e.unreadForStaff>1?'s':''):(e.messages||[]).length?'Messages ('+e.messages.length+')':'Écrire au client'),ICONS.mail,e.unreadForStaff?'accept':'')}${action('edit','Modifier',ICONS.edit)}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
   ${e.depositLink?`<div class="deposit">${e.depositAmount?escapeHTML(e.depositAmount)+' € · ':''}${escapeHTML(e.depositLink)}</div>`:''}</article>`;
@@ -685,11 +697,12 @@ function renderPlanning() {
   for(let d=1;d<=days;d++){
     const date=isoDate(new Date(y,m,d)),day=byDate[date]||[];
     const chips=day.slice(0,2).map(e=>`<span class="chip" style="background:${chipColor(e)}">${escapeHTML((e.name||'').split(' ')[0])}</span>`).join('');
-    cells+=`<button class="cell ${date===selectedDate?'selected':''} ${date===today?'today':''}" aria-pressed="${date===selectedDate}" aria-label="${escapeHTML(formatDate(date))}, ${day.length} réservation(s)" onclick="selectedDate='${date}';render()"><span class="daynum">${d}</span>${chips}${day.length>2?`<span class="chip-more">+${day.length-2}</span>`:''}</button>`;
+    const dayBlocks=blocks.filter(b=>b.date===date);
+    cells+=`<button class="cell ${date===selectedDate?'selected':''} ${date===today?'today':''} ${dayBlocks.length?'blocked':''}" aria-pressed="${date===selectedDate}" aria-label="${escapeHTML(formatDate(date))}, ${day.length} réservation(s)${dayBlocks.length?', jour bloqué':''}" onclick="selectedDate='${date}';render()"><span class="daynum">${d}</span>${dayBlocks.length?`<span class="chip chip-block">🔒 ${dayBlocks.some(b=>b.space==='all')?BLOCK_REASONS[dayBlocks.find(b=>b.space==='all').reason]:dayBlocks.map(b=>SPACE_LABELS[b.space]).join('+')}</span>`:''}${chips}${day.length>2?`<span class="chip-more">+${day.length-2}</span>`:''}</button>`;
   }
   const term=searchTerm.trim(),results=(term?entries.filter(matchesSearch):byDate[selectedDate]||[]).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.time||'').localeCompare(b.time||''));
   const heading=term?'Résultats de recherche':formatDate(selectedDate),guests=results.filter(e=>e.status!=='declined').reduce((sum,e)=>sum+(Number(e.guests)||0),0);
-  document.getElementById('planningView').innerHTML=`<div class="planning-layout"><section class="panel calendar-panel"><div class="panel-title"><div><h2>Le planning du bar</h2><p>Sélectionnez un jour pour voir ses réservations.</p></div><span class="count-pill">Vue mensuelle</span></div><div class="cal-nav"><h3>${first.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</h3><div class="cal-controls"><button class="today-button" onclick="goToday()">Aujourd’hui</button><button aria-label="Mois précédent" onclick="cursor=new Date(${y},${m-1},1);render()">‹</button><button aria-label="Mois suivant" onclick="cursor=new Date(${y},${m+1},1);render()">›</button></div></div><div class="cal-grid">${WEEKDAYS.map(w=>`<div class="dow">${w}</div>`).join('')}${cells}</div><div class="legend"><span><i style="--dot:#99701e"></i>En attente</span><span><i style="--dot:#24785d"></i>Acceptée</span><span><i style="--dot:#ad4237"></i>Refusée</span><span><i style="--dot:#7a4fc4"></i>Caution en attente</span></div></section><section class="panel day-list"><div class="panel-title"><div><div class="eyebrow">${term?'Tous les jours':'Votre service'}</div><h2 class="day-heading">${escapeHTML(heading)}</h2><p>${results.length} réservation(s) · ${guests} personne(s) hors refus</p></div></div>${results.length?`<div class="list">${results.map(cardHTML).join('')}</div>`:emptyState(term?'Aucune réservation trouvée.':'Aucune réservation ce jour-là.')}</section></div>`;
+  document.getElementById('planningView').innerHTML=`<div class="planning-layout"><section class="panel calendar-panel"><div class="panel-title"><div><h2>Le planning du bar</h2><p>Sélectionnez un jour pour voir ses réservations.</p></div><span class="count-pill">Vue mensuelle</span></div><div class="cal-nav"><h3>${first.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</h3><div class="cal-controls"><button class="today-button" onclick="goToday()">Aujourd’hui</button><button aria-label="Mois précédent" onclick="cursor=new Date(${y},${m-1},1);render()">‹</button><button aria-label="Mois suivant" onclick="cursor=new Date(${y},${m+1},1);render()">›</button></div></div><div class="cal-grid">${WEEKDAYS.map(w=>`<div class="dow">${w}</div>`).join('')}${cells}</div><div class="legend"><span><i style="--dot:#99701e"></i>En attente</span><span><i style="--dot:#24785d"></i>Acceptée</span><span><i style="--dot:#ad4237"></i>Refusée</span><span><i style="--dot:#7a4fc4"></i>Caution en attente</span><span><i style="--dot:#5b5f66"></i>Jour bloqué</span></div></section><section class="panel day-list"><div class="panel-title"><div><div class="eyebrow">${term?'Tous les jours':'Votre service'}</div><h2 class="day-heading">${escapeHTML(heading)}</h2><p>${results.length} réservation(s) · ${guests} personne(s) hors refus</p></div></div>${term?'':blockBox(selectedDate)}${results.length?`<div class="list">${results.map(cardHTML).join('')}</div>`:emptyState(term?'Aucune réservation trouvée.':'Aucune réservation ce jour-là.')}</section></div>`;
 }
 
 
@@ -740,7 +753,7 @@ document.getElementById('quotePanel').addEventListener('keydown',event=>{
 // ---- Modification d'une réservation (dashboard web + application installée) ----
 let editEntry=null;
 function isWeekendNight(date){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(date||''));if(!m)return false;const d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3])).getUTCDay();return d===5||d===6;}
-function suggestedDeposit(type,guests,date){const t=String(type||'').toLowerCase(),g=parseInt(guests,10)||0;if(t.includes('privatisation'))return 250;if(t.includes('taverne')&&g>6&&isWeekendNight(date))return g*3;return null;}
+function suggestedDeposit(type,guests,date){const sp=spaceOf(type),g=parseInt(guests,10)||0;if(sp==='cave')return 250;if(sp==='table'&&g>6&&isWeekendNight(date))return g*3;return null;}
 function hasDeposit(e){return !!(e&&e.depositLink);}
 function editDepositToggle(){const on=document.getElementById('e-deposit').value==='yes';document.getElementById('e-amount-field').hidden=!on;document.getElementById('e-deposit-amount').required=on;editSuggest();}
 function editSuggest(){
@@ -927,7 +940,7 @@ function showClient(term){
 function depositLinkExpired(e){return depositPending(e)&&e.status!=='declined'&&Number(e.depositLinkExpiresAt)>0&&Date.now()>Number(e.depositLinkExpiresAt);}
 
 // ---- Le service du jour, en haut du tableau de bord ----
-function roomOf(e){const t=String(e.type||'').toLowerCase();if(t.includes('cave')||t.includes('privatisation'))return 'Cave';if(t.includes('taverne'))return 'Taverne';return 'Autre';}
+function roomOf(e){return SPACE_LABELS[spaceOf(e.type)]||'Autre';}
 function renderTonight(){
   const box=document.getElementById('tonight');if(!box)return;
   if(!loaded||loadFailed){box.hidden=true;return;}
@@ -954,7 +967,38 @@ function exportCSV(){
   setTimeout(()=>URL.revokeObjectURL(url),2000);
   toast(`${rows.length} réservations exportées.`,'success');
 }
+
+// ---- Jours bloqués : le formulaire du site refuse les demandes (mêmes règles que le serveur) ----
+function findBlock(date,space){
+  const day=blocks.filter(b=>b.date===date);
+  return day.find(b=>b.space==='all')||day.find(b=>b.space===space)||(space==='bar'?day[0]:null)||null;
+}
+function blockBox(date){
+  const day=blocks.filter(b=>b.date===date);
+  const past=date<isoDate(new Date());
+  const list=day.map(b=>`<div class="block-row"><span>🔒 <b>${BLOCK_SPACES[b.space]||''}</b> · ${BLOCK_REASONS[b.reason]||''}</span><button type="button" class="action" data-unblock-date="${escapeHTML(b.date)}" data-unblock-space="${escapeHTML(b.space)}">Débloquer</button></div>`).join('');
+  if(past)return list?`<div class="block-box">${list}</div>`:'';
+  const opts=o=>Object.entries(o).map(([k,l])=>`<option value="${k}">${l}</option>`).join('');
+  return `<div class="block-box">${list}<details class="block-form"${day.length?'':''}><summary>${day.length?'Bloquer un autre espace':'Bloquer ce jour sur le site'}</summary><p class="block-help">Le formulaire du site refusera les demandes pour ce jour. Vous pouvez toujours ajouter une réservation vous-même.</p><div class="block-fields"><label>Espace<select id="block-space">${opts(BLOCK_SPACES)}</select></label><label>Motif<select id="block-reason">${opts(BLOCK_REASONS)}</select></label></div><button type="button" class="btn-primary" data-block-date="${escapeHTML(date)}">Bloquer</button></details></div>`;
+}
+document.addEventListener('click',async ev=>{
+  const add=ev.target.closest('[data-block-date]'),del=ev.target.closest('[data-unblock-date]');
+  if(!add&&!del)return;
+  const btn=add||del;btn.disabled=true;
+  try{
+    if(add){
+      const space=document.getElementById('block-space').value,reason=document.getElementById('block-reason').value;
+      const r=await api('',{endpoint:'/api/blocked-days',method:'POST',body:JSON.stringify({date:add.dataset.blockDate,space,reason})});
+      blocks=r.blocks||blocks;toast(`${BLOCK_SPACES[space]} bloqué : ${formatDate(add.dataset.blockDate)}`,'success');
+    }else{
+      const q=new URLSearchParams({date:del.dataset.unblockDate,space:del.dataset.unblockSpace});
+      const r=await api('',{endpoint:'/api/blocked-days?'+q,method:'DELETE'});
+      blocks=r.blocks||blocks;toast('Jour débloqué.','success');
+    }
+    render();
+  }catch(e){toast(e.message,'error');btn.disabled=false;}
+});
 </script>
-<script src="/mobile-app.js?v=2026.11.06.1" defer></script>
+<script src="/mobile-app.js?v=2026.11.06.2" defer></script>
 </body>
 </html>

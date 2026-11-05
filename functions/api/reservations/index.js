@@ -2,6 +2,8 @@ import {notifyNewReservation} from '../../_push.js';
 import { ensureAccessToken } from '../../_access.js';
 import { loadAllReservations } from '../../_kv.js';
 import { dueReviews, sendDueReviews } from '../../_reviews.js';
+import { loadBlocks, findBlock, blockMessage } from '../../_blocks.js';
+import { spaceOf } from '../../_spaces.js';
 // GET  /api/reservations  -> liste des réservations (protégé par x-dashboard-key)
 // POST /api/reservations  -> créer une réservation (appelé par le formulaire du site, public)
 
@@ -78,6 +80,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (body.time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(String(body.time))) return fail("Heure invalide.");
     if (body.guests && !/^[1-9]\d{0,3}$/.test(String(body.guests))) return fail("Nombre de personnes invalide.");
     if (body.email && !/^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(String(body.email).trim())) return fail("Email invalide.");
+
+    // Jour bloqué depuis le dashboard (complet, privatisé, fermé) : la demande est refusée.
+    const block = findBlock(await loadBlocks(env), String(body.date), spaceOf(body.type) || "table");
+    if (block) return fail(blockMessage(block), 409);
 
     // Anti-spam : 5 demandes max par heure et par adresse IP.
     const ip = request.headers.get("CF-Connecting-IP");
