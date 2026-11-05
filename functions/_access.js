@@ -108,12 +108,16 @@ function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-async function sendMail(env, to, subject, html) {
+async function sendMail(env, to, subject, html, idempotencyKey = "") {
   if (!to || !env.RESEND_API_KEY) return { sent: false, reason: !to ? "no_recipient" : "resend_not_configured" };
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json",
+        // Resend ignore un second envoi avec la même clé (24 h) : protège contre un double envoi.
+        ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
+      },
       body: JSON.stringify({ from: env.EMAIL_FROM || "Yonko Bar <reservations@yonkobar.com>", to: [to], subject, html }),
     });
     return res.ok ? { sent: true } : { sent: false, reason: (await res.text()).slice(0, 300) };
@@ -160,4 +164,12 @@ export function mailClientCancelled(entry, env, origin) {
   const body = `<p style="margin:0 0 12px">Bonjour ${esc(entry.name || "")},</p>
   <p style="margin:0">Votre réservation du ${esc(dateFr(entry.date))}${entry.time ? " à " + esc(entry.time) : ""} est bien annulée.${entry.depositAmount ? " Votre carte de garantie ne sera pas débitée." : ""} À bientôt au Yonko !</p>`;
   return sendMail(env, entry.email, "Annulation de votre réservation au Yonko Bar", simpleMail("Réservation annulée", body, "", ""));
+}
+
+// Lendemain de la visite -> demande d'avis Google (une seule fois par réservation).
+export function mailClientReview(entry, env, reviewUrl) {
+  const body = `<p style="margin:0 0 12px">Bonjour ${esc(entry.name || "")},</p>
+  <p style="margin:0 0 12px">Merci d'être venu${Number(entry.guests) > 1 ? "s" : ""} au Yonko Bar ${esc(dateFr(entry.date))} ! On espère que vous avez passé un bon moment.</p>
+  <p style="margin:0">Si c'est le cas, un petit avis Google nous aiderait énormément. Ça prend moins d'une minute.</p>`;
+  return sendMail(env, entry.email, "Merci pour votre venue au Yonko Bar", simpleMail("Merci pour votre visite", body, reviewUrl, "Laisser un avis Google"), `review-${entry.id}`);
 }

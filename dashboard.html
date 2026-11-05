@@ -31,6 +31,21 @@
 <meta name="apple-mobile-web-app-title" content="Yonko Bar">
 <link rel="apple-touch-icon" href="/icons/logo-192.png">
 <style>.mobile-help{margin-top:16px;font-size:12px;color:var(--muted)}.mobile-help summary{cursor:pointer;padding:10px}.mobile-help p{margin:10px 0;line-height:1.6}.install-app{margin-top:12px}.connection-note{position:sticky;top:0;z-index:160;background:#faf1d8;color:#64440e;text-align:center;padding:10px 16px;font-size:13px}.connection-note[hidden],.install-app[hidden]{display:none}.app-release{font-size:10px;color:var(--muted);margin-top:16px}@media(display-mode:standalone){.install-app,.mobile-help{display:none}}@media(max-width:650px){.masthead-inner{padding-top:max(12px,env(safe-area-inset-top))}.ledger-inner{padding-bottom:max(40px,env(safe-area-inset-bottom))}}</style>
+<style>
+/* Service du jour, badges client, messages repliables */
+.tonight{margin:-6px 0 18px}.tonight[hidden]{display:none}.tonight-card{width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;text-align:left;background:var(--ink);color:#f3f1ea;border:0;border-radius:12px;padding:14px 44px 14px 16px;position:relative;box-shadow:var(--shadow)}.tonight-card:hover{filter:none;background:#22272e}.tonight-title{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);width:100%}.tonight-main{font-size:15px}.tonight-main b{font-size:18px;font-variant-numeric:tabular-nums}.tonight-rooms{font-size:12px;color:#b8b9b8}.tonight-alerts{display:flex;gap:6px;flex-wrap:wrap}.tonight-alert{font-size:11px;font-weight:600;background:#99701e;color:white;border-radius:99px;padding:3px 9px}.tonight-alert.purple{background:#7a4fc4}.tonight-go{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:24px;color:var(--brass)}
+.flag.danger{background:var(--danger-soft);color:var(--danger)}.client-flag{border:0;font:inherit;font-size:10px;font-weight:600;cursor:pointer;background:var(--paper-2);color:var(--text)}.client-flag.ok{background:var(--ok-soft);color:var(--ok)}.client-flag.danger{background:var(--danger-soft);color:var(--danger)}
+.notes.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;border-bottom:2px dashed #e8c9a8}.notes.clamp.open{display:block;-webkit-line-clamp:unset;border-bottom:0}
+/* Téléphone : l'essentiel visible sans défiler */
+@media(max-width:650px){
+.ledger-inner{padding-top:16px}
+.overview{flex-direction:row;align-items:center;margin-bottom:14px;gap:10px}.overview .eyebrow,.overview p{display:none}.overview h1{font-size:24px;letter-spacing:-.5px;margin:0}
+.stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:18px}.stat{padding:9px 10px;border-radius:10px;box-shadow:none}.stat .stat-icon,.stat .l{display:none}.stat .stat-top{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}.stat .n{font-size:22px;margin:3px 0 0}
+.filter-block .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin-left:-4px;margin-right:-4px;padding:0 4px}.filter-block .tabs::-webkit-scrollbar{display:none}.tab{flex-shrink:0;white-space:nowrap}
+#listView .panel-title p{display:none}
+.card .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.action.delete{margin-left:0}
+}
+</style>
 </head>
 <body>
 <div id="connectionNote" class="connection-note" role="status" hidden></div>
@@ -46,10 +61,11 @@
   <main class="ledger" id="main"><div class="ledger-inner">
     <div id="appUpdate" class="load-error" hidden>Une mise à jour est disponible. <button class="btn-ghost" type="button" id="appUpdateBtn" onclick="yonkoUpdateApp(this)">Mettre à jour</button></div><section class="overview"><div><div class="eyebrow">La vie du bar, en un regard</div><h1>Tableau de bord</h1><p>Les réservations s’organisent ici. Les bons moments, au Yonko.</p></div><span class="date-label" id="currentDate"></span></section>
     <div id="loadError" class="load-error" role="alert" hidden></div>
+    <section class="tonight" id="tonight" aria-label="Le service du jour" hidden></section>
     <section class="stats" id="stats" aria-label="Indicateurs de réservation"></section>
     <div class="workspace-bar"><nav class="viewtoggle" aria-label="Vues du dashboard">
       <button id="tab-planning" class="active" onclick="setView('planning')" aria-current="page">Planning</button><button id="tab-list" onclick="setView('list')">Réservations</button><button id="tab-stats" onclick="setView('stats')">Statistiques</button>
-    </nav><div class="toolbar-actions"><button class="addbtn" id="addButton" onclick="toggleForm()" aria-expanded="false" aria-controls="form"><span aria-hidden="true">＋</span> Nouvelle réservation</button><details class="tools-menu"><summary class="btn-ghost">Outils <span aria-hidden="true">⌄</span></summary><div class="tools-popover"><button onclick="openMobileSettings();this.closest('details').open=false">Application & notifications</button><button class="install-app" hidden>Installer l’application</button><button onclick="if((!document.getElementById('form').classList.contains('open') &amp;&amp; document.getElementById('quotePanel').style.display==='none') || confirm('Recharger l’application ? Les saisies non enregistrées seront perdues.')) location.reload()">Recharger l’application</button><button onclick="init();this.closest('details').open=false">Actualiser les réservations</button><button onclick="syncPrivateaser();this.closest('details').open=false">Importer depuis Privateaser</button><button class="repair" onclick="if(confirm('Supprimer tous les imports Privateaser existants et les réimporter proprement (sans doublons) ?')) syncPrivateaser(false,true);this.closest('details').open=false">Réparer les doublons Privateaser</button></div></details></div></div>
+    </nav><div class="toolbar-actions"><button class="addbtn" id="addButton" onclick="toggleForm()" aria-expanded="false" aria-controls="form"><span aria-hidden="true">＋</span> Nouvelle réservation</button><details class="tools-menu"><summary class="btn-ghost">Outils <span aria-hidden="true">⌄</span></summary><div class="tools-popover"><button onclick="openMobileSettings();this.closest('details').open=false">Application & notifications</button><button class="install-app" hidden>Installer l’application</button><button onclick="if((!document.getElementById('form').classList.contains('open') &amp;&amp; document.getElementById('quotePanel').style.display==='none') || confirm('Recharger l’application ? Les saisies non enregistrées seront perdues.')) location.reload()">Recharger l’application</button><button onclick="init();this.closest('details').open=false">Actualiser les réservations</button><button onclick="exportCSV();this.closest('details').open=false">Exporter les réservations (Excel / CSV)</button><button onclick="syncPrivateaser();this.closest('details').open=false">Importer depuis Privateaser</button><button class="repair" onclick="if(confirm('Supprimer tous les imports Privateaser existants et les réimporter proprement (sans doublons) ?')) syncPrivateaser(false,true);this.closest('details').open=false">Réparer les doublons Privateaser</button></div></details></div></div>
     <div class="form" id="form"><h2>Une nouvelle réservation</h2><p class="form-intro">Renseignez la demande, puis retrouvez-la dans votre planning. Nom et date obligatoires.</p><div class="form-grid">
       <label class="field">Nom du client *<input id="f-name" placeholder="Ex. Camille Martin" autocomplete="name" required></label>
       <label class="field">Téléphone ou contact<input id="f-contact" placeholder="Téléphone ou autre contact" autocomplete="tel"></label>
@@ -605,15 +621,19 @@ function cardHTML(e) {
   } else if(e.status==='accepted'&&e.depositLink){
     flags.push(`<span class="flag ${e.depositStatus==='autorisee'?'ok':'warn'}">${ICONS.card} ${e.depositStatus==='autorisee'?'Caution validée':'Caution en attente'}</span>`);
   }
+  if(depositLinkExpired(e)) flags.push(`<span class="flag warn">${ICONS.link} Lien de caution expiré · à renvoyer</span>`);
+  if(e.reviewRequestedAt) flags.push(`<span class="flag ok">★ Avis Google demandé</span>`);
+  flags.unshift(...clientFlags(e));
   const action=(name,label,icon,cls='')=>`<button class="action ${cls}" data-entry="${data}" data-action="${name}">${icon} ${label}</button>`;
   return `<article class="card"><div class="card-top"><div class="avatar" style="--sc:${sc}">${escapeHTML(initials(e.name))}</div><div class="card-info"><div class="card-toprow"><div><h3 class="name">${escapeHTML(e.name)}</h3><p class="meta">${escapeHTML(formatDate(e.date))}${e.time?' · '+escapeHTML(e.time):''}${e.guests?' · '+escapeHTML(e.guests)+' pers.':''}</p>${e.type?`<p class="meta">Espace · ${escapeHTML(e.type)}</p>`:''}${e.source?`<p class="meta">${escapeHTML(e.source)}</p>`:''}${e.contact?`<p class="meta">${escapeHTML(e.contact)}</p>`:''}${e.email&&e.email!==e.contact?`<p class="meta">${escapeHTML(e.email)}</p>`:''}</div><span class="badge" style="--sc:${sc}">${status.label}</span></div></div></div>
-  ${e.notes?`<p class="notes">${escapeHTML(e.notes)}</p>`:''}${e.kitchenNote?`<div class="kitchen"><b>À préparer · note interne</b>${escapeHTML(e.kitchenNote)}</div>`:''}${flags.length?`<div class="flags">${flags.join('')}</div>`:''}
+  ${e.notes?`<p class="notes${e.notes.length>160?' clamp':''}" ${e.notes.length>160?'onclick="this.classList.toggle(\'open\')" title="Afficher tout le message"':''}>${escapeHTML(e.notes)}</p>`:''}${e.kitchenNote?`<div class="kitchen"><b>À préparer · note interne</b>${escapeHTML(e.kitchenNote)}</div>`:''}${flags.length?`<div class="flags">${flags.join('')}</div>`:''}
   <div class="actions">${e.status!=='accepted'?action('accepted','Accepter',ICONS.check,'accept'):''}${e.status!=='declined'?action('declined','Refuser',ICONS.x,'decline'):''}${e.status!=='pending'?action('pending','En attente',ICONS.undo):''}${e.status==='accepted'?action('stripe',e.depositLink?'Régénérer':'Lien Stripe',ICONS.link,'stripe')+action('copy','Copier',ICONS.copy,'copy'):''}${e.email&&e.status!=='declined'?action('confirm-mail',e.emailSent?'Renvoyer la confirmation':'Envoyer la confirmation',ICONS.mail):''}${depositPending(e)?action('manual-deposit','Caution déposée',ICONS.check):''}${action('messages',(e.unreadForStaff?e.unreadForStaff+' nouveau'+(e.unreadForStaff>1?'x':'')+' message'+(e.unreadForStaff>1?'s':''):(e.messages||[]).length?'Messages ('+e.messages.length+')':'Écrire au client'),ICONS.mail,e.unreadForStaff?'accept':'')}${action('edit','Modifier',ICONS.edit)}${action('quote','Devis',ICONS.card)}${action('delete','Supprimer',ICONS.trash,'delete')}</div>
   ${e.depositLink?`<div class="deposit">${e.depositAmount?escapeHTML(e.depositAmount)+' € · ':''}${escapeHTML(e.depositLink)}</div>`:''}</article>`;
 }
 
 
 function renderStats() {
+  renderTonight();
   const today=isoDate(new Date()),counts={pending:0,accepted:0,declined:0};entries.forEach(e=>counts[e.status]=(counts[e.status]||0)+1);
   const stat=(label,n,note,icon,cls='',action='')=>`<${action?'button':'div'} class="stat ${cls}" ${action?`onclick="${action}"`:''}><span class="stat-top">${label}<span class="stat-icon" aria-hidden="true">${icon}</span></span><span class="n">${loaded&&!loadFailed?n:'—'}</span><span class="l">${note}</span></${action?'button':'div'}>`;
   document.getElementById('stats').innerHTML=stat('En attente',counts.pending,'Toutes les demandes','◷','pending',"timeScope='all';filter='pending';clearSearch();setView('list')")+stat('Acceptées',counts.accepted,'Toutes les dates','✓','accepted',"timeScope='all';filter='accepted';clearSearch();setView('list')")+stat('Refusées',counts.declined,'Toutes les dates','×','declined',"timeScope='all';filter='declined';clearSearch();setView('list')")+stat('Aujourd’hui',entries.filter(e=>e.date===today).length,'Tous les statuts','↗','today-stat','goToday()')+stat('Cautions validées',entries.filter(e=>['autorisee','deposee'].includes(e.depositStatus)).length,'Toutes les dates','◇','',"setView('stats')")+stat('Devis envoyés',quotesSentThisSession,'Depuis cette connexion','↗');
@@ -622,7 +642,11 @@ function renderStats() {
 
 function matchesSearch(e) {
   const term=searchTerm.trim().toLocaleLowerCase('fr');
-  return !term||[e.name,e.contact,e.email,e.source,e.type].some(value=>String(value||'').toLocaleLowerCase('fr').includes(term));
+  if(!term)return true;
+  if(clientFilter&&clientFilter.term===searchTerm)return clientKeys(e).some(k=>clientFilter.keys.has(k));
+  if([e.name,e.contact,e.email,e.source,e.type].some(value=>String(value||'').toLocaleLowerCase('fr').includes(term)))return true;
+  const digits=term.replace(/\D/g,'');
+  return digits.length>=9&&String(e.contact||'').replace(/\D/g,'').endsWith(digits.slice(-9));
 }
 
 
@@ -851,7 +875,86 @@ function yonkoUpdateApp(b){
 try{if(/[?&]maj=/.test(location.search)){const q=new URLSearchParams(location.search);q.delete('maj');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);}}catch{}
 
 init();
+
+// ---- Fiche client : habitués et no-shows, calculés à partir des réservations chargées ----
+function clientKeys(e){
+  const keys=[],mail=String(e.email||'').trim().toLowerCase();
+  if(mail.includes('@'))keys.push('m:'+mail);
+  const contact=String(e.contact||'').trim();
+  if(contact.includes('@'))keys.push('m:'+contact.toLowerCase());
+  const digits=contact.replace(/\D/g,'');
+  if(digits.length>=9)keys.push('t:'+digits.slice(-9));
+  return [...new Set(keys)];
+}
+let clientIndexFor=null,clientIndex=new Map();
+function clientHistory(e){
+  if(clientIndexFor!==entries){
+    clientIndex=new Map();
+    for(const x of entries)for(const k of clientKeys(x)){if(!clientIndex.has(k))clientIndex.set(k,new Set());clientIndex.get(k).add(x);}
+    clientIndexFor=entries;
+  }
+  const others=new Set();
+  for(const k of clientKeys(e))for(const x of clientIndex.get(k)||[])if(x!==e)others.add(x);
+  return [...others];
+}
+function isNoShow(e){return e.depositStatus==='debitee'||e.depositGuaranteeStatus==='debitee';}
+function clientFlags(e){
+  const others=clientHistory(e);if(!others.length)return [];
+  const today=isoDate(new Date());
+  const visits=others.filter(x=>x.status==='accepted'&&x.date&&x.date<today&&!isNoShow(x)).length;
+  const noShows=others.filter(isNoShow).length;
+  const term=escapeHTML(String(e.email||'').includes('@')?e.email:(e.contact||''));
+  const out=[];
+  if(noShows)out.push(`<button type="button" class="flag danger client-flag" data-client="${term}">⚠ No-show passé${noShows>1?' ×'+noShows:''}</button>`);
+  if(visits)out.push(`<button type="button" class="flag ok client-flag" data-client="${term}">♥ ${visits>=2?'Habitué · ':''}${visits} visite${visits>1?'s':''}</button>`);
+  else if(!noShows)out.push(`<button type="button" class="flag client-flag" data-client="${term}">${others.length} autre${others.length>1?'s':''} demande${others.length>1?'s':''}</button>`);
+  return out;
+}
+// Délégation : la valeur reste une donnée (jamais insérée dans du code), quel que soit ce qu'a saisi le client.
+document.addEventListener('click',ev=>{const b=ev.target.closest('[data-client]');if(b)showClient(b.dataset.client);});
+let clientFilter=null;
+function showClient(term){
+  const ref=entries.find(x=>x.email===term||x.contact===term);
+  // Tout le groupe du client (email + téléphone), même les demandes enregistrées avec un seul des deux.
+  const keys=new Set(ref?[ref,...clientHistory(ref)].flatMap(clientKeys):[]);
+  clientFilter=keys.size?{term,keys}:null;
+  searchTerm=term;document.getElementById('searchInput').value=term;
+  timeScope='all';filter='all';setView('list');
+  document.getElementById('listView').scrollIntoView({block:'start'});
+}
+
+// ---- Lien de caution : Stripe le ferme 24 h après sa création ----
+function depositLinkExpired(e){return depositPending(e)&&e.status!=='declined'&&Number(e.depositLinkExpiresAt)>0&&Date.now()>Number(e.depositLinkExpiresAt);}
+
+// ---- Le service du jour, en haut du tableau de bord ----
+function roomOf(e){const t=String(e.type||'').toLowerCase();if(t.includes('cave')||t.includes('privatisation'))return 'Cave';if(t.includes('taverne'))return 'Taverne';return 'Autre';}
+function renderTonight(){
+  const box=document.getElementById('tonight');if(!box)return;
+  if(!loaded||loadFailed){box.hidden=true;return;}
+  const today=isoDate(new Date()),list=entries.filter(e=>e.date===today&&e.status!=='declined');
+  const rooms={};let guests=0;
+  for(const e of list){const n=Number(e.guests)||0;guests+=n;rooms[roomOf(e)]=(rooms[roomOf(e)]||0)+n;}
+  const pending=list.filter(e=>e.status==='pending').length,deposits=list.filter(depositPending).length;
+  const roomText=Object.entries(rooms).filter(([,n])=>n).map(([r,n])=>`${r} ${n}`).join(' · ');
+  box.hidden=false;
+  box.innerHTML=`<button type="button" class="tonight-card" onclick="goToday()"><span class="tonight-title">Aujourd’hui</span>${list.length?`<span class="tonight-main"><b>${list.length}</b> réservation${list.length>1?'s':''} · <b>${guests}</b> pers.</span>${roomText?`<span class="tonight-rooms">${escapeHTML(roomText)}</span>`:''}${pending||deposits?`<span class="tonight-alerts">${pending?`<span class="tonight-alert">${pending} à traiter</span>`:''}${deposits?`<span class="tonight-alert purple">${deposits} caution${deposits>1?'s':''} en attente</span>`:''}</span>`:''}`:'<span class="tonight-main">Aucune réservation aujourd’hui</span>'}<span class="tonight-go" aria-hidden="true">›</span></button>`;
+}
+
+// ---- Export Excel / CSV (sauvegarde des réservations) ----
+function exportCSV(){
+  if(!loaded||loadFailed||!entries.length){toast('Aucune réservation à exporter.','error');return;}
+  const statusLabel=e=>e.status==='declined'?(e.cancelledByClient?'Annulée par le client':e.cancelledOnPrivateaser?'Annulée Privateaser':'Refusée'):e.status==='accepted'?'Acceptée':'En attente';
+  const depositLabel=e=>({deposee:'Déposée au bar',autorisee:'Carte enregistrée',debitee:'Débitée (no-show)',lien_envoye:'Lien envoyé'})[e.depositStatus]||(e.depositLink?'Lien envoyé':'');
+  const cols=[['Date',e=>e.date],['Heure',e=>e.time],['Nom',e=>e.name],['Personnes',e=>e.guests],['Espace',e=>e.type],['Statut',statusLabel],['Provenance',e=>e.source],['Contact',e=>e.contact],['Email',e=>e.email],['Caution (€)',e=>e.depositAmount],['État caution',depositLabel],['Confirmation envoyée',e=>e.emailSent?'Oui':''],['Avis demandé',e=>e.reviewRequestedAt?'Oui':''],['Message client',e=>e.notes],['Note interne',e=>e.kitchenNote],['Créée le',e=>e.createdAt?new Date(e.createdAt).toLocaleString('fr-FR'):'']];
+  const cell=v=>{let t=String(v??'').replace(/\r?\n/g,' ');if(/^[=@]|^[+\-](?![\d\s(])/.test(t))t="'"+t;return /[";]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;};
+  const rows=entries.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.time||'').localeCompare(b.time||''));
+  const csv='﻿'+[cols.map(c=>c[0]).join(';'),...rows.map(e=>cols.map(c=>cell(c[1](e))).join(';'))].join('\r\n');
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download=`reservations-yonko-${isoDate(new Date())}.csv`;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  toast(`${rows.length} réservations exportées.`,'success');
+}
 </script>
-<script src="/mobile-app.js?v=2026.11.03.3" defer></script>
+<script src="/mobile-app.js?v=2026.11.06.1" defer></script>
 </body>
-</html>
+</html>

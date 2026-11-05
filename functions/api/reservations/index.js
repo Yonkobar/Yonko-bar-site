@@ -1,6 +1,7 @@
 import {notifyNewReservation} from '../../_push.js';
 import { ensureAccessToken } from '../../_access.js';
 import { loadAllReservations } from '../../_kv.js';
+import { dueReviews, sendDueReviews } from '../../_reviews.js';
 // GET  /api/reservations  -> liste des réservations (protégé par x-dashboard-key)
 // POST /api/reservations  -> créer une réservation (appelé par le formulaire du site, public)
 
@@ -21,7 +22,7 @@ export async function onRequestOptions() {
   return new Response(null, { headers: cors() });
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   const key = request.headers.get("x-dashboard-key");
   if (!key || key !== env.DASHBOARD_KEY) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
@@ -34,6 +35,14 @@ export async function onRequestGet({ request, env }) {
     await env.RESERVATIONS.put("res:index", JSON.stringify(uniqueIds));
   }
   entries.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  // Demandes d'avis Google du lendemain : envoyées en arrière-plan, sans ralentir le dashboard.
+  const due = dueReviews(entries, env);
+  if (due.length) {
+    const job = sendDueReviews(env, due).catch((e) => console.error("Avis Google :", e));
+    if (waitUntil) waitUntil(job); else await job;
+  }
+
   return new Response(JSON.stringify(entries), {
     headers: { "Content-Type": "application/json", ...cors() },
   });
