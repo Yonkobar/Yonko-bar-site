@@ -27,6 +27,7 @@
 
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#171b20">
+<script>try{if(localStorage.getItem('yonkoTheme')==='dark')document.documentElement.dataset.theme='dark';}catch(e){}</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Yonko Bar">
 <link rel="apple-touch-icon" href="/icons/logo-192.png">
@@ -55,6 +56,30 @@
 .cs-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:14px}.cs-stat{background:white;border:1px solid var(--rule);border-radius:9px;padding:9px 6px;text-align:center}.cs-stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.cs-stat span{font-size:10px;color:var(--muted)}
 .cs-contacts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}.cs-contacts .action{text-decoration:none;overflow-wrap:anywhere}.cs-next{font-size:12px;background:var(--brass-soft);border-radius:8px;padding:9px 11px;margin:0 0 12px}
 .cs-title{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:16px 0 8px}.cs-list{display:flex;flex-direction:column;gap:6px}.cs-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:white;border:1px solid var(--rule);border-radius:9px;padding:9px 11px;font-size:12px}.cs-row.current{border-color:#e38a43}
+/* Thème sombre Yonko (essai, choisi par téléphone dans Outils) */
+html[data-theme="dark"]{color-scheme:dark;--ink:#07080a;--paper:#0f1114;--paper-2:#1c2026;--surface:#171a1f;--rule:#2a2f37;--brass:#ff781f;--brass-soft:#3a2312;--ok:#4cc495;--ok-soft:#10291f;--warn:#e6b04f;--warn-soft:#2d2410;--danger:#f07b6e;--danger-soft:#341816;--text:#ece8df;--muted:#a09c93;--shadow:none}
+html[data-theme="dark"] body{background:radial-gradient(ellipse at 50% -10%,#2a1a10 0,var(--paper) 55%) fixed,var(--paper)}
+html[data-theme="dark"] :is(.skip-link,.date-label,.stat,.viewtoggle button.active,.btn-ghost,.tools-popover,.search input,.panel,.cal-nav button,.card,.action,.tab,.form,.gate-card input,#quoteBody>div,.cs-stat,.cs-row){background:var(--surface);color:var(--text)}
+html[data-theme="dark"] .masthead{color:#f3f1ea;background:var(--ink);border-bottom:1px solid #ff781f40}
+html[data-theme="dark"] .overview h1,html[data-theme="dark"] .panel-title h2,html[data-theme="dark"] .cs-head h2{color:#fff3e6}
+html[data-theme="dark"] .panel,html[data-theme="dark"] .stat,html[data-theme="dark"] .card{border-color:var(--rule)}
+html[data-theme="dark"] .card{background:#1b1e24}
+html[data-theme="dark"] .tab.active{background:var(--brass);border-color:var(--brass);color:#1c0e03}
+html[data-theme="dark"] .viewtoggle button.active{box-shadow:inset 0 0 0 1px #ff781f55}
+html[data-theme="dark"] .cell{background:#14171b;border-color:#262a31}
+html[data-theme="dark"] .cell.today .daynum{background:var(--brass);color:#1c0e03}
+html[data-theme="dark"] .cell.blocked{background:repeating-linear-gradient(135deg,#1c2026 0 6px,#23272e 6px 12px)}
+html[data-theme="dark"] .tonight-card{background:linear-gradient(135deg,#2a1608,#16181c 70%);border:1px solid #ff781f55}
+html[data-theme="dark"] .kitchen{background:#2d200f;border-color:#7a5320;color:#f2cf9b}html[data-theme="dark"] .kitchen b{color:#ffad5c}
+html[data-theme="dark"] .block-row{background:#1e232a;border-color:#30363f}
+html[data-theme="dark"] .action.stripe{color:#ff9d55;border-color:#5b3518}html[data-theme="dark"] .action.accept{border-color:#1f5a43}
+html[data-theme="dark"] .toast{background:#2a2f37}
+html[data-theme="dark"] .connection-note{background:#2d2410;color:#f0cf8f}
+html[data-theme="dark"] .load-error{border-color:#5a2a25}
+html[data-theme="dark"] .skel-card{background:linear-gradient(90deg,#1c2026 25%,#262b33 37%,#1c2026 63%);background-size:400% 100%}
+html[data-theme="dark"] .field input,html[data-theme="dark"] .field select,html[data-theme="dark"] .field textarea,html[data-theme="dark"] .block-fields select{background:#121418;color:var(--text);border-color:var(--rule)}
+html[data-theme="dark"] .name-link{border-bottom-color:#ff781f88}
+html[data-theme="dark"] .notes.clamp{border-bottom-color:#5b3518}
 </style>
 </head>
 <body>
@@ -75,7 +100,7 @@
     <section class="stats" id="stats" aria-label="Indicateurs de réservation"></section>
     <div class="workspace-bar"><nav class="viewtoggle" aria-label="Vues du dashboard">
       <button id="tab-planning" class="active" onclick="setView('planning')" aria-current="page">Planning</button><button id="tab-list" onclick="setView('list')">Réservations</button><button id="tab-stats" onclick="setView('stats')">Statistiques</button>
-    </nav><div class="toolbar-actions"><button class="addbtn" id="addButton" onclick="toggleForm()" aria-expanded="false" aria-controls="form"><span aria-hidden="true">＋</span> Nouvelle réservation</button><details class="tools-menu"><summary class="btn-ghost">Outils <span aria-hidden="true">⌄</span></summary><div class="tools-popover"><button onclick="openMobileSettings();this.closest('details').open=false">Application & notifications</button><button class="install-app" hidden>Installer l’application</button><button onclick="if((!document.getElementById('form').classList.contains('open') &amp;&amp; document.getElementById('quotePanel').style.display==='none') || confirm('Recharger l’application ? Les saisies non enregistrées seront perdues.')) location.reload()">Recharger l’application</button><button onclick="init();this.closest('details').open=false">Actualiser les réservations</button><button onclick="exportCSV();this.closest('details').open=false">Exporter les réservations (Excel / CSV)</button><button onclick="syncPrivateaser();this.closest('details').open=false">Importer depuis Privateaser</button><button class="repair" onclick="if(confirm('Supprimer tous les imports Privateaser existants et les réimporter proprement (sans doublons) ?')) syncPrivateaser(false,true);this.closest('details').open=false">Réparer les doublons Privateaser</button></div></details></div></div>
+    </nav><div class="toolbar-actions"><button class="addbtn" id="addButton" onclick="toggleForm()" aria-expanded="false" aria-controls="form"><span aria-hidden="true">＋</span> Nouvelle réservation</button><details class="tools-menu"><summary class="btn-ghost">Outils <span aria-hidden="true">⌄</span></summary><div class="tools-popover"><button onclick="openMobileSettings();this.closest('details').open=false">Application & notifications</button><button class="install-app" hidden>Installer l’application</button><button onclick="if((!document.getElementById('form').classList.contains('open') &amp;&amp; document.getElementById('quotePanel').style.display==='none') || confirm('Recharger l’application ? Les saisies non enregistrées seront perdues.')) location.reload()">Recharger l’application</button><button onclick="init();this.closest('details').open=false">Actualiser les réservations</button><button onclick="exportCSV();this.closest('details').open=false">Exporter les réservations (Excel / CSV)</button><button id="themeToggle" onclick="toggleTheme();this.closest('details').open=false">Thème sombre (essai)</button><button onclick="syncPrivateaser();this.closest('details').open=false">Importer depuis Privateaser</button><button class="repair" onclick="if(confirm('Supprimer tous les imports Privateaser existants et les réimporter proprement (sans doublons) ?')) syncPrivateaser(false,true);this.closest('details').open=false">Réparer les doublons Privateaser</button></div></details></div></div>
     <div class="form" id="form"><h2>Une nouvelle réservation</h2><p class="form-intro">Renseignez la demande, puis retrouvez-la dans votre planning. Nom et date obligatoires.</p><div class="form-grid">
       <label class="field">Nom du client *<input id="f-name" placeholder="Ex. Camille Martin" autocomplete="name" required></label>
       <label class="field">Téléphone ou contact<input id="f-contact" placeholder="Téléphone ou autre contact" autocomplete="tel"></label>
@@ -291,7 +316,8 @@ async function init() {
   loaded=false; loadFailed=false; document.getElementById('loadError').hidden=true; render();
   try {
     entries=await api('');
-    blocks=await api('',{endpoint:'/api/blocked-days',cache:'no-store'}).catch(()=>blocks);
+    // Les jours bloqués ne doivent jamais empêcher l'affichage des réservations.
+    try{const bl=await api('',{endpoint:'/api/blocked-days',cache:'no-store'});if(Array.isArray(bl))blocks=bl;}catch(e){console.warn('Jours bloqués indisponibles',e);}
     loaded=true;
     dispatchEvent(new Event('yonko-auth'));
     document.getElementById('updateTime').textContent='Actualisé à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
@@ -942,7 +968,7 @@ function openClientSheet(e){
   const next=all.filter(x=>x.status!=='declined'&&x.date&&x.date>=today).sort((a,b)=>a.date.localeCompare(b.date))[0];
   const people=came.reduce((n,x)=>n+(Number(x.guests)||0),0);
   const uniq=v=>[...new Set(v.map(x=>String(x||'').trim()).filter(Boolean))];
-  const emails=uniq(all.flatMap(x=>[x.email,String(x.contact||'').includes('@')?x.contact:''])),phones=uniq(all.map(x=>String(x.contact||'').includes('@')?'':x.contact));
+  const emails=uniq(all.flatMap(x=>[x.email,String(x.contact||'').includes('@')?x.contact:''])),phones=[...new Map(uniq(all.map(x=>String(x.contact||'').includes('@')?'':x.contact)).map(t=>[t.replace(/\D/g,'').slice(-9)||t,t])).values()];
   const names=uniq(all.map(x=>x.name));
   const tag=noShows.length?'<span class="flag danger">⚠ No-show passé</span>':came.length>=2?'<span class="flag ok">♥ Habitué</span>':came.length?'<span class="flag ok">Déjà venu</span>':'<span class="flag">✦ Nouveau client</span>';
   const stat=(n,l)=>`<div class="cs-stat"><b>${n}</b><span>${l}</span></div>`;
@@ -1026,16 +1052,21 @@ document.addEventListener('click',async ev=>{
     if(add){
       const space=document.getElementById('block-space').value,reason=document.getElementById('block-reason').value;
       const r=await api('',{endpoint:'/api/blocked-days',method:'POST',body:JSON.stringify({date:add.dataset.blockDate,space,reason})});
-      blocks=r.blocks||blocks;toast(`${BLOCK_SPACES[space]} bloqué : ${formatDate(add.dataset.blockDate)}`,'success');
+      if(Array.isArray(r.blocks))blocks=r.blocks;toast(`${BLOCK_SPACES[space]} bloqué : ${formatDate(add.dataset.blockDate)}`,'success');
     }else{
       const q=new URLSearchParams({date:del.dataset.unblockDate,space:del.dataset.unblockSpace});
       const r=await api('',{endpoint:'/api/blocked-days?'+q,method:'DELETE'});
-      blocks=r.blocks||blocks;toast('Jour débloqué.','success');
+      if(Array.isArray(r.blocks))blocks=r.blocks;toast('Jour débloqué.','success');
     }
     render();
   }catch(e){toast(e.message,'error');btn.disabled=false;}
 });
+
+// ---- Thème sombre (essai) : choix gardé sur ce téléphone ----
+function applyThemeLabel(){const dark=document.documentElement.dataset.theme==='dark';const b=document.getElementById('themeToggle');if(b)b.textContent=dark?'Revenir au thème clair':'Thème sombre (essai)';document.querySelector('meta[name=theme-color]')?.setAttribute('content',dark?'#07080a':'#171b20');}
+function toggleTheme(){const dark=document.documentElement.dataset.theme!=='dark';if(dark)document.documentElement.dataset.theme='dark';else delete document.documentElement.dataset.theme;try{localStorage.setItem('yonkoTheme',dark?'dark':'light');}catch(e){}applyThemeLabel();}
+try{applyThemeLabel();}catch(e){}
 </script>
-<script src="/mobile-app.js?v=2026.11.06.3" defer></script>
+<script src="/mobile-app.js?v=2026.11.06.4" defer></script>
 </body>
 </html>
