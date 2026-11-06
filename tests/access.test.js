@@ -45,6 +45,8 @@ test('Jeton invalide ou inconnu : 404', async () => {
 test('Messagerie : client -> non lu + email équipe ; équipe -> email client avec lien', async () => {
   const w = world();
   const r = await (await create({request: w.req('/api/reservations', 'POST', {name: 'Camille', email: 'c@x.fr', date: future(10)}), env: w.env})).json();
+  assert.match(JSON.parse(w.calls.find(c => c.url.includes('resend')).body).subject, /bien reçu votre demande/);
+  w.calls.length = 0; // on ne garde que les emails de la messagerie
   const v = await (await viewPost({request: w.req('/x', 'POST', {action: 'message', text: 'On peut apporter un gâteau ?'}), env: w.env, params: {token: r.token}})).json();
   assert.equal(v.messages.length, 1); assert.equal(w.get(r.id).unreadForStaff, 1);
   const staffMail = w.calls.find(c => c.url.includes('resend'));
@@ -59,6 +61,7 @@ test('Messagerie : client -> non lu + email équipe ; équipe -> email client av
 test('Annulation client > 48 h : annulée, caution libérée (lien fermé, carte retirée), emails', async () => {
   const w = world();
   const r = await (await create({request: w.req('/api/reservations', 'POST', {name: 'Camille', email: 'c@x.fr', date: future(5), time: '20:00', guests: '8', type: 'Taverne'}), env: w.env})).json();
+  w.calls.length = 0; // l'accusé de réception de la demande n'est pas compté ici
   const e = w.get(r.id); Object.assign(e, {depositLink: 'https://checkout.stripe.com/1', depositAmount: 24, depositStatus: 'autorisee', depositGuaranteeStatus: 'enregistree', stripeCheckoutSessionId: 'cs_1', stripePaymentMethodId: 'pm_1'});
   w.data.set('res:' + r.id, JSON.stringify(e));
   const v = await (await viewPost({request: w.req('/x', 'POST', {action: 'cancel'}), env: w.env, params: {token: r.token}})).json();

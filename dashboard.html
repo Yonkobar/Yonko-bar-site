@@ -100,7 +100,7 @@ html[data-theme="dark"] .notes.clamp{border-bottom-color:#5b3518}
     <section class="stats" id="stats" aria-label="Indicateurs de réservation"></section>
     <div class="workspace-bar"><nav class="viewtoggle" aria-label="Vues du dashboard">
       <button id="tab-planning" class="active" onclick="setView('planning')" aria-current="page">Planning</button><button id="tab-list" onclick="setView('list')">Réservations</button><button id="tab-stats" onclick="setView('stats')">Statistiques</button>
-    </nav><div class="toolbar-actions"><button class="addbtn" id="addButton" onclick="toggleForm()" aria-expanded="false" aria-controls="form"><span aria-hidden="true">＋</span> Nouvelle réservation</button><details class="tools-menu"><summary class="btn-ghost">Outils <span aria-hidden="true">⌄</span></summary><div class="tools-popover"><button onclick="openMobileSettings();this.closest('details').open=false">Application & notifications</button><button class="install-app" hidden>Installer l’application</button><button onclick="if((!document.getElementById('form').classList.contains('open') &amp;&amp; document.getElementById('quotePanel').style.display==='none') || confirm('Recharger l’application ? Les saisies non enregistrées seront perdues.')) location.reload()">Recharger l’application</button><button onclick="init();this.closest('details').open=false">Actualiser les réservations</button><button onclick="exportCSV();this.closest('details').open=false">Exporter les réservations (Excel / CSV)</button><button id="themeToggle" onclick="toggleTheme();this.closest('details').open=false">Thème sombre (essai)</button><button onclick="syncPrivateaser();this.closest('details').open=false">Importer depuis Privateaser</button><button class="repair" onclick="if(confirm('Supprimer tous les imports Privateaser existants et les réimporter proprement (sans doublons) ?')) syncPrivateaser(false,true);this.closest('details').open=false">Réparer les doublons Privateaser</button></div></details></div></div>
+    </nav><div class="toolbar-actions"><button class="addbtn" id="addButton" onclick="toggleForm()" aria-expanded="false" aria-controls="form"><span aria-hidden="true">＋</span> Nouvelle réservation</button><details class="tools-menu"><summary class="btn-ghost">Outils <span aria-hidden="true">⌄</span></summary><div class="tools-popover"><button onclick="openMobileSettings();this.closest('details').open=false">Application & notifications</button><button class="install-app" hidden>Installer l’application</button><button onclick="if((!document.getElementById('form').classList.contains('open') &amp;&amp; document.getElementById('quotePanel').style.display==='none') || confirm('Recharger l’application ? Les saisies non enregistrées seront perdues.')) location.reload()">Recharger l’application</button><button onclick="init();this.closest('details').open=false">Actualiser les réservations</button><button onclick="exportCSV();this.closest('details').open=false">Exporter les réservations (Excel / CSV)</button><button id="themeToggle" onclick="toggleTheme();this.closest('details').open=false">Thème sombre</button><button onclick="syncPrivateaser();this.closest('details').open=false">Importer depuis Privateaser</button><button class="repair" onclick="if(confirm('Supprimer tous les imports Privateaser existants et les réimporter proprement (sans doublons) ?')) syncPrivateaser(false,true);this.closest('details').open=false">Réparer les doublons Privateaser</button></div></details></div></div>
     <div class="form" id="form"><h2>Une nouvelle réservation</h2><p class="form-intro">Renseignez la demande, puis retrouvez-la dans votre planning. Nom et date obligatoires.</p><div class="form-grid">
       <label class="field">Nom du client *<input id="f-name" placeholder="Ex. Camille Martin" autocomplete="name" required></label>
       <label class="field">Téléphone ou contact<input id="f-contact" placeholder="Téléphone ou autre contact" autocomplete="tel"></label>
@@ -111,10 +111,10 @@ html[data-theme="dark"] .notes.clamp{border-bottom-color:#5b3518}
       <label class="field">Espace<input id="f-type" list="spaceSuggestions" placeholder="Table, Cave ou Bar"><datalist id="spaceSuggestions"><option value="Table"><option value="Cave"><option value="Bar"></datalist></label>
       <label class="field">Caution<select id="f-deposit" onchange="toggleManualDeposit()"><option value="no">Aucune caution</option><option value="yes">Demander une caution</option></select></label>
       <label class="field" id="depositAmountField" hidden>Montant de la caution (€)<input id="f-deposit-amount" type="number" min="1" step="1" inputmode="decimal" placeholder="Ex. 50"></label>
-      <label class="field full" style="flex-direction:row;align-items:center;gap:8px;font-weight:500;font-size:12px"><input id="f-confirm" type="checkbox" style="width:auto;min-height:0"> Réservation confirmée : envoyer l’email de confirmation au client</label>
+      <p class="field full" style="margin:0;font-size:12px;color:var(--muted)">✓ Une réservation ajoutée ici est <b>confirmée</b> : le client reçoit l’email de confirmation (avec le lien de caution s’il y en a une). Sans email client, elle est simplement enregistrée.</p>
       <label class="field full">Notes<textarea id="f-notes" rows="3" placeholder="Occasion, demandes particulières…"></textarea></label>
       <label class="field full">À préparer · note interne (jamais envoyée au client)<textarea id="f-kitchen" rows="2" placeholder="Ex. 2 planches mixtes, 30 tapas, gâteau d’anniversaire…"></textarea></label>
-    </div><p class="err" id="f-err" role="alert"></p><div class="form-actions"><button class="btn-primary" id="submitButton" onclick="submitForm()">Ajouter la demande</button><button class="btn-ghost" onclick="toggleForm()">Annuler</button></div></div>
+    </div><p class="err" id="f-err" role="alert"></p><div class="form-actions"><button class="btn-primary" id="submitButton" onclick="submitForm()">Ajouter la réservation</button><button class="btn-ghost" onclick="toggleForm()">Annuler</button></div></div>
     <div class="search-row" id="searchRow"><div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><label class="sr-only" for="searchInput">Rechercher une réservation</label><input id="searchInput" type="search" placeholder="Rechercher un nom, contact, source ou espace…" oninput="searchTerm=this.value;render()"></div><span class="search-hint">Retrouvez facilement vos clients et leurs demandes.</span></div>
     <div id="planningView"></div><div id="listView" style="display:none"></div><div id="statsView" style="display:none"></div>
     <footer class="footer-note"><span>YONKO BAR · RÉSERVATIONS</span><span id="updateTime">Chargement des données…</span></footer>
@@ -381,16 +381,12 @@ async function submitForm() {
   const email = document.getElementById("f-email");
   const guests = document.getElementById("f-guests");
   const wantsDeposit = document.getElementById("f-deposit").value === "yes";
-  const confirmNow = document.getElementById("f-confirm").checked;
+  const confirmNow = true; // créée à la main = réservation confirmée
   const depositAmount = Number(document.getElementById("f-deposit-amount").value);
 
 
   if (!email.checkValidity() || !guests.checkValidity()) {
     document.getElementById("f-err").textContent = "Vérifiez l’email et le nombre de personnes.";
-    return;
-  }
-  if (confirmNow && !email.value.trim()) {
-    document.getElementById("f-err").textContent = "Un email client est nécessaire pour envoyer la confirmation.";
     return;
   }
   if (wantsDeposit && !email.value.trim()) {
@@ -445,7 +441,6 @@ async function submitForm() {
     document.getElementById("f-date").value="";
     document.getElementById("f-source").value="Manuel";
     document.getElementById("f-deposit").value="no";
-    document.getElementById("f-confirm").checked=false;
     toggleManualDeposit();
     document.getElementById("form").classList.remove("open");
     document.getElementById("addButton").setAttribute("aria-expanded","false");
@@ -460,6 +455,7 @@ async function submitForm() {
       const sent = confirmResult && confirmResult.emailResult && confirmResult.emailResult.sent;
       if (depositError) toast("Réservation confirmée, mais la caution n’a pas pu être créée : " + depositError.message + (sent ? " Email de confirmation envoyé sans lien." : ""), "error");
       else if (sent) toast("Réservation confirmée · email envoyé au client" + (depositResult ? " avec le lien de caution." : "."), "success");
+      else if (!body.email) toast("Réservation confirmée (pas d’email client : aucun email envoyé).", "success");
       else toast("Réservation confirmée, mais l’email n’est pas parti : " + ((confirmResult && (confirmResult.emailError || (confirmResult.emailResult && confirmResult.emailResult.reason))) || "erreur inconnue"), "error");
     } else if (depositError) {
       toast("Réservation ajoutée, mais la caution n’a pas pu être créée : " + depositError.message, "error");
@@ -478,7 +474,9 @@ async function setStatus(id, status) {
   try {
     const res = await api("/"+id, { method:"PATCH", body: JSON.stringify({status}) });
     if (res.stripeError) toast("Statut mis à jour, mais la génération du lien Stripe a échoué : " + res.stripeError, "error");
-    else if (status === "accepted" && res.entry.depositLink) toast("Accepté — lien de caution généré" + (res.entry.emailSent ? " et envoyé par email." : "."), "success");
+    else if (status === "accepted" && res.entry.email && !(res.emailResult && res.emailResult.sent)) toast("Réservation acceptée, mais l’email de confirmation n’est pas parti" + (res.emailError ? " (" + res.emailError + ")" : "") + ". Utilisez « Envoyer la confirmation ».", "error");
+    else if (status === "accepted" && res.entry.depositLink) toast("Acceptée · lien de caution envoyé par email au client.", "success");
+    else if (status === "accepted") toast(res.entry.email ? "Acceptée · email de confirmation envoyé au client." : "Acceptée (pas d’email client).", "success");
     else toast("Statut mis à jour.");
     entries = await api("");
     render();
@@ -1063,10 +1061,10 @@ document.addEventListener('click',async ev=>{
 });
 
 // ---- Thème sombre (essai) : choix gardé sur ce téléphone ----
-function applyThemeLabel(){const dark=document.documentElement.dataset.theme==='dark';const b=document.getElementById('themeToggle');if(b)b.textContent=dark?'Revenir au thème clair':'Thème sombre (essai)';document.querySelector('meta[name=theme-color]')?.setAttribute('content',dark?'#07080a':'#171b20');}
+function applyThemeLabel(){const dark=document.documentElement.dataset.theme==='dark';const b=document.getElementById('themeToggle');if(b)b.textContent=dark?'Revenir au thème clair':'Thème sombre';document.querySelector('meta[name=theme-color]')?.setAttribute('content',dark?'#07080a':'#171b20');}
 function toggleTheme(){const dark=document.documentElement.dataset.theme!=='dark';if(dark)document.documentElement.dataset.theme='dark';else delete document.documentElement.dataset.theme;try{localStorage.setItem('yonkoTheme',dark?'dark':'light');}catch(e){}applyThemeLabel();}
 try{applyThemeLabel();}catch(e){}
 </script>
-<script src="/mobile-app.js?v=2026.11.06.4" defer></script>
+<script src="/mobile-app.js?v=2026.11.06.5" defer></script>
 </body>
 </html>

@@ -173,3 +173,13 @@ export function mailClientReview(entry, env, reviewUrl) {
   <p style="margin:0">Si c'est le cas, un petit avis Google nous aiderait énormément. Ça prend moins d'une minute.</p>`;
   return sendMail(env, entry.email, "Merci pour votre venue au Yonko Bar", simpleMail("Merci pour votre visite", body, reviewUrl, "Laisser un avis Google"), `review-${entry.id}`);
 }
+
+// Demande envoyée depuis le site -> accusé de réception immédiat (avant toute acceptation).
+export function mailClientReceived(entry, env, origin) {
+  const details = [entry.time ? `à ${esc(entry.time)}` : "", entry.guests ? `· ${esc(entry.guests)} personne${Number(entry.guests) > 1 ? "s" : ""}` : ""].filter(Boolean).join(" ");
+  const body = `<p style="margin:0 0 12px">Bonjour ${esc(entry.name || "")},</p>
+  <p style="margin:0 0 12px">Nous avons bien reçu votre demande de réservation pour le <b>${esc(dateFr(entry.date))}</b> ${details}.</p>
+  <p style="margin:0 0 12px">Elle n'est <b>pas encore confirmée</b> : l'équipe la vérifie et vous recevrez un email de confirmation très vite.</p>
+  <p style="margin:0">Vous pouvez suivre votre demande ou nous écrire depuis votre page de réservation.</p>`;
+  return sendMail(env, entry.email, "Nous avons bien reçu votre demande · Yonko Bar", simpleMail("Demande bien reçue", body, manageUrl(entry, env, origin), "Voir ma demande"), `received-${entry.id}`);
+}

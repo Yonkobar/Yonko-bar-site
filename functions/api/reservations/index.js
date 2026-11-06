@@ -4,6 +4,7 @@ import { loadAllReservations } from '../../_kv.js';
 import { dueReviews, sendDueReviews } from '../../_reviews.js';
 import { loadBlocks, findBlock, blockMessage } from '../../_blocks.js';
 import { spaceOf } from '../../_spaces.js';
+import { mailClientReceived } from '../../_access.js';
 // GET  /api/reservations  -> liste des réservations (protégé par x-dashboard-key)
 // POST /api/reservations  -> créer une réservation (appelé par le formulaire du site, public)
 
@@ -124,6 +125,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   const notification = notifyNewReservation(env, request, entry);
   if (waitUntil) waitUntil(notification); else await notification;
+
+  // Demande venant du site : accusé de réception au client (la confirmation part à l'acceptation).
+  if (!fromDashboard && entry.email) {
+    const received = mailClientReceived(entry, env, new URL(request.url).origin)
+      .then((r) => { if (!r.sent) console.warn("Accusé de réception non envoyé", r.reason); })
+      .catch((e) => console.warn("Accusé de réception non envoyé", e?.message));
+    if (waitUntil) waitUntil(received); else await received;
+  }
 
   return new Response(JSON.stringify({ ok: true, id, token: entry.accessToken }), {
     status: 201,
