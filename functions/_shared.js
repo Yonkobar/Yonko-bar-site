@@ -1,4 +1,4 @@
-import { spaceOf } from "./_spaces.js";
+import { spaceOf, minConsoText } from "./_spaces.js";
 // Vendredi (5) ou samedi (6), date au format AAAA-MM-JJ (jour calendaire, sans fuseau).
 export function isWeekendNight(dateStr) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ""));
@@ -31,14 +31,6 @@ function formatDateFr(dateStr) {
 
 function row(label, value) {
   return `<tr><td style="padding:6px 0;color:#78726a;font-size:13px;width:120px">${label}</td><td style="padding:6px 0;color:#1a1a1a;font-size:14px;font-weight:600">${value}</td></tr>`;
-}
-
-function minConsoText(entry) {
-  const space = spaceOf(entry.type);
-  if (space === "cave") return "Minimum de consommation : 500 à 700€ selon la date.";
-  if (space === "bar") return "Privatisation sur devis — nous vous recontactons pour établir les conditions.";
-  if (space === "table") return "Minimum de consommation : 15€/personne le vendredi et le samedi, pour les groupes de plus de 6 personnes.";
-  return "";
 }
 
 const KARAOKE_NOTE = "Karaoké disponible uniquement en privatisation de la cave et lors des soirées organisées par l'établissement.";

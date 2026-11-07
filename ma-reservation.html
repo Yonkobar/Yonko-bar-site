@@ -159,8 +159,9 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     // Récapitulatif
     $('recap').innerHTML = [['Nom', d.name], ['Date', day], ['Heure', hour(d.time) || '—'], ['Personnes', d.guests || '—'], ['Espace', space(d.type)]].map(function(r){ return '<div><dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('');
     var w = dow(d.date), conds = [];
-    if (/taverne/i.test(d.type || '') && (w === 5 || w === 6) && Number(d.guests) > 6) conds.push('Minimum de consommation de 15 € / personne le vendredi et le samedi.');
-    if (/privatisation/i.test(d.type || '')) conds.push('Minimum de consommation de ' + (w === 5 ? '600' : w === 6 ? '700' : '500') + ' € pour la soirée.');
+    if (/taverne|table/i.test(d.type || '') && (w === 5 || w === 6) && Number(d.guests) > 6) conds.push('Minimum de consommation de 15 € / personne le vendredi et le samedi.');
+    var caveMin = ({2: 500, 3: 500, 4: 600, 5: 700, 6: 700})[w];
+    if (/cave|privatisation/i.test(d.type || '') && !/bar entier/i.test(d.type || '')) conds.push(caveMin ? 'Minimum de consommation de ' + caveMin + ' € pour la soirée.' : 'Minimum de consommation sur devis pour cette date.');
     conds.push('Karaoké disponible uniquement en privatisation de la cave et lors des soirées organisées par l’établissement.');
     conds.push('Happy hour de 17h30 à 21h.');
     $('conds').textContent = conds.join(' ');

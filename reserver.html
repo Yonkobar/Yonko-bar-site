@@ -200,7 +200,8 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
       } else out.push('Aucune caution pour cette réservation.');
       if (g > 35) out.push('Au-delà de 35 personnes, choisissez la cave ou le bar entier.');
     } else if (st.space === 'cave') {
-      var min = w === 5 ? '600 €' : w === 6 ? '700 €' : (w >= 2 && w <= 4) ? '500 €' : null;
+      // Mardi-mercredi 500 €, jeudi 600 €, vendredi-samedi 700 € (même règle que le serveur).
+      var min = ({2: '500 €', 3: '500 €', 4: '600 €', 5: '700 €', 6: '700 €'})[w] || null;
       out.push(min ? 'Minimum de consommation de ' + min + ' pour la soirée.' : 'Minimum de consommation selon la date.');
       out.push('Caution de 250 € : carte enregistrée, rien n’est débité sauf absence non annoncée.');
       if (g < 30) out.push('La cave est prévue pour 30 à 60 personnes.');

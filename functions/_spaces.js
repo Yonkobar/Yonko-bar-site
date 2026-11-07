@@ -12,3 +12,31 @@ export function spaceOf(type) {
   if (t.includes("taverne") || t.includes("table")) return "table";
   return null;
 }
+
+// Privatisation de la Cave : minimum de consommation selon le jour de la soirée.
+// Mardi et mercredi 500 €, jeudi 600 €, vendredi et samedi 700 €. Dimanche et lundi : sur devis.
+export const CAVE_MINIMUM_BY_WEEKDAY = { 2: 500, 3: 500, 4: 600, 5: 700, 6: 700 };
+
+export function caveMinimum(date) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date || ""))) return null;
+  const weekday = new Date(date + "T12:00:00Z").getUTCDay();
+  return CAVE_MINIMUM_BY_WEEKDAY[weekday] || null;
+}
+
+// Phrase envoyée au client (emails) : le montant exact du jour réservé.
+export function minConsoText(entry) {
+  const space = spaceOf(entry.type);
+  if (space === "cave") {
+    const min = caveMinimum(entry.date);
+    return min ? `Minimum de consommation : ${min} € pour la soirée.` : "Minimum de consommation : sur devis pour cette date.";
+  }
+  if (space === "bar") return "Privatisation sur devis — nous vous recontactons pour établir les conditions.";
+  if (space === "table") {
+    // Uniquement le vendredi et le samedi, au-delà de 6 personnes ; sinon pas de minimum.
+    const weekday = /^\d{4}-\d{2}-\d{2}$/.test(String(entry.date || "")) ? new Date(entry.date + "T12:00:00Z").getUTCDay() : null;
+    const guests = parseInt(entry.guests, 10) || 0;
+    if ((weekday === 5 || weekday === 6) && guests > 6) return `Minimum de consommation : 15 € par personne, soit ${guests * 15} € pour ${guests} personnes.`;
+    return "";
+  }
+  return "";
+}

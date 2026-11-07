@@ -1,3 +1,4 @@
+import { minConsoText, spaceOf } from "./_spaces.js";
 // Lien privé « Ma réservation », vue publique, annulation client et messagerie.
 // Le lien contient un jeton aléatoire ; la clé KV `tok:<jeton>` pointe vers l'id de la réservation.
 
@@ -176,9 +177,11 @@ export function mailClientReview(entry, env, reviewUrl) {
 
 // Demande envoyée depuis le site -> accusé de réception immédiat (avant toute acceptation).
 export function mailClientReceived(entry, env, origin) {
+  const conso = minConsoText(entry);
   const details = [entry.time ? `à ${esc(entry.time)}` : "", entry.guests ? `· ${esc(entry.guests)} personne${Number(entry.guests) > 1 ? "s" : ""}` : ""].filter(Boolean).join(" ");
   const body = `<p style="margin:0 0 12px">Bonjour ${esc(entry.name || "")},</p>
   <p style="margin:0 0 12px">Nous avons bien reçu votre demande de réservation pour le <b>${esc(dateFr(entry.date))}</b> ${details}.</p>
+  ${conso && spaceOf(entry.type) !== "table" ? `<p style="margin:0 0 12px;padding:10px 12px;background:#fff4e5;border-radius:8px">${esc(conso)}</p>` : ""}
   <p style="margin:0 0 12px">Elle n'est <b>pas encore confirmée</b> : l'équipe la vérifie et vous recevrez un email de confirmation très vite.</p>
   <p style="margin:0">Vous pouvez suivre votre demande ou nous écrire depuis votre page de réservation.</p>`;
   return sendMail(env, entry.email, "Nous avons bien reçu votre demande · Yonko Bar", simpleMail("Demande bien reçue", body, manageUrl(entry, env, origin), "Voir ma demande"), `received-${entry.id}`);
