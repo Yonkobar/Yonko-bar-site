@@ -176,6 +176,17 @@ export function mailClientRefused(entry, env, origin) {
   return sendMail(env, entry.email, "Réponse à votre demande de réservation · Yonko Bar", simpleMail("Demande de réservation refusée", body, manageUrl(entry, env, origin), "Voir ma demande"));
 }
 
+// Relance manuelle (bouton « Relancer » du dashboard) : le client n'a pas répondu à sa demande.
+export function mailClientReminder(entry, env, origin) {
+  const body = `<p style="margin:0 0 12px">Bonjour,</p>
+  <p style="margin:0 0 12px">J'espère que vous allez bien.</p>
+  <p style="margin:0 0 12px">Je n'ai pas encore eu de retour de votre part concernant votre demande.</p>
+  <p style="margin:0 0 12px">Je vous invite à confirmer rapidement votre réservation afin de bloquer la disponibilité dans notre établissement et vous assurer de la place.</p>
+  <p style="margin:0 0 12px">N'hésitez pas à revenir vers moi si vous avez des questions.</p>
+  <p style="margin:0">Merci pour votre retour et bonne journée !</p>`;
+  return sendMail(env, entry.email, "Votre demande de réservation au Yonko Bar", simpleMail("Votre demande de réservation", body, manageUrl(entry, env, origin), "Voir ma réservation"));
+}
+
 // Lendemain de la visite -> demande d'avis Google (une seule fois par réservation).
 export function mailClientReview(entry, env, reviewUrl) {
   const body = `<p style="margin:0 0 12px">Bonjour ${esc(entry.name || "")},</p>
