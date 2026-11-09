@@ -1,6 +1,6 @@
 // PATCH /api/reservations/:id
 import { computeDepositAmount, sendDepositEmail } from "../../_shared.js";
-import { ensureAccessToken, manageUrl } from "../../_access.js";
+import { ensureAccessToken, manageUrl, mailClientCancelled } from "../../_access.js";
 import { createStripeGuaranteeLink, sendGuaranteeEmail, expireCheckoutSession } from "../../_stripe-guarantee.js";
 
 const EDIT_LABELS = { date: "Date", time: "Heure", guests: "Personnes", type: "Espace", email: "Email" };
@@ -273,6 +273,18 @@ export async function onRequestPatch({ request, env, params }) {
       entry.emailSent = false;
       entry.confirmationEmailError = emailError;
       emailResult = { sent: false, reason: emailError };
+    }
+  }
+
+  // Annulation par l'équipe d'une réservation déjà confirmée : le client est prévenu par email.
+  // (Le refus d'une simple demande en attente n'envoie rien, comme avant.)
+  if (entry.status === "declined" && wasAccepted && entry.email) {
+    try {
+      const cancelMail = await mailClientCancelled(entry, env, new URL(request.url).origin);
+      if (cancelMail?.sent) entry.cancellationEmailSentAt = Date.now();
+      else entry.cancellationEmailError = String(cancelMail?.reason || "email_not_sent").slice(0, 500);
+    } catch (e) {
+      entry.cancellationEmailError = String(e?.message || e).slice(0, 500);
     }
   }
 

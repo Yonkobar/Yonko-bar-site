@@ -1,4 +1,5 @@
 import { buildEmailHtml } from "./_shared.js";
+import { htmlToText } from "./_mail-text.js";
 
 async function stripeRequest(path, env, params = null, method = "POST") {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
@@ -150,6 +151,7 @@ export async function sendGuaranteeEmail(entry, env, opts = {}) {
       to: [entry.email],
       subject: opts.subject || "Votre réservation au Yonko Bar — garantie",
       html,
+      text: htmlToText(html),
     }),
   });
 

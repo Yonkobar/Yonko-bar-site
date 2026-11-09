@@ -2,7 +2,7 @@
 // POST /api/my-reservation/:token  -> { action: "message", text } ou { action: "cancel" }
 import { loadByToken, publicView, addMessage, cancelDeadline, mailStaff, mailClientCancelled } from "../../_access.js";
 import { expireCheckoutSession, detachPaymentMethod } from "../../_stripe-guarantee.js";
-import { notifyNewMessage } from "../../_push.js";
+import { notifyNewMessage, notifyCancellation } from "../../_push.js";
 
 const headers = { "Content-Type": "application/json", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers });
@@ -61,6 +61,7 @@ export async function onRequestPost({ request, env, params, waitUntil }) {
     const note = entry.depositStatus === "deposee" ? "\n\nAttention : une caution avait été déposée au bar, à rendre au client." : "";
     later(mailStaff(entry, env, origin, "Réservation annulée par le client", "Le client a annulé sa réservation depuis sa page." + note));
     later(mailClientCancelled(entry, env, origin));
+    later(notifyCancellation(env, request, entry));
     return json(publicView(entry));
   }
 

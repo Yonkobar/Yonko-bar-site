@@ -171,3 +171,15 @@ test('Page client : un message envoie l’événement push (id + heure, jamais l
   assert.ok(!JSON.stringify(ev.body).includes('Secret'));
   assert.equal(ev.headers['x-app-origin'],'https://yonkobar.com');
 });
+test('Annulation client : une notification par annulation, sans donnée client', async () => {
+  const {sub,env}=await keys();const r=rig(env);
+  r.records.set('res:booking-9',JSON.stringify({id:'booking-9',createdAt:1}));
+  await r.obj.fetch(req('subscription',sub));r.obj.deliver=async()=>{};
+  const ev={id:'booking-9',createdAt:1,type:'cancel',at:5000};
+  await r.obj.fetch(req('event',ev));await r.obj.fetch(req('event',ev));
+  const jobs=Object.values(r.state().jobs);
+  assert.equal(jobs.length,1,'dédoublonné');
+  assert.equal(jobs[0].payload.title,'Yonko Bar · Réservation annulée');
+  assert.ok(jobs[0].payload.tag.startsWith('cancel-'));assert.equal(jobs[0].payload.url,'/dashboard');
+  assert.equal((await r.obj.fetch(req('event',{...ev,at:'x'}))).status,400);
+});

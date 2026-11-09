@@ -1,4 +1,5 @@
 import { minConsoText, spaceOf } from "./_spaces.js";
+import { htmlToText, wrapEmail } from "./_mail-text.js";
 // Lien privé « Ma réservation », vue publique, annulation client et messagerie.
 // Le lien contient un jeton aléatoire ; la clé KV `tok:<jeton>` pointe vers l'id de la réservation.
 
@@ -119,7 +120,7 @@ async function sendMail(env, to, subject, html, idempotencyKey = "") {
         // Resend ignore un second envoi avec la même clé (24 h) : protège contre un double envoi.
         ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
       },
-      body: JSON.stringify({ from: env.EMAIL_FROM || "Yonko Bar <reservations@yonkobar.com>", to: [to], subject, html }),
+      body: JSON.stringify({ from: env.EMAIL_FROM || "Yonko Bar <reservations@yonkobar.com>", to: [to], subject, html, text: htmlToText(html) }),
     });
     return res.ok ? { sent: true } : { sent: false, reason: (await res.text()).slice(0, 300) };
   } catch (e) {
@@ -128,7 +129,7 @@ async function sendMail(env, to, subject, html, idempotencyKey = "") {
 }
 
 function simpleMail(title, bodyHtml, buttonUrl, buttonLabel) {
-  return `<div style="background:#f4f1ec;padding:32px 16px;font-family:-apple-system,Helvetica,Arial,sans-serif">
+  return wrapEmail(`<div style="background:#f4f1ec;padding:32px 16px;font-family:-apple-system,Helvetica,Arial,sans-serif">
   <table role="presentation" width="100%" style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;border:1px solid #e6e1d8">
   <tr><td style="background:#171b20;padding:20px 24px;color:#ff7a1a;font-weight:700;letter-spacing:.14em;font-size:15px">YONKO BAR</td></tr>
   <tr><td style="padding:26px">
@@ -138,7 +139,7 @@ function simpleMail(title, bodyHtml, buttonUrl, buttonLabel) {
   <p style="font-size:13px;color:#78726a;margin:24px 0 0">L'équipe du Yonko Bar</p>
   </td></tr>
   <tr><td style="background:#f9f7f4;padding:14px;text-align:center;font-size:11px;color:#a39c90">Yonko Bar — 15 rue Monsieur le Prince, Paris</td></tr>
-  </table></div>`;
+  </table></div>`);
 }
 
 function dateFr(date) {
@@ -163,7 +164,7 @@ export function mailStaff(entry, env, origin, subject, text) {
 
 export function mailClientCancelled(entry, env, origin) {
   const body = `<p style="margin:0 0 12px">Bonjour ${esc(entry.name || "")},</p>
-  <p style="margin:0">Votre réservation du ${esc(dateFr(entry.date))}${entry.time ? " à " + esc(entry.time) : ""} est bien annulée.${entry.depositAmount ? " Votre carte de garantie ne sera pas débitée." : ""} À bientôt au Yonko !</p>`;
+  <p style="margin:0">Votre réservation du ${esc(dateFr(entry.date))}${entry.time ? " à " + esc(entry.time) : ""} est bien annulée.${entry.depositAmount && !["deposee", "debitee"].includes(entry.depositStatus) ? " Votre carte de garantie ne sera pas débitée." : ""} À bientôt au Yonko !</p>`;
   return sendMail(env, entry.email, "Annulation de votre réservation au Yonko Bar", simpleMail("Réservation annulée", body, "", ""));
 }
 

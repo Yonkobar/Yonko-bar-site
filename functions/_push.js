@@ -9,6 +9,12 @@ export function notifyNewMessage(env, request, entry, msg) {
   return sendEvent(env, request, {id: entry.id, createdAt: entry.createdAt, type: 'message', at: msg.at});
 }
 
+// Annulation par le client depuis sa page. Seuls l'identifiant et l'heure d'annulation sont transmis :
+// aucune donnée client. Un push worker plus ancien traite cet événement comme une réservation déjà connue.
+export function notifyCancellation(env, request, entry) {
+  return sendEvent(env, request, {id: entry.id, createdAt: entry.createdAt, type: 'cancel', at: entry.cancelledAt || Date.now()});
+}
+
 async function sendEvent(env, request, event) {
   if (!env.PUSH_SERVICE || !env.DASHBOARD_KEY) return;
   try {
