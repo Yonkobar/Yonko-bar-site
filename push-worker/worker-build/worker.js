@@ -475,6 +475,18 @@ var PushState = class {
         }
         return json({ ok: true });
       }
+      if (event.type === "cancel") {
+        if (!Number.isFinite(event.at)) return json({ error: "Invalid event" }, 400);
+        const cancelKey = `cancel:${event.id}:${event.at}`;
+        if (!state.seen[cancelKey]) {
+          const id = `cancel-${await digest(cancelKey)}`;
+          this.enqueue(state, id, { title: "Yonko Bar \xB7 R\xE9servation annul\xE9e", body: "Un client a annul\xE9 sa r\xE9servation. Ouvrez le tableau de bord pour voir laquelle.", tag: id, url: "/dashboard" });
+          state.seen[cancelKey] = true;
+          await this.save(state);
+          await this.deliver(state);
+        }
+        return json({ ok: true });
+      }
       const key = `res:${event.id}`;
       if (!state.seen[key]) {
         const id = `new-${await digest(key)}`;
