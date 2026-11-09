@@ -1,6 +1,6 @@
 // PATCH /api/reservations/:id
 import { computeDepositAmount, sendDepositEmail } from "../../_shared.js";
-import { ensureAccessToken, manageUrl, mailClientCancelled } from "../../_access.js";
+import { ensureAccessToken, manageUrl, mailClientCancelled, mailClientRefused } from "../../_access.js";
 import { createStripeGuaranteeLink, sendGuaranteeEmail, expireCheckoutSession } from "../../_stripe-guarantee.js";
 
 const EDIT_LABELS = { date: "Date", time: "Heure", guests: "Personnes", type: "Espace", email: "Email" };
@@ -220,6 +220,7 @@ export async function onRequestPatch({ request, env, params }) {
   }
 
   const wasAccepted = entry.status === "accepted";
+  const wasPending = entry.status === "pending";
 
   if (body.status && ["pending", "accepted", "declined"].includes(body.status)) {
     entry.status = body.status;
@@ -276,15 +277,17 @@ export async function onRequestPatch({ request, env, params }) {
     }
   }
 
-  // Annulation par l'équipe d'une réservation déjà confirmée : le client est prévenu par email.
-  // (Le refus d'une simple demande en attente n'envoie rien, comme avant.)
-  if (entry.status === "declined" && wasAccepted && entry.email) {
+  // Réservation refusée ou annulée par l'équipe : le client est toujours prévenu par email
+  // (demande en attente refusée, ou réservation déjà confirmée annulée). Une seule fois : pas d'email
+  // si elle était déjà refusée.
+  if (entry.status === "declined" && (wasAccepted || wasPending) && entry.email) {
     try {
-      const cancelMail = await mailClientCancelled(entry, env, new URL(request.url).origin);
-      if (cancelMail?.sent) entry.cancellationEmailSentAt = Date.now();
-      else entry.cancellationEmailError = String(cancelMail?.reason || "email_not_sent").slice(0, 500);
+      const origin = new URL(request.url).origin;
+      const mail = wasAccepted ? await mailClientCancelled(entry, env, origin) : await mailClientRefused(entry, env, origin);
+      if (mail?.sent) entry.declineEmailSentAt = Date.now();
+      else entry.declineEmailError = String(mail?.reason || "email_not_sent").slice(0, 500);
     } catch (e) {
-      entry.cancellationEmailError = String(e?.message || e).slice(0, 500);
+      entry.declineEmailError = String(e?.message || e).slice(0, 500);
     }
   }
 

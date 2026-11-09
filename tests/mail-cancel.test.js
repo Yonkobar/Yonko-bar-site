@@ -65,9 +65,11 @@ test('Annulation par le client : push « cancel » (sans donnée client) + email
   assert.ok(w.mails.some(m => m.to[0] === 'c@x.fr' && /Annulation de votre réservation/.test(m.subject)));
 });
 
-test('Annulation par l’équipe : email au client si la réservation était confirmée, rien pour une simple demande refusée', async () => {
+test('Annulation / refus par l’équipe : le client est toujours prévenu par email, une seule fois', async () => {
   const w = world();
+  // Réservation confirmée puis annulée : email d'annulation.
   const a = await book(w); await patch(w, a.id, {status: 'accepted'});
+  // Demande en attente refusée : email de refus.
   const b = await book(w, {name: 'Autre Client', email: 'b@x.fr'});
   w.mails.length = 0;
   assert.equal((await patch(w, a.id, {status: 'declined'})).status, 200);
@@ -76,7 +78,19 @@ test('Annulation par l’équipe : email au client si la réservation était con
   assert.match(w.mails[0].text, /est bien annulée/);
   w.mails.length = 0;
   assert.equal((await patch(w, b.id, {status: 'declined'})).status, 200);
-  assert.equal(w.mails.length, 0, 'refus d’une demande en attente : pas d’email (comportement inchangé)');
+  assert.equal(w.mails.length, 1);
+  assert.equal(w.mails[0].to[0], 'b@x.fr'); assert.match(w.mails[0].subject, /Réponse à votre demande de réservation/);
+  assert.match(w.mails[0].text, /Bonjour Autre Client/); assert.match(w.mails[0].text, /ne pouvons malheureusement pas y donner suite/);
+  assert.match(w.mails[0].text, /Voir ma demande : https:\/\/yonkobar\.com\/ma-reservation\?t=/);
+  assert.match(w.mails[0].html, /^<!doctype html>/i);
+  // Déjà refusée : aucun second email.
+  w.mails.length = 0;
+  assert.equal((await patch(w, b.id, {status: 'declined'})).status, 200);
+  assert.equal(w.mails.length, 0);
+  // Demande sans email : le refus passe, aucun email.
+  const c = await book(w, {name: 'Sans Mail', email: ''});
+  assert.equal((await patch(w, c.id, {status: 'declined'})).status, 200);
+  assert.equal(w.mails.length, 0);
 });
 
 test('Accueil : le minimum de la Cave est précis, plus de fourchette « 500 à 700 »', async () => {

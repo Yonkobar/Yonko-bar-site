@@ -168,6 +168,14 @@ export function mailClientCancelled(entry, env, origin) {
   return sendMail(env, entry.email, "Annulation de votre réservation au Yonko Bar", simpleMail("Réservation annulée", body, "", ""));
 }
 
+// Demande refusée par l'équipe -> email au client (une demande en attente que l'on ne peut pas honorer).
+export function mailClientRefused(entry, env, origin) {
+  const body = `<p style="margin:0 0 12px">Bonjour ${esc(entry.name || "")},</p>
+  <p style="margin:0 0 12px">Merci pour votre demande de réservation du ${esc(dateFr(entry.date))}${entry.time ? " à " + esc(entry.time) : ""}.</p>
+  <p style="margin:0 0 12px">Nous ne pouvons malheureusement pas y donner suite. Si une autre date vous convient, écrivez-nous ou appelez-nous au 09 74 64 02 98 : nous ferons au mieux pour vous accueillir.</p>`;
+  return sendMail(env, entry.email, "Réponse à votre demande de réservation · Yonko Bar", simpleMail("Demande de réservation refusée", body, manageUrl(entry, env, origin), "Voir ma demande"));
+}
+
 // Lendemain de la visite -> demande d'avis Google (une seule fois par réservation).
 export function mailClientReview(entry, env, reviewUrl) {
   const body = `<p style="margin:0 0 12px">Bonjour ${esc(entry.name || "")},</p>
