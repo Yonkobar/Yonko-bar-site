@@ -1,4 +1,4 @@
-import { minConsoText, spaceOf } from "./_spaces.js";
+import { minConsoText, spaceOf, caveMinimum } from "./_spaces.js";
 import { htmlToText, wrapEmail } from "./_mail-text.js";
 // Lien privé « Ma réservation », vue publique, annulation client et messagerie.
 // Le lien contient un jeton aléatoire ; la clé KV `tok:<jeton>` pointe vers l'id de la réservation.
@@ -185,7 +185,45 @@ export function mailClientReview(entry, env, reviewUrl) {
 }
 
 // Demande envoyée depuis le site -> accusé de réception immédiat (avant toute acceptation).
+// Privatisation de la cave du mardi au samedi : texte rédigé par le bar (conditions, karaoké, nourriture).
+// Le montant vient de la règle du site (caveMinimum) ; la fermeture à 2h ne concerne que jeudi, vendredi et samedi
+// (mardi et mercredi : minuit). Dimanche et lundi (sur devis) gardent l'email standard.
+function hasCaveTemplate(entry) {
+  return spaceOf(entry.type) === "cave" && caveMinimum(entry.date) !== null;
+}
+
+function caveRequestBody(entry) {
+  const weekday = new Date(entry.date + "T12:00:00Z").getUTCDay();
+  return `<p style="margin:0 0 12px">Bonjour,</p>
+  <p style="margin:0 0 12px">Merci pour la demande de réservation. Pour privatiser la cave nous demandons un minimum de consommation de ${caveMinimum(entry.date)} euros.</p>
+  <p style="margin:0 0 12px">Vous aurez la possibilité de passer votre musique ainsi qu'un karaoké disponible sur le pc en libre service mis à disposition. Vous aurez aussi accès aux consoles de jeux et jeux de sociétés, la salle est aménageable selon votre envie (décoration possible sauf confettis, guirlandes etc...).</p>
+  <p style="margin:0 0 12px">La nourriture et boissons extérieures ne sont pas admises sauf pour les gâteaux d'anniversaire. Prévoir vos assiettes et couverts ;)</p>
+  ${weekday >= 4 ? `<p style="margin:0 0 12px">Nous fermons à 2h du matin.</p>
+  ` : ""}<p style="margin:0">Bien cordialement</p>`;
+}
+
+// Table simple le samedi : texte rédigé par le bar. Uniquement quand le minimum de 15 €/pers. s'applique
+// (plus de 6 personnes, comme sur la page Réserver) ; sinon l'email standard est conservé.
+function hasTableSaturdayTemplate(entry) {
+  return spaceOf(entry.type) === "table"
+    && /^\d{4}-\d{2}-\d{2}$/.test(String(entry.date || ""))
+    && new Date(entry.date + "T12:00:00Z").getUTCDay() === 6
+    && (parseInt(entry.guests, 10) || 0) > 6;
+}
+
+function tableSaturdayBody() {
+  return `<p style="margin:0 0 12px">Bonjour,</p>
+  <p style="margin:0 0 12px">Merci pour la demande de réservation.<br>Nous avons de la place pour votre groupe au RDC.<br>Vous aurez accès aux consoles de jeux et jeux de sociétés.</p>
+  <p style="margin:0 0 12px">Pour la réservation, nous demandons un minimum de consommation de 15 euros/personnes.</p>
+  <p style="margin:0 0 12px">La nourriture et boissons extérieures ne sont pas admises sauf pour les gâteaux d'anniversaire. Prévoir vos assiettes et couverts ;)</p>
+  <p style="margin:0">Bien cordialement</p>`;
+}
+
 export function mailClientReceived(entry, env, origin) {
+  const custom = hasCaveTemplate(entry) ? caveRequestBody(entry) : hasTableSaturdayTemplate(entry) ? tableSaturdayBody() : "";
+  if (custom) {
+    return sendMail(env, entry.email, "Nous avons bien reçu votre demande · Yonko Bar", simpleMail("Demande bien reçue", custom, manageUrl(entry, env, origin), "Voir ma demande"), `received-${entry.id}`);
+  }
   const conso = minConsoText(entry);
   const details = [entry.time ? `à ${esc(entry.time)}` : "", entry.guests ? `· ${esc(entry.guests)} personne${Number(entry.guests) > 1 ? "s" : ""}` : ""].filter(Boolean).join(" ");
   const body = `<p style="margin:0 0 12px">Bonjour ${esc(entry.name || "")},</p>

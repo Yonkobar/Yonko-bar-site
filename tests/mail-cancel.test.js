@@ -22,6 +22,7 @@ function world() {
   return {mails, pushes, env, req};
 }
 const inDays = n => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+const nextDay = wd => { for (let i = 7; i < 14; i++) { const d = new Date(Date.now() + i * 864e5); if (d.getUTCDay() === wd) return d.toISOString().slice(0, 10); } };
 const nextFriday = () => { for (let i = 7; i < 14; i++) { const d = new Date(Date.now() + i * 864e5); if (d.getUTCDay() === 5) return d.toISOString().slice(0, 10); } };
 const book = async (w, extra = {}) => (await create({request: w.req('/api/reservations', 'POST', {name: 'Camille Martin', email: 'c@x.fr', date: inDays(10), time: '20:30', guests: '4', type: 'Taverne', ...extra}), env: w.env})).json();
 const patch = (w, id, body) => onRequestPatch({request: w.req('/api/reservations/' + id, 'PATCH', body, 'k'), env: w.env, params: {id}});
@@ -38,7 +39,7 @@ test('Emails : version texte brut, document HTML complet, logo hébergé (accus�
   const clientMails = w.mails.filter(m => m.to[0] === 'c@x.fr');
   assert.equal(clientMails.length, 2, 'accusé de réception + confirmation');
   for (const m of clientMails) {
-    assert.ok(m.text && m.text.includes('Bonjour Camille Martin'), 'version texte avec le contenu : ' + m.subject);
+    assert.ok(m.text && m.text.includes('Bonjour'), 'version texte avec le contenu : ' + m.subject);
     assert.match(m.html, /^<!doctype html>/i);
     assert.match(m.html, /charset="utf-8"/);
     assert.doesNotMatch(m.html, /data:image/, 'pas de logo en data: (bloqué par Gmail/Outlook)');
@@ -91,6 +92,55 @@ test('Annulation / refus par l’équipe : le client est toujours prévenu par e
   const c = await book(w, {name: 'Sans Mail', email: ''});
   assert.equal((await patch(w, c.id, {status: 'declined'})).status, 200);
   assert.equal(w.mails.length, 0);
+});
+
+test('Demande de privatisation de la cave (mar-sam) : email « demande bien reçue » avec le texte du bar, montant du jour', async () => {
+  const amounts = {2: 500, 3: 500, 4: 600, 5: 700, 6: 700};
+  for (const wd of [2, 3, 4, 5, 6]) {
+    const w = world();
+    await book(w, {date: nextDay(wd), type: 'Privatisation de la Cave', guests: '40'});
+    const m = w.mails.find(x => x.to[0] === 'c@x.fr');
+    assert.match(m.subject, /Nous avons bien reçu votre demande/);
+    for (const phrase of [
+      'Bonjour,',
+      `Merci pour la demande de réservation. Pour privatiser la cave nous demandons un minimum de consommation de ${amounts[wd]} euros.`,
+      'Vous aurez la possibilité de passer votre musique ainsi qu\'un karaoké disponible sur le pc en libre service mis à disposition.',
+      'Vous aurez aussi accès aux consoles de jeux et jeux de sociétés, la salle est aménageable selon votre envie (décoration possible sauf confettis, guirlandes etc...).',
+      'La nourriture et boissons extérieures ne sont pas admises sauf pour les gâteaux d\'anniversaire. Prévoir vos assiettes et couverts ;)',
+      'Bien cordialement',
+    ]) assert.ok(m.text.includes(phrase), `jour ${wd} : texte manquant : ${phrase}`);
+    assert.equal(m.text.includes('Nous fermons à 2h du matin.'), wd >= 4, `jour ${wd} : fermeture à 2h seulement du jeudi au samedi`);
+    assert.match(m.text, /Voir ma demande : https:\/\/yonkobar\.com\/ma-reservation\?t=/);
+  }
+});
+
+test('Demande de table simple le samedi (plus de 6 personnes) : email « demande bien reçue » avec le texte du bar', async () => {
+  const w = world();
+  await book(w, {date: nextDay(6), type: 'Taverne', guests: '8'});
+  const m = w.mails.find(x => x.to[0] === 'c@x.fr');
+  assert.match(m.subject, /Nous avons bien reçu votre demande/);
+  for (const phrase of [
+    'Bonjour,',
+    'Merci pour la demande de réservation.\nNous avons de la place pour votre groupe au RDC.\nVous aurez accès aux consoles de jeux et jeux de sociétés.',
+    'Pour la réservation, nous demandons un minimum de consommation de 15 euros/personnes.',
+    'La nourriture et boissons extérieures ne sont pas admises sauf pour les gâteaux d\'anniversaire. Prévoir vos assiettes et couverts ;)',
+    'Bien cordialement',
+  ]) assert.ok(m.text.includes(phrase), 'texte manquant : ' + phrase);
+  assert.doesNotMatch(m.text, /fermons|karaoké|cave/i);
+  assert.match(m.text, /Voir ma demande : https:\/\/yonkobar\.com\/ma-reservation\?t=/);
+});
+
+test('Autres demandes : texte standard pour une table le samedi à 6 personnes ou moins, une table le vendredi et la cave le dimanche (sur devis)', async () => {
+  const w = world();
+  await book(w, {date: nextDay(6), type: 'Taverne', guests: '4'});
+  await book(w, {date: nextDay(5), type: 'Taverne', guests: '8'});
+  await book(w, {date: nextDay(0), type: 'Privatisation de la Cave', guests: '40'});
+  const mails = w.mails.filter(x => x.to[0] === 'c@x.fr');
+  assert.equal(mails.length, 3);
+  for (const m of mails) {
+    assert.doesNotMatch(m.text, /Nous fermons à 2h du matin|Bien cordialement|Nous avons de la place/);
+    assert.match(m.text, /pas encore confirmée/);
+  }
 });
 
 test('Accueil : le minimum de la Cave est précis, plus de fourchette « 500 à 700 »', async () => {
