@@ -70,9 +70,9 @@ test('Formulaire du site : demande refusée un jour bloqué, acceptée pour un a
 test('Minimum de consommation exact selon le jour (Cave) et pour les grandes tables', async () => {
   const {caveMinimum, minConsoText} = await import('../functions/_spaces.js');
   // 10 nov. 2026 = mardi
-  for (const [date, min] of [['2026-11-10', 500], ['2026-11-11', 500], ['2026-11-12', 600], ['2026-11-13', 700], ['2026-11-14', 700], ['2026-11-15', null], ['2026-11-16', null]])
+  for (const [date, min] of [['2026-11-10', 500], ['2026-11-11', 500], ['2026-11-12', 500], ['2026-11-13', 600], ['2026-11-14', 700], ['2026-11-15', null], ['2026-11-16', null]])
     assert.equal(caveMinimum(date), min, date);
-  assert.equal(minConsoText({type: 'Privatisation de la Cave (500-700 euros min.)', date: '2026-11-12'}), 'Minimum de consommation : 600 € pour la soirée.');
+  assert.equal(minConsoText({type: 'Privatisation de la Cave (500-700 euros min.)', date: '2026-11-13'}), 'Minimum de consommation : 600 € pour la soirée.');
   assert.equal(minConsoText({type: 'Cave', date: '2026-11-11'}), 'Minimum de consommation : 500 € pour la soirée.');
   assert.match(minConsoText({type: 'Cave', date: '2026-11-15'}), /sur devis/);
   assert.equal(minConsoText({type: 'Taverne', date: '2026-11-13', guests: '10'}), 'Minimum de consommation : 15 € par personne, soit 150 € pour 10 personnes.');

@@ -46,7 +46,7 @@ test('Emails : version texte brut, document HTML complet, logo hébergé (accus�
     assert.doesNotMatch(m.text, /<[a-z][^>]*>/i, 'aucune balise dans le texte brut');
   }
   const confirm = clientMails.find(m => /^Votre réservation au Yonko Bar/.test(m.subject));
-  assert.match(confirm.text, /Minimum de consommation : 700 € pour la soirée\./);
+  assert.match(confirm.text, /Minimum de consommation : 600 € pour la soirée\./);
   assert.match(confirm.text, /Enregistrer ma carte de garantie — 250€ : https:\/\/checkout\.stripe\.com\/1/);
   assert.match(confirm.html, /yonkobar\.com\/icons\/logo-192\.png/);
 });
@@ -95,7 +95,7 @@ test('Annulation / refus par l’équipe : le client est toujours prévenu par e
 });
 
 test('Demande de privatisation de la cave (mar-sam) : email « demande bien reçue » avec le texte du bar, montant du jour', async () => {
-  const amounts = {2: 500, 3: 500, 4: 600, 5: 700, 6: 700};
+  const amounts = {2: 500, 3: 500, 4: 500, 5: 600, 6: 700};
   for (const wd of [2, 3, 4, 5, 6]) {
     const w = world();
     await book(w, {date: nextDay(wd), type: 'Privatisation de la Cave', guests: '40'});

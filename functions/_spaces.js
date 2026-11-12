@@ -14,8 +14,8 @@ export function spaceOf(type) {
 }
 
 // Privatisation de la Cave : minimum de consommation selon le jour de la soirée.
-// Mardi et mercredi 500 €, jeudi 600 €, vendredi et samedi 700 €. Dimanche et lundi : sur devis.
-export const CAVE_MINIMUM_BY_WEEKDAY = { 2: 500, 3: 500, 4: 600, 5: 700, 6: 700 };
+// Mardi, mercredi et jeudi 500 €, vendredi 600 €, samedi 700 €. Dimanche et lundi : sur devis.
+export const CAVE_MINIMUM_BY_WEEKDAY = { 2: 500, 3: 500, 4: 500, 5: 600, 6: 700 };
 
 export function caveMinimum(date) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date || ""))) return null;
