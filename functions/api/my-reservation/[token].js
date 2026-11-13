@@ -1,6 +1,6 @@
 // GET  /api/my-reservation/:token  -> vue client de la réservation (lien privé reçu par email)
 // POST /api/my-reservation/:token  -> { action: "message", text } ou { action: "cancel" }
-import { loadByToken, publicView, addMessage, cancelDeadline, mailStaff, mailClientCancelled } from "../../_access.js";
+import { loadByToken, publicView, addMessage, cancelDeadline, mailStaff, mailClientCancelled, needsPresence } from "../../_access.js";
 import { expireCheckoutSession, detachPaymentMethod } from "../../_stripe-guarantee.js";
 import { notifyNewMessage, notifyCancellation } from "../../_push.js";
 
@@ -33,6 +33,17 @@ export async function onRequestPost({ request, env, params, waitUntil }) {
     await env.RESERVATIONS.put(`res:${entry.id}`, JSON.stringify(entry));
     later(mailStaff(entry, env, origin, "Nouveau message d'un client", msg.text));
     later(notifyNewMessage(env, request, entry, msg));
+    return json(publicView(entry));
+  }
+
+  // Réservation sans caution : le client confirme qu'il viendra (action volontaire, jamais déclenchée par un simple lien).
+  if (body.action === "confirm_presence") {
+    if (entry.status === "declined") return json({ error: "Cette réservation est annulée." }, 409);
+    if (!needsPresence(entry)) return json({ error: "Rien à confirmer pour cette réservation." }, 409);
+    if (!entry.presenceConfirmedAt) {
+      entry.presenceConfirmedAt = Date.now();
+      await env.RESERVATIONS.put(`res:${entry.id}`, JSON.stringify(entry));
+    }
     return json(publicView(entry));
   }
 

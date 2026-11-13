@@ -57,11 +57,15 @@ test('Relance : accès protégé, et refusée si pas d’email, réservation ref
   // Sans email
   const noMail = await book(w, {email: ''});
   assert.equal((await relance(w, noMail.id)).status, 400);
-  // Acceptée sans caution : le client a déjà confirmé
+  // Acceptée sans caution : on attend que le client confirme sa venue, puis plus rien à relancer
   const b = await book(w, {name: 'Autre'});
   await onRequestPatch({request: w.req('/api/reservations/' + b.id, 'PATCH', {status: 'accepted'}, 'k'), env: w.env, params: {id: b.id}});
   w.mails.length = 0;
-  assert.equal((await relance(w, b.id)).status, 409);
+  assert.equal((await relance(w, b.id)).status, 200, 'sans caution et venue non confirmée : relance possible');
+  assert.match(w.mails.at(-1).subject, /confirmer votre venue/);
+  const sb = JSON.parse(w.data.get('res:' + b.id)); sb.presenceConfirmedAt = Date.now(); w.data.set('res:' + b.id, JSON.stringify(sb));
+  w.mails.length = 0;
+  assert.equal((await relance(w, b.id)).status, 409, 'venue confirmée : rien à relancer');
   // Refusée
   await onRequestPatch({request: w.req('/api/reservations/' + a.id, 'PATCH', {status: 'declined'}, 'k'), env: w.env, params: {id: a.id}});
   w.mails.length = 0;
@@ -82,7 +86,7 @@ test('Relance : acceptée avec caution non validée = relançable ; caution vali
 test('Dashboard : bouton « Relancer » branché sur l’endpoint, visible seulement quand le client doit répondre', async () => {
   const html = await fs.readFile(new URL('../dashboard.html', import.meta.url), 'utf8');
   assert.match(html, /action\('remind',e\.lastReminderAt\?'Relancer à nouveau':'Relancer'/);
-  assert.match(html, /e\.email&&e\.status!=='declined'&&\(e\.status==='pending'\|\|depositPending\(e\)\)/);
+  assert.match(html, /e\.email&&e\.status!=='declined'&&\(e\.status==='pending'\|\|depositPending\(e\)\|\|presencePending\(e\)\)/);
   assert.match(html, /case 'remind':await sendReminder\(entry\);break;/);
   assert.match(html, /\/\$\{entry\.id\}\/send-reminder/);
 });

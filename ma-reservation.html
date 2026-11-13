@@ -57,6 +57,7 @@
     </div></section>
     <div class="layout">
       <div class="main" style="display:flex;flex-direction:column;gap:24px">
+        <section class="panel-hl" id="presence" hidden></section>
         <section class="panel-hl" id="deposit" hidden></section>
         <section class="panel">
           <h2 style="margin:0 0 20px;font-size:20px">Suivi</h2>
@@ -114,7 +115,7 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
   var token = new URLSearchParams(location.search).get('t') || '';
   var api = '/api/my-reservation/' + encodeURIComponent(token);
   var $ = function(id){ return document.getElementById(id); };
-  var data = null, busy = false;
+  var data = null, busy = false, scrolledToPresence = false;
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function dateLong(d){ var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? new Date(Date.UTC(+m[1], +m[2]-1, +m[3], 12)).toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC'}) : ''; }
   function stamp(ms){ return ms ? new Date(ms).toLocaleString('fr-FR', {weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris'}) : ''; }
@@ -122,15 +123,25 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
   function space(t){ t = (t || '').toLowerCase(); return t.indexOf('privatisation') > -1 ? 'La Cave privatisée' : t.indexOf('bar entier') > -1 ? 'Le bar entier' : t.indexOf('taverne') > -1 ? 'La Taverne' : (data.type || '—'); }
   function dow(d){ var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? new Date(Date.UTC(+m[1], +m[2]-1, +m[3])).getUTCDay() : -1; }
   function render(){
-    var d = data, cancelled = d.status === 'declined', dep = d.deposit || {};
+    var d = data, cancelled = d.status === 'declined', dep = d.deposit || {}, pr = d.presence || {};
     var badge = $('status-badge');
     if (cancelled) { badge.className = 'badge off'; badge.textContent = 'Réservation annulée'; }
     else if (d.status === 'accepted' && dep.state === 'pending') { badge.className = 'badge wait'; badge.textContent = 'Confirmée · caution à enregistrer'; }
+    else if (d.status === 'accepted' && pr.required && !pr.confirmed) { badge.className = 'badge wait'; badge.textContent = 'Confirmée · venue à confirmer'; }
     else if (d.status === 'accepted') { badge.className = 'badge ok'; badge.textContent = 'Réservation confirmée'; }
     else { badge.className = 'badge pending'; badge.textContent = 'Demande en attente de confirmation'; }
     var day = dateLong(d.date);
     $('title').textContent = cancelled ? 'Réservation annulée' : d.status === 'accepted' ? 'À ' + day.split(' ')[0] + ', ' + d.firstName + ' !' : 'Merci ' + d.firstName + ', demande bien reçue';
     $('subtitle').textContent = [day, hour(d.time), d.guests ? d.guests + ' personne' + (Number(d.guests) > 1 ? 's' : '') : '', space(d.type)].filter(Boolean).join(' · ');
+    // Confirmation de venue (réservation sans caution)
+    var pbox = $('presence');
+    if (cancelled || !pr.required) { pbox.hidden = true; }
+    else {
+      pbox.hidden = false;
+      if (pr.confirmed) pbox.innerHTML = '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><h2 style="margin:0;font-size:20px">Venue confirmée</h2><span class="badge ok">Confirmée</span></div><p style="margin:12px 0 0;color:var(--sand)">Merci, on vous attend ! Un empêchement ? Annulez ou écrivez-nous ci-dessous.</p>';
+      else pbox.innerHTML = '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><h2 style="margin:0;font-size:20px">Confirmez votre venue</h2><span class="badge wait">À confirmer</span></div><p style="margin:12px 0 16px;color:var(--sand)">Pour que nous gardions votre place, merci de confirmer que vous viendrez. Un empêchement ? Annulez votre réservation ou écrivez-nous ci-dessous.</p><button type="button" class="btn btn-primary" id="a-presence">Je confirme ma venue</button><p class="err" id="presence-err" role="alert" style="margin:10px 0 0"></p>';
+      if (!scrolledToPresence && !pr.confirmed && /[?&]confirmer=1/.test(location.search)) { scrolledToPresence = true; pbox.scrollIntoView({block: 'center'}); }
+    }
     // Caution
     var box = $('deposit');
     if (dep.state === 'none' || cancelled && dep.state !== 'liberee') { box.hidden = true; }
@@ -149,6 +160,7 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
       steps.push(d.status === 'accepted' ? {done: true, t: 'Confirmée par l’équipe', s: d.confirmedAt ? stamp(d.confirmedAt) + ' · email envoyé' : ''} : {t: 'Confirmation par l’équipe', s: 'En général dans la journée'});
       if (dep.state === 'pending') steps.push({wait: true, t: 'Caution à enregistrer', s: 'Avant le jour J'});
       else if (dep.state === 'ok' || dep.state === 'deposee') steps.push({done: true, t: 'Caution validée', s: ''});
+      if (pr.required) steps.push(pr.confirmed ? {done: true, t: 'Venue confirmée', s: pr.confirmedAt ? stamp(pr.confirmedAt) : ''} : {wait: true, t: 'Confirmez votre venue', s: 'En un clic, en haut de cette page'});
       steps.push({t: day.charAt(0).toUpperCase() + day.slice(1) + (d.time ? ', ' + hour(d.time) : ''), s: 'On vous attend · ' + space(d.type)});
     }
     $('timeline').innerHTML = steps.map(function(x){ return '<li><span class="dot' + (x.done ? ' done' : x.wait ? ' wait' : '') + '">' + (x.done ? check : '') + '</span><span><strong>' + esc(x.t) + '</strong>' + (x.s ? '<br><span class="muted" style="font-size:14px">' + esc(x.s) + '</span>' : '') + '</span></li>'; }).join('');
@@ -195,6 +207,13 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     try { await post({action: 'message', text: text}); $('msg-text').value = ''; }
     catch (e) { $('msg-err').textContent = e.message; }
     finally { busy = false; $('msg-send').disabled = false; }
+  });
+  $('presence').addEventListener('click', async function(ev){
+    if (!ev.target || ev.target.id !== 'a-presence' || busy) return;
+    busy = true; ev.target.disabled = true;
+    try { await post({action: 'confirm_presence'}); }
+    catch (e) { var pe = $('presence-err'); if (pe) pe.textContent = e.message; ev.target.disabled = false; }
+    finally { busy = false; }
   });
   $('a-modify').onclick = function(){ var t = $('msg-text'); if (!t.value) t.value = 'Bonjour, je souhaiterais modifier ma réservation : '; t.focus(); t.setSelectionRange(t.value.length, t.value.length); t.scrollIntoView({block: 'center', behavior: 'smooth'}); };
   $('a-cancel').onclick = async function(){

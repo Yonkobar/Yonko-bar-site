@@ -75,6 +75,8 @@ async function handleEdit(entry, edit, request, env) {
   if (changed.length) {
     // Empêche la synchronisation Privateaser d'écraser une modification manuelle.
     entry.lockedFields = [...new Set([...(entry.lockedFields || []), ...changed])];
+    // Date ou heure modifiée : la confirmation de venue donnée pour l'ancien créneau ne vaut plus.
+    if (changed.includes("date") || changed.includes("time")) delete entry.presenceConfirmedAt;
     entry.modifiedAt = Date.now();
     entry.modifications = [...(entry.modifications || []).slice(-9), { at: entry.modifiedAt, before, after: Object.fromEntries(changed.map((k) => [k, next[k]])) }];
   }

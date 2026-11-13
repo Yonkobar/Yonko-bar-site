@@ -1,5 +1,6 @@
 import { spaceOf, minConsoText } from "./_spaces.js";
 import { htmlToText, wrapEmail } from "./_mail-text.js";
+import { needsPresence } from "./_access.js";
 // Vendredi (5) ou samedi (6), date au format AAAA-MM-JJ (jour calendaire, sans fuseau).
 export function isWeekendNight(dateStr) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ""));
@@ -68,6 +69,12 @@ export function buildEmailHtml(entry, opts = {}) {
             <p style="font-size:13.5px;color:#78726a;line-height:1.5;margin:0 0 16px">Pour finaliser, merci d'enregistrer une carte bancaire pour la caution${amount ? " de <b>" + amount + "</b>" : ""}. Rien n'est débité aujourd'hui : la somme ne sera prélevée qu'en cas d'absence non annoncée.</p>
             <table role="presentation" width="100%"><tr><td align="center">
               <a href="${escHtml(entry.depositLink)}" style="background:#ff6e00;color:#1c1c1c;font-weight:700;font-size:14px;padding:13px 26px;border-radius:8px;text-decoration:none;display:inline-block">Valider ma caution${amount ? " — " + amount : ""}</a>
+            </td></tr></table>
+          ` : ""}
+          ${!entry.depositLink && opts.manageUrl && needsPresence(entry) && !entry.presenceConfirmedAt ? `
+            <p style="font-size:13.5px;color:#78726a;line-height:1.5;margin:0 0 16px"><b style="color:#1a1a1a">Dernière étape : confirmez votre venue.</b> Pour que nous gardions votre place, merci de confirmer en un clic. Un empêchement ? Vous pouvez aussi annuler depuis votre réservation.</p>
+            <table role="presentation" width="100%"><tr><td align="center">
+              <a href="${escHtml(opts.manageUrl + "&confirmer=1")}" style="background:#ff6e00;color:#1c1c1c;font-weight:700;font-size:14px;padding:13px 26px;border-radius:8px;text-decoration:none;display:inline-block">Confirmer ma venue</a>
             </td></tr></table>
           ` : ""}
           ${opts.manageUrl ? `<p style="font-size:13px;color:#78726a;line-height:1.5;margin:22px 0 0">Suivez votre réservation, annulez-la jusqu'à 48 h avant ou écrivez-nous depuis votre espace :<br><a href="${escHtml(opts.manageUrl)}" style="color:#c25400;font-weight:600">Voir ma réservation</a></p>` : ""}

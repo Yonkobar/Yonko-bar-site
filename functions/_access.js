@@ -72,6 +72,23 @@ export function depositState(entry) {
   return entry.depositLink ? "pending" : "none";
 }
 
+// Réservation confirmée par l'équipe SANS caution : le client doit confirmer sa venue lui-même
+// (sinon rien ne l'engage). Pas pour les réservations Privateaser, gérées sur leur plateforme.
+export function needsPresence(entry) {
+  return entry.status === "accepted"
+    && !entry.depositLink
+    && !(Number(entry.depositAmount) > 0)
+    && !/privateaser/i.test(String(entry.source || ""));
+}
+
+// Lien de la page « Ma réservation » qui met le bouton « Confirmer ma venue » en avant.
+// Volontairement une page avec un bouton (et non un lien qui confirme tout seul) : les antivirus et
+// aperçus d'emails ouvrent les liens, et confirmeraient à la place du client.
+export function confirmPresenceUrl(entry, env, origin) {
+  const u = manageUrl(entry, env, origin);
+  return u ? `${u}&confirmer=1` : "";
+}
+
 // Ce que le client peut voir : jamais l'email, le téléphone, les notes internes ni les identifiants Stripe.
 export function publicView(entry, now = Date.now()) {
   const deadline = cancelDeadline(entry);
@@ -95,6 +112,11 @@ export function publicView(entry, now = Date.now()) {
       amount: entry.depositAmount || null,
       // Lien permanent (relatif, même site) : toujours valide, même si la page Stripe d'origine a expiré.
       link: deposit === "pending" && entry.accessToken ? `/api/caution/${entry.accessToken}` : "",
+    },
+    presence: {
+      required: !cancelled && needsPresence(entry),
+      confirmed: !!entry.presenceConfirmedAt,
+      confirmedAt: entry.presenceConfirmedAt || null,
     },
     cancelDeadline: deadline,
     canCancel: !cancelled && deadline !== null && now < deadline,
@@ -185,6 +207,13 @@ export function mailClientRefused(entry, env, origin) {
 
 // Relance manuelle (bouton « Relancer » du dashboard) : le client n'a pas répondu à sa demande.
 export function mailClientReminder(entry, env, origin) {
+  // Réservation confirmée sans caution : on relance pour la confirmation de venue.
+  if (needsPresence(entry)) {
+    const presenceBody = `<p style="margin:0 0 12px">Bonjour ${esc(entry.name || "")},</p>
+  <p style="margin:0 0 12px">Votre réservation du ${esc(dateFr(entry.date))}${entry.time ? " à " + esc(entry.time) : ""} est bien enregistrée.</p>
+  <p style="margin:0">Pour que nous gardions votre place, merci de confirmer votre venue en un clic. Un empêchement ? Vous pouvez aussi annuler depuis la même page.</p>`;
+    return sendMail(env, entry.email, "Merci de confirmer votre venue · Yonko Bar", simpleMail("Confirmez votre venue", presenceBody, confirmPresenceUrl(entry, env, origin), "Confirmer ma venue"));
+  }
   const body = `<p style="margin:0 0 12px">Bonjour,</p>
   <p style="margin:0 0 12px">J'espère que vous allez bien.</p>
   <p style="margin:0 0 12px">Je n'ai pas encore eu de retour de votre part concernant votre demande.</p>

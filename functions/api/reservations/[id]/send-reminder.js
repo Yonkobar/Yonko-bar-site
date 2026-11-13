@@ -1,6 +1,6 @@
 // POST /api/reservations/:id/send-reminder
 // Relance par email un client qui n'a pas encore répondu : demande en attente, ou caution pas encore validée.
-import { ensureAccessToken, mailClientReminder } from "../../../_access.js";
+import { ensureAccessToken, mailClientReminder, needsPresence } from "../../../_access.js";
 
 function cors() {
   return {
@@ -17,6 +17,7 @@ export async function onRequestOptions() {
 // Même règle que le bouton du dashboard : on attend une réponse du client.
 function awaitingClient(entry) {
   if (entry.status === "pending") return true;
+  if (needsPresence(entry)) return !entry.presenceConfirmedAt; // sans caution : on attend la confirmation de venue
   return !!entry.depositLink && !["autorisee", "debitee", "deposee"].includes(entry.depositStatus);
 }
 
