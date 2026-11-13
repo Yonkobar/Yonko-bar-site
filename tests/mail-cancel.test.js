@@ -46,8 +46,8 @@ test('Emails : version texte brut, document HTML complet, logo hébergé (accus�
     assert.doesNotMatch(m.text, /<[a-z][^>]*>/i, 'aucune balise dans le texte brut');
   }
   const confirm = clientMails.find(m => /^Votre réservation au Yonko Bar/.test(m.subject));
-  assert.match(confirm.text, /Minimum de consommation : 600 € pour la soirée\./);
-  assert.match(confirm.text, /Enregistrer ma carte de garantie — 250€ : https:\/\/checkout\.stripe\.com\/1/);
+  assert.match(confirm.text, /minimum de consommation de 600 euros\./);
+  assert.match(confirm.text, /Valider ma caution — 250 € : https:\/\/checkout\.stripe\.com\/1/);
   assert.match(confirm.html, /yonkobar\.com\/icons\/logo-192\.png/);
 });
 
@@ -147,4 +147,107 @@ test('Accueil : le minimum de la Cave est précis, plus de fourchette « 500 à 
   const html = await fs.readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.doesNotMatch(html, /500 (à|et|–|-) ?700/);
   assert.match(html, /500 € mardi et mercredi, 600 € jeudi, 700 € vendredi et samedi/);
+});
+
+
+// ——— Email de CONFIRMATION (acceptation) : mêmes textes du bar que l'accusé de réception ———
+const CAVE_PHRASES = [
+  'Vous aurez la possibilité de passer votre musique ainsi qu\'un karaoké disponible sur le pc en libre service mis à disposition.',
+  'Vous aurez aussi accès aux consoles de jeux et jeux de sociétés, la salle est aménageable selon votre envie (décoration possible sauf confettis, guirlandes etc...).',
+  'La nourriture et boissons extérieures ne sont pas admises sauf pour les gâteaux d\'anniversaire. Prévoir vos assiettes et couverts ;)',
+];
+const confirmationOf = (w) => w.mails.filter(m => m.to[0] === 'c@x.fr').find(m => /Votre réservation au Yonko Bar/.test(m.subject));
+
+test('Confirmation de la cave du mardi au samedi : texte du bar, minimum du jour, fermeture à 2h du jeudi au samedi', async () => {
+  const amounts = {2: 500, 3: 500, 4: 500, 5: 600, 6: 700};
+  for (const wd of [2, 3, 4, 5, 6]) {
+    const w = world();
+    const r = await book(w, {date: nextDay(wd), type: 'Privatisation de la Cave', guests: '40'});
+    assert.equal((await patch(w, r.id, {status: 'accepted'})).status, 200);
+    const m = confirmationOf(w);
+    assert.ok(m, `jour ${wd} : confirmation envoyée`);
+    assert.match(m.text, /Votre réservation au Yonko Bar est confirmée/);
+    assert.ok(m.text.includes(`Pour privatiser la cave nous demandons un minimum de consommation de ${amounts[wd]} euros.`), `jour ${wd} : minimum du jour`);
+    for (const phrase of CAVE_PHRASES) assert.ok(m.text.includes(phrase), `jour ${wd} : texte manquant : ${phrase}`);
+    assert.equal(m.text.includes('Nous fermons à 2h du matin.'), wd >= 4, `jour ${wd} : fermeture à 2h seulement du jeudi au samedi`);
+    assert.doesNotMatch(m.text, /Minimum de consommation :/, 'pas de doublon avec l’encart générique');
+    assert.doesNotMatch(m.text, /Karaoké disponible uniquement/, 'la note karaoké générique fait doublon avec le texte de la cave');
+    assert.doesNotMatch(m.text, /Merci pour la demande de réservation|Bien cordialement/, 'la confirmation ne reprend pas la formule de l’accusé de réception');
+  }
+});
+
+test('Confirmation de la cave avec caution : texte du bar + bouton « Valider ma caution », sans « carte de garantie »', async () => {
+  const w = world();
+  const r = await book(w, {date: nextFriday(), type: 'Privatisation de la Cave', guests: '40'});
+  await patch(w, r.id, {status: 'accepted'});
+  const m = confirmationOf(w);
+  assert.ok(m.text.includes('Pour privatiser la cave nous demandons un minimum de consommation de 600 euros.'));
+  assert.ok(m.text.includes('Nous fermons à 2h du matin.'));
+  assert.match(m.text, /Pour finaliser, merci d'enregistrer une carte bancaire pour la caution de 250 €\. Rien n'est débité aujourd'hui : la somme ne sera prélevée qu'en cas d'absence non annoncée\./);
+  assert.match(m.text, /Valider ma caution — 250 € : https:\/\/checkout\.stripe\.com\/1/);
+  assert.doesNotMatch(m.text + m.html + m.subject, /garantie/i);
+  // le texte du bar vient avant la demande de caution
+  assert.ok(m.text.indexOf('Pour privatiser la cave') < m.text.indexOf('Pour finaliser'));
+});
+
+test('Confirmation d’une table le samedi (plus de 6 personnes) : texte du bar ; sinon email standard', async () => {
+  const w = world();
+  const r = await book(w, {date: nextDay(6), type: 'Taverne', guests: '8'});
+  await patch(w, r.id, {status: 'accepted'});
+  const m = confirmationOf(w);
+  for (const phrase of [
+    'Nous avons de la place pour votre groupe au RDC.',
+    'Vous aurez accès aux consoles de jeux et jeux de sociétés.',
+    'Pour la réservation, nous demandons un minimum de consommation de 15 euros/personnes.',
+    'La nourriture et boissons extérieures ne sont pas admises sauf pour les gâteaux d\'anniversaire. Prévoir vos assiettes et couverts ;)',
+  ]) assert.ok(m.text.includes(phrase), 'texte manquant : ' + phrase);
+  assert.doesNotMatch(m.text, /Minimum de consommation :/);
+
+  const w2 = world();
+  const r2 = await book(w2, {date: nextDay(6), type: 'Taverne', guests: '4'});
+  await patch(w2, r2.id, {status: 'accepted'});
+  const std = confirmationOf(w2);
+  assert.doesNotMatch(std.text, /Nous avons de la place|15 euros/);
+  assert.match(std.text, /Votre réservation au Yonko Bar est confirmée/);
+});
+
+test('Confirmation de la cave un dimanche (sur devis) : email standard conservé', async () => {
+  const w = world();
+  const r = await book(w, {date: nextDay(0), type: 'Privatisation de la Cave', guests: '40'});
+  await patch(w, r.id, {status: 'accepted'});
+  const m = confirmationOf(w);
+  assert.match(m.text, /Minimum de consommation : sur devis pour cette date\./);
+  assert.doesNotMatch(m.text, /Pour privatiser la cave/);
+});
+
+test('Bouton « Renvoyer la confirmation » : même texte du bar que l’acceptation', async () => {
+  const {onRequestPost: sendConfirmation} = await import('../functions/api/reservations/[id]/send-confirmation.js');
+  const w = world();
+  const r = await book(w, {date: nextDay(3), type: 'Privatisation de la Cave', guests: '40'});
+  await patch(w, r.id, {status: 'accepted'});
+  w.mails.length = 0;
+  const res = await sendConfirmation({request: w.req('/x', 'POST', null, 'k'), env: w.env, params: {id: r.id}});
+  assert.equal(res.status, 200);
+  const m = w.mails.find(x => x.to[0] === 'c@x.fr');
+  assert.ok(m.text.includes('Pour privatiser la cave nous demandons un minimum de consommation de 500 euros.'));
+  assert.equal(m.text.includes('Nous fermons à 2h du matin.'), false, 'mercredi : fermeture à minuit');
+});
+
+test('Page de caution Stripe : phrase claire, sans « carte de garantie »', async () => {
+  const w = world();
+  const bodies = [];
+  const base = globalThis.fetch;
+  globalThis.fetch = async (url, opts = {}) => { if (String(url).endsWith('/v1/checkout/sessions')) bodies.push(String(opts.body)); return base(url, opts); };
+  const r = await book(w, {date: nextFriday(), type: 'Privatisation de la Cave', guests: '40'});
+  await patch(w, r.id, {status: 'accepted'});
+  assert.equal(bodies.length, 1);
+  const msg = new URLSearchParams(bodies[0]).get('custom_text[submit][message]');
+  assert.equal(msg, 'Rien n’est débité aujourd’hui. En validant, vous autorisez Yonko Bar à prélever jusqu’à 250 € sur cette carte en cas d’absence non annoncée, selon les conditions de réservation.');
+  assert.doesNotMatch(msg, /garantie/i);
+});
+
+test('Page « Ma réservation » : plus de « carte de garantie »', async () => {
+  const html = await fs.readFile(new URL('../ma-reservation.html', import.meta.url), 'utf8');
+  assert.doesNotMatch(html, /garantie/i);
+  assert.match(html, /Valider ma caution/);
 });

@@ -54,9 +54,10 @@ export async function createStripeGuaranteeLink(entry, amountEuros, origin, env)
   params.set("metadata[reservation_id]", entry.id);
   params.set("metadata[deposit_amount]", String(amountEuros));
 
+  // Texte affiché par Stripe sous le bouton de validation de la page de caution.
   const consent =
-    `En validant, vous autorisez Yonko Bar à enregistrer cette carte comme garantie ` +
-    `et à débiter jusqu’à ${amountEuros} € en cas de non-présentation selon les conditions de réservation.`;
+    `Rien n’est débité aujourd’hui. En validant, vous autorisez Yonko Bar à prélever jusqu’à ${amountEuros} € ` +
+    `sur cette carte en cas d’absence non annoncée, selon les conditions de réservation.`;
   params.set("custom_text[submit][message]", consent);
 
   const session = await stripeRequest("checkout/sessions", env, params);
@@ -76,7 +77,7 @@ export async function createStripeGuaranteeLink(entry, amountEuros, origin, env)
   return session.url;
 }
 
-// Expire une Checkout Session encore ouverte (lien de garantie remplacé).
+// Expire une Checkout Session encore ouverte (lien de caution remplacé).
 // Stripe refuse si la session est déjà complétée ou expirée : c'est sans conséquence.
 export async function expireCheckoutSession(sessionId, env) {
   if (!sessionId) return { expired: false, reason: "no_session" };
@@ -88,7 +89,7 @@ export async function expireCheckoutSession(sessionId, env) {
   }
 }
 
-// Retire la carte de garantie du client chez Stripe (plus aucun débit possible).
+// Retire la carte enregistrée pour la caution chez Stripe (plus aucun débit possible).
 export async function detachPaymentMethod(paymentMethodId, env) {
   if (!paymentMethodId) return { detached: false, reason: "no_payment_method" };
   try {
@@ -105,7 +106,7 @@ export async function retrieveSetupIntent(setupIntentId, env) {
 
 export async function chargeStripeGuarantee(entry, amountEuros, env) {
   if (!entry.stripeCustomerId || !entry.stripePaymentMethodId) {
-    throw new Error("Aucune carte de garantie enregistrée pour cette réservation.");
+    throw new Error("Aucune carte enregistrée pour la caution de cette réservation.");
   }
 
   const params = new URLSearchParams();
@@ -126,19 +127,8 @@ export async function sendGuaranteeEmail(entry, env, opts = {}) {
   if (!entry.email) return { sent: false, reason: "no_email" };
   if (!env.RESEND_API_KEY) return { sent: false, reason: "resend_not_configured" };
 
-  let html = buildEmailHtml(entry, opts);
-
-  html = html.replace(
-    /Pour finaliser, merci de valider votre caution ci-dessous\.[\s\S]*?absence non annoncée\.<\/p>/,
-    `Pour finaliser, merci d’enregistrer votre carte de garantie ci-dessous. ` +
-      `Aucun montant n’est débité aujourd’hui. En cas de non-présentation selon les conditions de réservation, ` +
-      `Yonko Bar pourra débiter jusqu’à <b>${entry.depositAmount || ""}€</b>.</p>`
-  );
-
-  html = html.replace(
-    /Valider ma caution(?: — [^<]+)?/,
-    `Enregistrer ma carte de garantie${entry.depositAmount ? " — " + entry.depositAmount + "€" : ""}`
-  );
+  // Le paragraphe et le bouton de caution sont dans buildEmailHtml (même texte avec ou sans lien Stripe).
+  const html = buildEmailHtml(entry, opts);
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -149,7 +139,7 @@ export async function sendGuaranteeEmail(entry, env, opts = {}) {
     body: JSON.stringify({
       from: env.EMAIL_FROM || "Yonko Bar <reservations@yonkobar.com>",
       to: [entry.email],
-      subject: opts.subject || "Votre réservation au Yonko Bar — garantie",
+      subject: opts.subject || "Votre réservation au Yonko Bar — caution à valider",
       html,
       text: htmlToText(html),
     }),

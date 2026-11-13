@@ -1,4 +1,4 @@
-import { spaceOf, minConsoText } from "./_spaces.js";
+import { spaceOf, minConsoText, bookingTemplate } from "./_spaces.js";
 import { htmlToText, wrapEmail } from "./_mail-text.js";
 // Vendredi (5) ou samedi (6), date au format AAAA-MM-JJ (jour calendaire, sans fuseau).
 export function isWeekendNight(dateStr) {
@@ -40,7 +40,12 @@ export function buildEmailHtml(entry, opts = {}) {
   const title = opts.title || "Réservation confirmée";
   const intro = opts.intro || "Votre réservation au Yonko Bar est confirmée. Voici le récapitulatif :";
   const datePart = formatDateFr(entry.date);
-  const minConso = minConsoText(entry);
+  // Cave mardi-samedi et table du samedi : textes du bar (minimum du jour, karaoké, nourriture, fermeture).
+  // Ils remplacent l'encart « minimum » et la note karaoké génériques, qui feraient doublon.
+  const tpl = bookingTemplate(entry);
+  const minConso = tpl ? "" : minConsoText(entry);
+  const showKaraoke = !(tpl && tpl.space === "cave");
+  const amount = entry.depositAmount ? escHtml(entry.depositAmount) + " €" : "";
   return wrapEmail(`
   <div style="background:#f4f1ec;padding:32px 16px;font-family:-apple-system,Helvetica,Arial,sans-serif">
     <table role="presentation" width="100%" style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e6e1d8">
@@ -60,12 +65,13 @@ export function buildEmailHtml(entry, opts = {}) {
             ${row("Personnes", escHtml(entry.guests || "?"))}
             ${entry.type ? row("Espace", escHtml(entry.type)) : ""}
           </table>
+          ${tpl ? tpl.paragraphs.map((p) => `<p style="font-size:14px;color:#1a1a1a;line-height:1.5;margin:0 0 12px">${p}</p>`).join("\n          ") : ""}
           ${minConso ? `<p style="font-size:13px;color:#1a1a1a;background:#fff1e6;border:1px solid #ffd9b8;border-radius:8px;padding:10px 14px;margin:0 0 18px">${minConso}</p>` : ""}
-          <p style="font-size:13px;color:#78726a;line-height:1.5;margin:0 0 18px">${KARAOKE_NOTE}</p>
+          ${showKaraoke ? `<p style="font-size:13px;color:#78726a;line-height:1.5;margin:0 0 18px">${KARAOKE_NOTE}</p>` : ""}
           ${entry.depositLink ? `
-            <p style="font-size:13.5px;color:#78726a;line-height:1.5;margin:0 0 16px">Pour finaliser, merci de valider votre caution ci-dessous. Le montant est simplement <b>autorisé</b> sur votre carte — il ne sera prélevé qu'en cas d'absence non annoncée.</p>
+            <p style="font-size:13.5px;color:#78726a;line-height:1.5;margin:0 0 16px">Pour finaliser, merci d'enregistrer une carte bancaire pour la caution${amount ? " de <b>" + amount + "</b>" : ""}. Rien n'est débité aujourd'hui : la somme ne sera prélevée qu'en cas d'absence non annoncée.</p>
             <table role="presentation" width="100%"><tr><td align="center">
-              <a href="${escHtml(entry.depositLink)}" style="background:#ff6e00;color:#1c1c1c;font-weight:700;font-size:14px;padding:13px 26px;border-radius:8px;text-decoration:none;display:inline-block">Valider ma caution${entry.depositAmount ? " — " + escHtml(entry.depositAmount) + "€" : ""}</a>
+              <a href="${escHtml(entry.depositLink)}" style="background:#ff6e00;color:#1c1c1c;font-weight:700;font-size:14px;padding:13px 26px;border-radius:8px;text-decoration:none;display:inline-block">Valider ma caution${amount ? " — " + amount : ""}</a>
             </td></tr></table>
           ` : ""}
           ${opts.manageUrl ? `<p style="font-size:13px;color:#78726a;line-height:1.5;margin:22px 0 0">Suivez votre réservation, annulez-la jusqu'à 48 h avant ou écrivez-nous depuis votre espace :<br><a href="${escHtml(opts.manageUrl)}" style="color:#c25400;font-weight:600">Voir ma réservation</a></p>` : ""}

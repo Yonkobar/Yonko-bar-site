@@ -23,6 +23,43 @@ export function caveMinimum(date) {
   return CAVE_MINIMUM_BY_WEEKDAY[weekday] || null;
 }
 
+// Textes rédigés par le bar, repris dans l'accusé de réception de la demande ET dans l'email de confirmation.
+//  - Cave du mardi au samedi : minimum du jour (caveMinimum), fermeture à 2h du jeudi au samedi.
+//  - Table simple le samedi, plus de 6 personnes (comme le minimum de la page Réserver).
+// Dimanche, lundi, bar entier et les autres tables : pas de texte dédié (null) -> emails standards.
+// `joiner` : séparateur entre « Merci pour la demande de réservation. » et le premier paragraphe (accusé de réception).
+const FOOD_RULE = "La nourriture et boissons extérieures ne sont pas admises sauf pour les gâteaux d'anniversaire. Prévoir vos assiettes et couverts ;)";
+
+export function bookingTemplate(entry) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(entry.date || ""))) return null;
+  const weekday = new Date(entry.date + "T12:00:00Z").getUTCDay();
+  const space = spaceOf(entry.type);
+  if (space === "cave") {
+    const min = caveMinimum(entry.date);
+    if (min === null) return null;
+    return {
+      space, joiner: " ",
+      paragraphs: [
+        `Pour privatiser la cave nous demandons un minimum de consommation de <b>${min} euros</b>.`,
+        "Vous aurez la possibilité de passer votre musique ainsi qu'un karaoké disponible sur le pc en libre service mis à disposition. Vous aurez aussi accès aux consoles de jeux et jeux de sociétés, la salle est aménageable selon votre envie (décoration possible sauf confettis, guirlandes etc...).",
+        FOOD_RULE,
+        ...(weekday >= 4 ? ["Nous fermons à 2h du matin."] : []),
+      ],
+    };
+  }
+  if (space === "table" && weekday === 6 && (parseInt(entry.guests, 10) || 0) > 6) {
+    return {
+      space, joiner: "<br>",
+      paragraphs: [
+        "Nous avons de la place pour votre groupe au RDC.<br>Vous aurez accès aux consoles de jeux et jeux de sociétés.",
+        "Pour la réservation, nous demandons un minimum de consommation de <b>15 euros/personnes</b>.",
+        FOOD_RULE,
+      ],
+    };
+  }
+  return null;
+}
+
 // Phrase envoyée au client (emails) : le montant exact du jour réservé.
 export function minConsoText(entry) {
   const space = spaceOf(entry.type);

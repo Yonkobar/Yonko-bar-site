@@ -35,7 +35,7 @@ export async function onRequestPost({ request, env, params }) {
 
   if (entry.depositGuaranteeStatus !== "enregistree") {
     return Response.json(
-      { error: "La carte de garantie n'est pas enregistrée ou a déjà été débitée." },
+      { error: "Aucune carte n'est enregistrée pour la caution, ou elle a déjà été débitée." },
       { status: 409, headers: cors() }
     );
   }
@@ -59,7 +59,7 @@ export async function onRequestPost({ request, env, params }) {
       {
         error: "stripe_charge_error",
         detail: String(e.message || e),
-        hint: "Si Stripe exige une nouvelle authentification du client, régénérez un lien de garantie.",
+        hint: "Si Stripe exige une nouvelle authentification du client, renvoyez un nouveau lien de caution.",
       },
       { status: 502, headers: cors() }
     );
