@@ -1,4 +1,5 @@
 import { buildEmailHtml } from "./_shared.js";
+import { cautionUrl } from "./_access.js";
 import { htmlToText } from "./_mail-text.js";
 
 async function stripeRequest(path, env, params = null, method = "POST") {
@@ -128,7 +129,9 @@ export async function sendGuaranteeEmail(entry, env, opts = {}) {
   if (!env.RESEND_API_KEY) return { sent: false, reason: "resend_not_configured" };
 
   // Le paragraphe et le bouton de caution sont dans buildEmailHtml (même texte avec ou sans lien Stripe).
-  const html = buildEmailHtml(entry, opts);
+  // Le bouton de l'email pointe vers le lien permanent du site (jamais directement vers Stripe, qui expire en 24 h).
+  const permanent = cautionUrl(entry, env, opts.manageUrl ? new URL(opts.manageUrl).origin : undefined);
+  const html = buildEmailHtml(permanent ? { ...entry, depositLink: permanent } : entry, opts);
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -148,5 +151,7 @@ export async function sendGuaranteeEmail(entry, env, opts = {}) {
   if (!res.ok) {
     return { sent: false, reason: (await res.text()).slice(0, 500) };
   }
+  // Le client a reçu un lien qui n'expire pas (le dashboard n'affiche plus « lien expiré » pour lui).
+  if (permanent) entry.depositLinkPermanent = true;
   return { sent: true };
 }

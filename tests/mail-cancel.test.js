@@ -47,7 +47,8 @@ test('Emails : version texte brut, document HTML complet, logo hébergé (accus�
   }
   const confirm = clientMails.find(m => /^Votre réservation au Yonko Bar/.test(m.subject));
   assert.match(confirm.text, /Minimum de consommation : 600 € pour la soirée\./);
-  assert.match(confirm.text, /Valider ma caution — 250 € : https:\/\/checkout\.stripe\.com\/1/);
+  assert.match(confirm.text, /Valider ma caution — 250 € : https:\/\/[^\s]+\/api\/caution\/[A-Za-z0-9_-]{20,}/);
+  assert.doesNotMatch(confirm.text + confirm.html, /checkout\.stripe\.com/);
   assert.match(confirm.html, /yonkobar\.com\/icons\/logo-192\.png/);
 });
 
@@ -186,7 +187,8 @@ test('Confirmation avec caution : nouvelle phrase, bouton « Valider ma caution 
   await patch(w, r.id, {status: 'accepted'});
   const m = confirmationOf(w);
   assert.match(m.text, /Pour finaliser, merci d'enregistrer une carte bancaire pour la caution de 250 €\. Rien n'est débité aujourd'hui : la somme ne sera prélevée qu'en cas d'absence non annoncée\./);
-  assert.match(m.text, /Valider ma caution — 250 € : https:\/\/checkout\.stripe\.com\/1/);
+  assert.match(m.text, /Valider ma caution — 250 € : https:\/\/[^\s]+\/api\/caution\/[A-Za-z0-9_-]{20,}/);
+  assert.doesNotMatch(m.text + m.html, /checkout\.stripe\.com/);
   assert.doesNotMatch(m.text + m.html + m.subject, /garantie/i);
   assert.equal(hasBarText(m), false);
 });

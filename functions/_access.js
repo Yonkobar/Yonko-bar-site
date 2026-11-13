@@ -15,6 +15,12 @@ export function manageUrl(entry, env, origin) {
   return entry.accessToken ? `${siteUrl(env, origin)}/ma-reservation?t=${entry.accessToken}` : "";
 }
 
+// Lien permanent de caution : il ne change jamais, et ouvre à chaque clic une page de paiement Stripe valide
+// (une Checkout Session Stripe, elle, se ferme au bout de 24 h maximum).
+export function cautionUrl(entry, env, origin) {
+  return entry.accessToken ? `${siteUrl(env, origin)}/api/caution/${entry.accessToken}` : "";
+}
+
 function randomToken() {
   const bytes = crypto.getRandomValues(new Uint8Array(24));
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -87,7 +93,8 @@ export function publicView(entry, now = Date.now()) {
     deposit: {
       state: deposit,
       amount: entry.depositAmount || null,
-      link: deposit === "pending" ? entry.depositLink : "",
+      // Lien permanent (relatif, même site) : toujours valide, même si la page Stripe d'origine a expiré.
+      link: deposit === "pending" && entry.accessToken ? `/api/caution/${entry.accessToken}` : "",
     },
     cancelDeadline: deadline,
     canCancel: !cancelled && deadline !== null && now < deadline,

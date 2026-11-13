@@ -52,7 +52,7 @@ test('B. Avec caution : changement de montant → ancien lien expiré, nouveau l
   assert.equal(s.stripeCheckoutSessionId, 'cs_new'); assert.equal(s.stripeCustomerId, 'cus_old');
   assert.equal(s.previousDeposits.at(-1).amount, 24);
   const mail = JSON.parse(t.calls.find(c => c.url.includes('resend')).body);
-  assert.match(mail.html, /checkout\.stripe\.com\/new/); assert.match(mail.html, /Réservation modifiée/);
+  assert.match(mail.html, /yonkobar\.com\/api\/caution\/[A-Za-z0-9_-]{20,}/, 'lien permanent du site'); assert.doesNotMatch(mail.html, /checkout\.stripe\.com/, 'jamais le lien Stripe direct (expire en 24 h)'); assert.match(mail.html, /Réservation modifiée/);
 });
 
 test('B2. Carte déjà enregistrée : remplacée (plus débitable), pas d’expire sur une session complétée', async () => {
@@ -142,7 +142,9 @@ test('Email de confirmation sans caution', async () => {
 
 test('Email de confirmation avec caution en attente : contient le lien', async () => {
   const {calls} = await confirm({...base, depositLink: 'https://checkout.stripe.com/abc', depositAmount: 24, depositStatus: 'lien_envoye'});
-  assert.match(JSON.parse(calls[0].body).html, /checkout\.stripe\.com\/abc/);
+  const html = JSON.parse(calls[0].body).html;
+  assert.match(html, /yonkobar\.com\/api\/caution\/[A-Za-z0-9_-]{20,}/, 'lien permanent du site');
+  assert.doesNotMatch(html, /checkout\.stripe\.com/, 'jamais le lien Stripe direct (expire en 24 h)');
 });
 
 test('Email de confirmation avec carte déjà enregistrée : sans lien', async () => {
