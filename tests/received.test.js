@@ -23,7 +23,7 @@ test('Demande du site avec email : accusé de réception « Demande bien reçue 
   assert.match(mails[0].html, /ma-reservation\?t=/);
 });
 
-test('Pas d’accusé de réception sans email, ni pour une réservation créée dans l’appli', async () => {
+test('Pas d’accusé de réception sans email, ni pour une réservation créée dans l’appli quand aucun texte du bar ne s’applique', async () => {
   let {env, mails} = setup(); let jobs = [];
   await onRequestPost({request: req(base), env, waitUntil: p => jobs.push(p)}); await Promise.all(jobs);
   assert.equal(mails.length, 0);

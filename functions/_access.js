@@ -197,7 +197,7 @@ export function mailClientReview(entry, env, reviewUrl) {
 
 // Demande envoyée depuis le site -> accusé de réception immédiat (avant toute acceptation).
 // Textes du bar par jour (cave mardi-samedi, table du samedi) : définis une seule fois dans _spaces.js
-// (bookingTemplate) et repris ici, dans l'accusé de réception, comme dans l'email de confirmation.
+// (bookingTemplate) et envoyés ici, dans l'accusé de réception, et nulle part ailleurs.
 // Dimanche et lundi (sur devis), bar entier et autres tables gardent l'email standard.
 function requestBody(entry) {
   const tpl = bookingTemplate(entry);

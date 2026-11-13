@@ -23,7 +23,8 @@ export function caveMinimum(date) {
   return CAVE_MINIMUM_BY_WEEKDAY[weekday] || null;
 }
 
-// Textes rédigés par le bar, repris dans l'accusé de réception de la demande ET dans l'email de confirmation.
+// Textes rédigés par le bar, envoyés une seule fois, dans l'accusé de réception de la demande (premier contact avec le client,
+// y compris pour une demande créée à la main dans le dashboard). Ils ne sont pas répétés dans l'email de confirmation.
 //  - Cave du mardi au samedi : minimum du jour (caveMinimum), fermeture à 2h du jeudi au samedi.
 //  - Table simple le samedi, plus de 6 personnes (comme le minimum de la page Réserver).
 // Dimanche, lundi, bar entier et les autres tables : pas de texte dédié (null) -> emails standards.

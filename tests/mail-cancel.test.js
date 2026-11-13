@@ -46,7 +46,7 @@ test('Emails : version texte brut, document HTML complet, logo hébergé (accus�
     assert.doesNotMatch(m.text, /<[a-z][^>]*>/i, 'aucune balise dans le texte brut');
   }
   const confirm = clientMails.find(m => /^Votre réservation au Yonko Bar/.test(m.subject));
-  assert.match(confirm.text, /minimum de consommation de 600 euros\./);
+  assert.match(confirm.text, /Minimum de consommation : 600 € pour la soirée\./);
   assert.match(confirm.text, /Valider ma caution — 250 € : https:\/\/checkout\.stripe\.com\/1/);
   assert.match(confirm.html, /yonkobar\.com\/icons\/logo-192\.png/);
 });
@@ -150,77 +150,64 @@ test('Accueil : le minimum de la Cave est précis, plus de fourchette « 500 à 
 });
 
 
-// ——— Email de CONFIRMATION (acceptation) : mêmes textes du bar que l'accusé de réception ———
+// ——— Les textes du bar partent UNE fois, dans l'accusé de réception de la demande, pas dans la confirmation ———
 const CAVE_PHRASES = [
-  'Vous aurez la possibilité de passer votre musique ainsi qu\'un karaoké disponible sur le pc en libre service mis à disposition.',
-  'Vous aurez aussi accès aux consoles de jeux et jeux de sociétés, la salle est aménageable selon votre envie (décoration possible sauf confettis, guirlandes etc...).',
-  'La nourriture et boissons extérieures ne sont pas admises sauf pour les gâteaux d\'anniversaire. Prévoir vos assiettes et couverts ;)',
+  'Pour privatiser la cave nous demandons',
+  'Vous aurez la possibilité de passer votre musique',
+  'Vous aurez aussi accès aux consoles de jeux et jeux de sociétés',
+  'La nourriture et boissons extérieures ne sont pas admises',
+  'Nous fermons à 2h du matin.',
 ];
-const confirmationOf = (w) => w.mails.filter(m => m.to[0] === 'c@x.fr').find(m => /Votre réservation au Yonko Bar/.test(m.subject));
+const TABLE_PHRASES = ['Nous avons de la place pour votre groupe au RDC.', '15 euros/personnes'];
+const clientMails = (w) => w.mails.filter(m => m.to[0] === 'c@x.fr');
+const receivedOf = (w) => clientMails(w).find(m => /Nous avons bien reçu votre demande/.test(m.subject));
+const confirmationOf = (w) => clientMails(w).find(m => /Votre réservation au Yonko Bar/.test(m.subject));
+const hasBarText = (m) => [...CAVE_PHRASES, ...TABLE_PHRASES].some(p => m.text.includes(p));
 
-test('Confirmation de la cave du mardi au samedi : texte du bar, minimum du jour, fermeture à 2h du jeudi au samedi', async () => {
+test('Cave du mardi au samedi : le texte du bar est dans l’accusé de réception, pas dans la confirmation', async () => {
   const amounts = {2: 500, 3: 500, 4: 500, 5: 600, 6: 700};
   for (const wd of [2, 3, 4, 5, 6]) {
     const w = world();
     const r = await book(w, {date: nextDay(wd), type: 'Privatisation de la Cave', guests: '40'});
+    assert.ok(receivedOf(w).text.includes(`un minimum de consommation de ${amounts[wd]} euros.`), `jour ${wd} : accusé avec le minimum du jour`);
     assert.equal((await patch(w, r.id, {status: 'accepted'})).status, 200);
     const m = confirmationOf(w);
     assert.ok(m, `jour ${wd} : confirmation envoyée`);
     assert.match(m.text, /Votre réservation au Yonko Bar est confirmée/);
-    assert.ok(m.text.includes(`Pour privatiser la cave nous demandons un minimum de consommation de ${amounts[wd]} euros.`), `jour ${wd} : minimum du jour`);
-    for (const phrase of CAVE_PHRASES) assert.ok(m.text.includes(phrase), `jour ${wd} : texte manquant : ${phrase}`);
-    assert.equal(m.text.includes('Nous fermons à 2h du matin.'), wd >= 4, `jour ${wd} : fermeture à 2h seulement du jeudi au samedi`);
-    assert.doesNotMatch(m.text, /Minimum de consommation :/, 'pas de doublon avec l’encart générique');
-    assert.doesNotMatch(m.text, /Karaoké disponible uniquement/, 'la note karaoké générique fait doublon avec le texte de la cave');
-    assert.doesNotMatch(m.text, /Merci pour la demande de réservation|Bien cordialement/, 'la confirmation ne reprend pas la formule de l’accusé de réception');
+    assert.equal(hasBarText(m), false, `jour ${wd} : la confirmation ne répète pas le texte du bar`);
+    assert.match(m.text, new RegExp(`Minimum de consommation : ${amounts[wd]} € pour la soirée\\.`));
+    assert.equal(clientMails(w).filter(hasBarText).length, 1, `jour ${wd} : le texte n’apparaît qu’une fois chez le client`);
   }
 });
 
-test('Confirmation de la cave avec caution : texte du bar + bouton « Valider ma caution », sans « carte de garantie »', async () => {
+test('Confirmation avec caution : nouvelle phrase, bouton « Valider ma caution », sans « carte de garantie », sans texte du bar', async () => {
   const w = world();
   const r = await book(w, {date: nextFriday(), type: 'Privatisation de la Cave', guests: '40'});
   await patch(w, r.id, {status: 'accepted'});
   const m = confirmationOf(w);
-  assert.ok(m.text.includes('Pour privatiser la cave nous demandons un minimum de consommation de 600 euros.'));
-  assert.ok(m.text.includes('Nous fermons à 2h du matin.'));
   assert.match(m.text, /Pour finaliser, merci d'enregistrer une carte bancaire pour la caution de 250 €\. Rien n'est débité aujourd'hui : la somme ne sera prélevée qu'en cas d'absence non annoncée\./);
   assert.match(m.text, /Valider ma caution — 250 € : https:\/\/checkout\.stripe\.com\/1/);
   assert.doesNotMatch(m.text + m.html + m.subject, /garantie/i);
-  // le texte du bar vient avant la demande de caution
-  assert.ok(m.text.indexOf('Pour privatiser la cave') < m.text.indexOf('Pour finaliser'));
+  assert.equal(hasBarText(m), false);
 });
 
-test('Confirmation d’une table le samedi (plus de 6 personnes) : texte du bar ; sinon email standard', async () => {
+test('Table du samedi (plus de 6 personnes) : texte du bar dans l’accusé seulement', async () => {
   const w = world();
   const r = await book(w, {date: nextDay(6), type: 'Taverne', guests: '8'});
+  assert.ok(receivedOf(w).text.includes('Nous avons de la place pour votre groupe au RDC.'));
   await patch(w, r.id, {status: 'accepted'});
-  const m = confirmationOf(w);
-  for (const phrase of [
-    'Nous avons de la place pour votre groupe au RDC.',
-    'Vous aurez accès aux consoles de jeux et jeux de sociétés.',
-    'Pour la réservation, nous demandons un minimum de consommation de 15 euros/personnes.',
-    'La nourriture et boissons extérieures ne sont pas admises sauf pour les gâteaux d\'anniversaire. Prévoir vos assiettes et couverts ;)',
-  ]) assert.ok(m.text.includes(phrase), 'texte manquant : ' + phrase);
-  assert.doesNotMatch(m.text, /Minimum de consommation :/);
-
-  const w2 = world();
-  const r2 = await book(w2, {date: nextDay(6), type: 'Taverne', guests: '4'});
-  await patch(w2, r2.id, {status: 'accepted'});
-  const std = confirmationOf(w2);
-  assert.doesNotMatch(std.text, /Nous avons de la place|15 euros/);
-  assert.match(std.text, /Votre réservation au Yonko Bar est confirmée/);
+  assert.equal(hasBarText(confirmationOf(w)), false);
+  assert.equal(clientMails(w).filter(hasBarText).length, 1);
 });
 
-test('Confirmation de la cave un dimanche (sur devis) : email standard conservé', async () => {
+test('Confirmation de la cave un dimanche (sur devis) : email standard', async () => {
   const w = world();
   const r = await book(w, {date: nextDay(0), type: 'Privatisation de la Cave', guests: '40'});
   await patch(w, r.id, {status: 'accepted'});
-  const m = confirmationOf(w);
-  assert.match(m.text, /Minimum de consommation : sur devis pour cette date\./);
-  assert.doesNotMatch(m.text, /Pour privatiser la cave/);
+  assert.match(confirmationOf(w).text, /Minimum de consommation : sur devis pour cette date\./);
 });
 
-test('Bouton « Renvoyer la confirmation » : même texte du bar que l’acceptation', async () => {
+test('Bouton « Renvoyer la confirmation » : pas de texte du bar non plus', async () => {
   const {onRequestPost: sendConfirmation} = await import('../functions/api/reservations/[id]/send-confirmation.js');
   const w = world();
   const r = await book(w, {date: nextDay(3), type: 'Privatisation de la Cave', guests: '40'});
@@ -228,9 +215,38 @@ test('Bouton « Renvoyer la confirmation » : même texte du bar que l’accepta
   w.mails.length = 0;
   const res = await sendConfirmation({request: w.req('/x', 'POST', null, 'k'), env: w.env, params: {id: r.id}});
   assert.equal(res.status, 200);
-  const m = w.mails.find(x => x.to[0] === 'c@x.fr');
-  assert.ok(m.text.includes('Pour privatiser la cave nous demandons un minimum de consommation de 500 euros.'));
-  assert.equal(m.text.includes('Nous fermons à 2h du matin.'), false, 'mercredi : fermeture à minuit');
+  const m = clientMails(w)[0];
+  assert.match(m.text, /Minimum de consommation : 500 € pour la soirée\./);
+  assert.equal(hasBarText(m), false);
+});
+
+test('Demande créée à la main dans le dashboard : le texte du bar part aussi, une seule fois, puis plus dans la confirmation', async () => {
+  const manual = (w, extra) => create({request: w.req('/api/reservations', 'POST', {name: 'Camille Martin', email: 'c@x.fr', date: nextDay(5), time: '21:00', guests: '40', type: 'Cave', manual: true, ...extra}, 'k'), env: w.env}).then(r => r.json());
+  const w = world();
+  const r = await manual(w);
+  const rec = receivedOf(w);
+  assert.ok(rec, 'accusé envoyé pour une demande manuelle');
+  assert.ok(rec.text.includes('Pour privatiser la cave nous demandons un minimum de consommation de 600 euros.'));
+  assert.ok(rec.text.includes('Nous fermons à 2h du matin.'));
+  await patch(w, r.id, {status: 'accepted'});
+  assert.equal(hasBarText(confirmationOf(w)), false);
+  assert.equal(clientMails(w).filter(hasBarText).length, 1, 'texte reçu une seule fois');
+
+  // table du samedi, plus de 6 personnes
+  const w2 = world();
+  await manual(w2, {date: nextDay(6), type: 'Table', guests: '9'});
+  assert.ok(receivedOf(w2).text.includes('15 euros/personnes'));
+
+  // pas de texte du bar pour ce cas (dimanche, table simple) : pas d'email à la création, comme avant
+  const w3 = world();
+  await manual(w3, {date: nextDay(0)});
+  await manual(w3, {date: nextDay(5), type: 'Table', guests: '4'});
+  assert.equal(clientMails(w3).length, 0);
+
+  // sans email : rien
+  const w4 = world();
+  await manual(w4, {email: ''});
+  assert.equal(w4.mails.length, 0);
 });
 
 test('Page de caution Stripe : phrase claire, sans « carte de garantie »', async () => {

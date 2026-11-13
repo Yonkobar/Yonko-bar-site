@@ -3,7 +3,7 @@ import { ensureAccessToken } from '../../_access.js';
 import { loadAllReservations } from '../../_kv.js';
 import { dueReviews, sendDueReviews } from '../../_reviews.js';
 import { loadBlocks, findBlock, blockMessage } from '../../_blocks.js';
-import { spaceOf } from '../../_spaces.js';
+import { spaceOf, bookingTemplate } from '../../_spaces.js';
 import { mailClientReceived } from '../../_access.js';
 // GET  /api/reservations  -> liste des réservations (protégé par x-dashboard-key)
 // POST /api/reservations  -> créer une réservation (appelé par le formulaire du site, public)
@@ -127,7 +127,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (waitUntil) waitUntil(notification); else await notification;
 
   // Demande venant du site : accusé de réception au client (la confirmation part à l'acceptation).
-  if (!fromDashboard && entry.email) {
+  // Demande créée à la main dans le dashboard : même accusé, uniquement quand un texte du bar existe pour ce cas
+  // (cave mardi-samedi, table du samedi à plus de 6 personnes) : c'est le premier contact avec le client.
+  if (entry.email && (!fromDashboard || bookingTemplate(entry))) {
     const received = mailClientReceived(entry, env, new URL(request.url).origin)
       .then((r) => { if (!r.sent) console.warn("Accusé de réception non envoyé", r.reason); })
       .catch((e) => console.warn("Accusé de réception non envoyé", e?.message));
