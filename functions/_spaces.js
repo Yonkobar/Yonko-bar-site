@@ -66,7 +66,8 @@ export function minConsoText(entry) {
   const space = spaceOf(entry.type);
   if (space === "cave") {
     const min = caveMinimum(entry.date);
-    return min ? `Minimum de consommation : ${min} € pour la soirée.` : "Minimum de consommation : sur devis pour cette date.";
+    // Dimanche et lundi (sur devis) : pas de minimum défini, donc aucune ligne « Minimum de consommation » dans les emails.
+    return min ? `Minimum de consommation : ${min} € pour la soirée.` : "";
   }
   if (space === "bar") return "Privatisation sur devis — nous vous recontactons pour établir les conditions.";
   if (space === "table") {

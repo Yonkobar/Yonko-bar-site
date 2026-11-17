@@ -1,5 +1,6 @@
 // POST /api/reservations/:id/send-confirmation
-// Envoie (ou renvoie) l'email « Réservation confirmée » au client, avec ou sans caution.
+// Envoie (ou renvoie) l'email de réservation au client, avec ou sans caution.
+// « Pré-confirmation » tant que le client n'a pas enregistré sa caution / confirmé sa venue ; « Réservation confirmée » ensuite.
 // Si une carte de garantie reste à enregistrer, l'email contient le lien de caution.
 import { sendDepositEmail } from "../../../_shared.js";
 import { sendGuaranteeEmail } from "../../../_stripe-guarantee.js";
@@ -40,8 +41,8 @@ export async function onRequestPost({ request, env, params }) {
   try {
     const pendingCard = entry.depositLink && !["autorisee", "debitee", "deposee"].includes(entry.depositStatus);
     emailResult = pendingCard
-      ? await sendGuaranteeEmail(entry, env, { subject: "Votre réservation au Yonko Bar est confirmée", manageUrl: mUrl })
-      : await sendDepositEmail({ ...entry, depositLink: "" }, env, { subject: "Votre réservation au Yonko Bar est confirmée", manageUrl: mUrl });
+      ? await sendGuaranteeEmail(entry, env, { manageUrl: mUrl })
+      : await sendDepositEmail({ ...entry, depositLink: "" }, env, { manageUrl: mUrl });
   } catch (e) {
     emailResult = { sent: false, reason: String(e?.message || e).slice(0, 500) };
   }

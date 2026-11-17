@@ -126,8 +126,8 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     var d = data, cancelled = d.status === 'declined', dep = d.deposit || {}, pr = d.presence || {};
     var badge = $('status-badge');
     if (cancelled) { badge.className = 'badge off'; badge.textContent = 'Réservation annulée'; }
-    else if (d.status === 'accepted' && dep.state === 'pending') { badge.className = 'badge wait'; badge.textContent = 'Confirmée · caution à enregistrer'; }
-    else if (d.status === 'accepted' && pr.required && !pr.confirmed) { badge.className = 'badge wait'; badge.textContent = 'Confirmée · venue à confirmer'; }
+    else if (d.status === 'accepted' && dep.state === 'pending') { badge.className = 'badge wait'; badge.textContent = 'Pré-confirmée · caution à enregistrer'; }
+    else if (d.status === 'accepted' && pr.required && !pr.confirmed) { badge.className = 'badge wait'; badge.textContent = 'Pré-confirmée · venue à confirmer'; }
     else if (d.status === 'accepted') { badge.className = 'badge ok'; badge.textContent = 'Réservation confirmée'; }
     else { badge.className = 'badge pending'; badge.textContent = 'Demande en attente de confirmation'; }
     var day = dateLong(d.date);
@@ -157,7 +157,7 @@ if(document.documentElement.classList.contains('anim'))document.querySelectorAll
     var steps = [{done: true, t: 'Demande reçue', s: stamp(d.createdAt)}];
     if (cancelled) steps.push({done: true, t: d.cancelledByClient ? 'Annulée à votre demande' : 'Réservation annulée', s: ''});
     else {
-      steps.push(d.status === 'accepted' ? {done: true, t: 'Confirmée par l’équipe', s: d.confirmedAt ? stamp(d.confirmedAt) + ' · email envoyé' : ''} : {t: 'Confirmation par l’équipe', s: 'En général dans la journée'});
+      steps.push(d.status === 'accepted' ? {done: true, t: (dep.state === 'pending' || (pr.required && !pr.confirmed)) ? 'Pré-confirmée par l’équipe' : 'Confirmée par l’équipe', s: d.confirmedAt ? stamp(d.confirmedAt) + ' · email envoyé' : ''} : {t: 'Confirmation par l’équipe', s: 'En général dans la journée'});
       if (dep.state === 'pending') steps.push({wait: true, t: 'Caution à enregistrer', s: 'Avant le jour J'});
       else if (dep.state === 'ok' || dep.state === 'deposee') steps.push({done: true, t: 'Caution validée', s: ''});
       if (pr.required) steps.push(pr.confirmed ? {done: true, t: 'Venue confirmée', s: pr.confirmedAt ? stamp(pr.confirmedAt) : ''} : {wait: true, t: 'Confirmez votre venue', s: 'En un clic, en haut de cette page'});

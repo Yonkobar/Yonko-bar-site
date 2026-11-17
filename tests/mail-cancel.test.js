@@ -45,7 +45,8 @@ test('Emails : version texte brut, document HTML complet, logo hébergé (accus�
     assert.doesNotMatch(m.html, /data:image/, 'pas de logo en data: (bloqué par Gmail/Outlook)');
     assert.doesNotMatch(m.text, /<[a-z][^>]*>/i, 'aucune balise dans le texte brut');
   }
-  const confirm = clientMails.find(m => /^Votre réservation au Yonko Bar/.test(m.subject));
+  const confirm = clientMails.find(m => /réservation au Yonko Bar/i.test(m.subject));
+  assert.match(confirm.subject, /^Pré-confirmation/, 'avec caution : pré-confirmation à l’acceptation');
   assert.match(confirm.text, /Minimum de consommation : 600 € pour la soirée\./);
   assert.match(confirm.text, /Valider ma caution — 250 € : https:\/\/[^\s]+\/api\/caution\/[A-Za-z0-9_-]{20,}/);
   assert.doesNotMatch(confirm.text + confirm.html, /checkout\.stripe\.com/);
@@ -162,7 +163,7 @@ const CAVE_PHRASES = [
 const TABLE_PHRASES = ['Nous avons de la place pour votre groupe au RDC.', '15 euros/personnes'];
 const clientMails = (w) => w.mails.filter(m => m.to[0] === 'c@x.fr');
 const receivedOf = (w) => clientMails(w).find(m => /Nous avons bien reçu votre demande/.test(m.subject));
-const confirmationOf = (w) => clientMails(w).find(m => /Votre réservation au Yonko Bar/.test(m.subject));
+const confirmationOf = (w) => clientMails(w).find(m => /réservation au Yonko Bar/i.test(m.subject));
 const hasBarText = (m) => [...CAVE_PHRASES, ...TABLE_PHRASES].some(p => m.text.includes(p));
 
 test('Cave du mardi au samedi : le texte du bar est dans l’accusé de réception, pas dans la confirmation', async () => {
@@ -174,7 +175,9 @@ test('Cave du mardi au samedi : le texte du bar est dans l’accusé de récepti
     assert.equal((await patch(w, r.id, {status: 'accepted'})).status, 200);
     const m = confirmationOf(w);
     assert.ok(m, `jour ${wd} : confirmation envoyée`);
-    assert.match(m.text, /Votre réservation au Yonko Bar est confirmée/);
+    assert.match(m.text, /Votre réservation au Yonko Bar est pré-confirmée/);
+    assert.match(m.text, /confirmée définitivement dès que votre caution sera enregistrée/);
+    assert.doesNotMatch(m.text, /est confirmée/, `jour ${wd} : pas « confirmée » tant que la caution n’est pas enregistrée`);
     assert.equal(hasBarText(m), false, `jour ${wd} : la confirmation ne répète pas le texte du bar`);
     assert.match(m.text, new RegExp(`Minimum de consommation : ${amounts[wd]} € pour la soirée\\.`));
     assert.equal(clientMails(w).filter(hasBarText).length, 1, `jour ${wd} : le texte n’apparaît qu’une fois chez le client`);
@@ -202,11 +205,14 @@ test('Table du samedi (plus de 6 personnes) : texte du bar dans l’accusé seul
   assert.equal(clientMails(w).filter(hasBarText).length, 1);
 });
 
-test('Confirmation de la cave un dimanche (sur devis) : email standard', async () => {
-  const w = world();
-  const r = await book(w, {date: nextDay(0), type: 'Privatisation de la Cave', guests: '40'});
-  await patch(w, r.id, {status: 'accepted'});
-  assert.match(confirmationOf(w).text, /Minimum de consommation : sur devis pour cette date\./);
+test('Pré-confirmation de la cave un dimanche ou un lundi (sur devis) : aucune ligne « Minimum de consommation »', async () => {
+  for (const wd of [0, 1]) {
+    const w = world();
+    const r = await book(w, {date: nextDay(wd), type: 'Privatisation de la Cave', guests: '40'});
+    await patch(w, r.id, {status: 'accepted'});
+    assert.doesNotMatch(confirmationOf(w).text, /Minimum de consommation/, `jour ${wd}`);
+    assert.doesNotMatch(receivedOf(w).text, /Minimum de consommation/, `jour ${wd} : accusé de réception`);
+  }
 });
 
 test('Bouton « Renvoyer la confirmation » : pas de texte du bar non plus', async () => {

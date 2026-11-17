@@ -126,7 +126,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   const notification = notifyNewReservation(env, request, entry);
   if (waitUntil) waitUntil(notification); else await notification;
 
-  // Demande venant du site : accusé de réception au client (la confirmation part à l'acceptation).
+  // Demande venant du site : accusé de réception au client (la pré-confirmation part à l'acceptation).
   // Demande créée à la main dans le dashboard : même accusé, uniquement quand un texte du bar existe pour ce cas
   // (cave mardi-samedi, table du samedi à plus de 6 personnes) : c'est le premier contact avec le client.
   if (entry.email && (!fromDashboard || bookingTemplate(entry))) {

@@ -1,6 +1,6 @@
 import { spaceOf, minConsoText } from "./_spaces.js";
 import { htmlToText, wrapEmail } from "./_mail-text.js";
-import { needsPresence } from "./_access.js";
+import { needsPresence, isFinallyConfirmed } from "./_access.js";
 // Vendredi (5) ou samedi (6), date au format AAAA-MM-JJ (jour calendaire, sans fuseau).
 export function isWeekendNight(dateStr) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ""));
@@ -38,8 +38,13 @@ function row(label, value) {
 const KARAOKE_NOTE = "Karaoké disponible uniquement en privatisation de la cave et lors des soirées organisées par l'établissement.";
 
 export function buildEmailHtml(entry, opts = {}) {
-  const title = opts.title || "Réservation confirmée";
-  const intro = opts.intro || "Votre réservation au Yonko Bar est confirmée. Voici le récapitulatif :";
+  // « Confirmée » seulement quand le client a confirmé sa venue ou enregistré sa caution ; avant : pré-confirmation.
+  const confirmed = isFinallyConfirmed(entry);
+  const awaiting = entry.depositLink || Number(entry.depositAmount) > 0 ? "dès que votre caution sera enregistrée" : "dès que vous aurez confirmé votre venue";
+  const title = opts.title || (confirmed ? "Réservation confirmée" : "Pré-confirmation de votre réservation");
+  const intro = opts.intro || (confirmed
+    ? "Votre réservation au Yonko Bar est confirmée. Voici le récapitulatif :"
+    : `Votre réservation au Yonko Bar est pré-confirmée : elle sera confirmée définitivement ${awaiting}. Voici le récapitulatif :`);
   const datePart = formatDateFr(entry.date);
   // Les textes du bar par jour (bookingTemplate) ne partent qu'une fois, dans l'accusé de réception de la demande.
   const minConso = minConsoText(entry);
@@ -103,7 +108,7 @@ export async function sendDepositEmail(entry, env, opts = {}) {
     body: JSON.stringify({
       from: env.EMAIL_FROM || "Yonko Bar <reservations@yonkobar.com>",
       to: [entry.email],
-      subject: opts.subject || "Votre réservation au Yonko Bar",
+      subject: opts.subject || (isFinallyConfirmed(entry) ? "Votre réservation au Yonko Bar est confirmée" : "Pré-confirmation de votre réservation au Yonko Bar"),
       html,
       text: htmlToText(html),
     }),

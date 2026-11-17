@@ -20,6 +20,7 @@ test('Demande du site avec email : accusé de réception « Demande bien reçue 
   assert.deepEqual(mails[0].to, ['camille@ex.fr']);
   assert.match(mails[0].subject, /bien reçu votre demande/);
   assert.match(mails[0].html, /pas encore confirmée/);
+  assert.match(mails[0].html, /email de pré-confirmation/);
   assert.match(mails[0].html, /ma-reservation\?t=/);
 });
 

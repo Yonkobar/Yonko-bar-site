@@ -142,7 +142,7 @@ export async function sendGuaranteeEmail(entry, env, opts = {}) {
     body: JSON.stringify({
       from: env.EMAIL_FROM || "Yonko Bar <reservations@yonkobar.com>",
       to: [entry.email],
-      subject: opts.subject || "Votre réservation au Yonko Bar — caution à valider",
+      subject: opts.subject || "Pré-confirmation de votre réservation au Yonko Bar — caution à valider",
       html,
       text: htmlToText(html),
     }),

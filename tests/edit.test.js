@@ -98,7 +98,9 @@ test('Non-régression : acceptation sans caution envoie toujours la confirmation
   const res = await (await t.patch({status: 'accepted'})).json();
   assert.equal(res.emailResult.sent, true); assert.equal(res.stripeError, null);
   assert.equal(t.calls.filter(c => c.url.includes('stripe')).length, 0);
-  assert.match(JSON.parse(t.calls[0].body).html, /Réservation confirmée/);
+  // Sans caution : pré-confirmation tant que le client n'a pas confirmé sa venue.
+  assert.match(JSON.parse(t.calls[0].body).html, /Pré-confirmation de votre réservation/);
+  assert.doesNotMatch(JSON.parse(t.calls[0].body).html, /Réservation confirmée/);
 });
 
 test('Taverne > 6 un mardi : pas de caution automatique, confirmation simple', async () => {
@@ -136,7 +138,7 @@ test('Email de confirmation sans caution', async () => {
   const {r, calls, t} = await confirm({...base});
   assert.equal(r.status, 200);
   const mail = JSON.parse(calls[0].body);
-  assert.match(mail.subject, /confirmée/); assert.match(mail.html, /Réservation confirmée/); assert.doesNotMatch(mail.html, /stripe/);
+  assert.match(mail.subject, /^Pré-confirmation/); assert.match(mail.html, /Pré-confirmation de votre réservation/); assert.doesNotMatch(mail.html, /Réservation confirmée/); assert.doesNotMatch(mail.html, /stripe/);
   assert.ok(t.saved.confirmationEmailSentAt);
 });
 
