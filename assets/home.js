@@ -152,7 +152,7 @@
       .formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
     return { j: { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[p.weekday], m: Number(p.hour) * 60 + Number(p.minute) };
   }
-  var H = { 2: [1050, 1440], 3: [1050, 1440], 4: [1050, 1560], 5: [1050, 1560], 6: [900, 1560] };
+  var H = { 2: [1050, 1440], 3: [1050, 1440], 4: [1050, 1560], 5: [1050, 1560], 6: [960, 1560] };
   var JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
   function hm(min) { min = min % 1440; var h = Math.floor(min / 60), m = min % 60; return h === 0 && m === 0 ? 'minuit' : h + 'h' + (m ? String(m).padStart(2, '0') : ''); }
   function duree(min) { return min >= 60 ? Math.floor(min / 60) + ' h ' + String(min % 60).padStart(2, '0') : min + ' min'; }
